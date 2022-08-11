@@ -1,4 +1,5 @@
 from flask import Flask, json, request 
+from flask import Flask, redirect, render_template, request, session
 
 
 app = Flask(__name__) 
@@ -6,4 +7,5 @@ app = Flask(__name__)
 @app.route('/') 
 def index(): 
 
-    return "<p>Hello, World!</p>"
+    return render_template("index.html")
+

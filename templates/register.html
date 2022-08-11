@@ -1,0 +1,113 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Register
+{% endblock %}
+
+{% block main %}
+    <form action="/register" method="post" name="register" onsubmit="return validateForm()">
+        <div class="mb-3">
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="username" name="username"  placeholder="Username" type="text"  minlength="" maxlength="30">
+        </div>
+        <div class="mb-3">
+            <input class="form-control mx-auto w-auto"  id="password" name="password" placeholder="Password" type="password"  minlength="" maxlength="30" >
+        </div>
+        <div class="mb-3">
+            <input class="form-control mx-auto w-auto" id="confirmation" name="confirmation" placeholder="Password (again)" type="password"  minlength="" maxlength="30" >
+        </div>
+        <button class="btn btn-primary" type="submit" id="button">Registr</button>
+        <p id="demo"></p>
+    </form>
+
+
+    <script>
+
+        function validateForm() {
+                let username = document.forms["register"]["username"].value;
+                let password = document.forms["register"]["password"].value;
+                let confirmation = document.forms["register"]["confirmation"].value;
+
+                if (username.length < 3 || username.length > 30) {
+                    document.getElementById("username").style.border = "1px solid red";
+                    alert("Username is not available. Use thrуe or more characters.");
+                    document.getElementById("username").focus()
+                    return false;
+                }
+                else {
+                    document.getElementById("username").style.border = "1px solid green";
+                    document.getElementById("button").focus()
+                }
+
+                if (checkUsernameInvalidSymbol(username)) {
+                    document.getElementById("username").style.border = "1px solid red";
+                    alert("Username contains an invalid character. Use upper and lower case characters of the English alphabet and digit from 0 to 9");
+                    document.getElementById("username").focus()
+                    return false;
+                }
+                else {
+                    document.getElementById("username").style.border = "1px solid green";
+                    document.getElementById("button").focus()
+                }
+
+                if (checkUsernameMastContain(username)) {
+                    document.getElementById("username").style.border = "1px solid red";
+                    alert("Username not contains alphabet character. Use upper or lower case characters of the English alphabet and digit from 0 to 9");
+                    document.getElementById("username").focus()
+                    return false;
+                }
+                else {
+                    document.getElementById("username").style.border = "1px solid green";
+                    document.getElementById("button").focus()
+                }
+
+                if (checkPasswordMastContain(password)) {
+                    document.getElementById("password").style.border = "1px solid red";
+                    alert("Password does not contain the necessary characters. Password mast contain at least one upper and lower case characters from English alphabet and one digit from 0 to 9 and one charecter from !, @, #, $, %, &, ?, -, +, =, ~.")
+                    document.getElementById("password").focus()
+                    return false;
+                }
+                else {
+                    document.getElementById("password").style.border = "1px solid green";
+                    document.getElementById("button").focus()
+                }
+
+                if (checkPasswordInvalidSymbol(password)) {
+                    document.getElementById("password").style.border = "1px solid red";
+                    alert("Password contains an invalid character.");
+                    document.getElementById("password").focus()
+                    return false;
+                }
+                else {
+                    document.getElementById("password").style.border = "1px solid green";
+                    document.getElementById("button").focus()
+                }
+
+                if (password.length < 6 || password.length > 30) {
+                    document.getElementById("password").style.border = "1px solid red";
+                    alert("Password is not available. Password mast be between 6 and 30 characters.");
+                    document.getElementById("password").focus()
+                    return false;
+                }
+                else {
+                    document.getElementById("password").style.border = "1px solid green";
+                    document.getElementById("button").focus()
+                }
+
+                if (password != confirmation) {
+                    document.getElementById("confirmation").style.border = "1px solid red";
+                    alert("Password confirmation is different.");
+                    document.getElementById("confirmation").focus()
+                    return false;
+                }
+                else {
+                    document.getElementById("confirmation").style.border = "1px solid green";
+                    document.getElementById("button").focus()
+                }
+                
+                    return true;
+            }
+
+    </script>
+    
+{% endblock %}
+
