@@ -1,14 +1,11 @@
 from flask import Flask, json, request 
-from cs50 import SQL
-from flask import Flask, redirect, render_template, request, session
-from flask_session import Session
-from werkzeug.security import check_password_hash, generate_password_hash
+import logging 
 
+logging.basicConfig(level=logging.DEBUG) 
 
 app = Flask(__name__) 
 
-
-
 @app.route('/') 
 def index(): 
+
     return "<p>Hello, World!</p>"
