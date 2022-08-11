@@ -8,47 +8,42 @@
     <table class="table table-striped"  style="margin:auto; width: 82%; text-align:right">
         <thead>
             <tr>
-                <th style="text-align:left">Symbol</th>
-                <th style="text-align:left">Name</th>
-                <th>Share</th>
-                <th>Price</th>
-                <th>TOTAL</th>
+                <th style="text-align:left">Должность</th>
+                <th style="text-align:left">Комп 1</th>
+                <th>Комп 2</th>
+                <th>Комп 3</th>
+                <th>Комп 4</th>
+                <th>Комп 5</th>
+                <th>Комп 6</th>
+                <th>Комп 7</th>
+                <th>Комп 8</th>
+                <th>Комп 9</th>
             </tr>
         </thead>
         <tbody>
             <tr> {% for name in listOfPapers %}
-                <td style="text-align:left">{{ name.symbol }} </td>
-                <td style="text-align:left">{{ name.name }}</td>
-                <td>{{ name.shares }}</td>
-                <td>{{ name.price }}</td>
-                <td>{{ name.total }}</td>
+                <td style="text-align:left">{{ name.competence_1 }} </td>
+                <td style="text-align:left">{{ name.competence_2 }}</td>
+                <td>{{ name.competence_3 }}</td>
+                <td>{{ name.competence_3 }}</td>
+                <td>{{ name.competence_4 }}</td>
+                <td>{{ name.competence_5 }}</td>
+                <td>{{ name.competence_6 }}</td>
+                <td>{{ name.competence_7 }}</td>
+                <td>{{ name.competence_8 }}</td>
+                <td>{{ name.competence_9 }}</td>
                 <td style="width:13%;">
-                    <div>
-                        <div style="float: right; ">
-                            <form action="/buyIndex" method="post">
-                                <input type="hidden" value="{{ name.symbol }}" name ="symbol">
-                                <button type="submit" style="background-color:rgb(196, 199, 196);">Buy</button>
-                            </form>
-                        </div>
-                        <div style="float: right;  margin-right: 2px;">
-                            <form action="/sellIndex" method="post">
-                                <input type="hidden" value="{{ name.symbol }}" name ="symbol">
-                                <button type="submit" style="background-color:rgb(196, 199, 196);">Sell</button>
-                            </form>
-                        </div>
-                    </div>
+                    
                     
                 </td>
             </tr>{% endfor %}
         </tbody>
         <tfoot>
             <tr>
-                <td style="text-align: right;"colspan="4"><b>Cash</b></td>
-                <td>{{ cash }}</td>
+                
             </tr>
             <tr>
-                <td style="text-align:right" colspan="4"><b> TOTAL</b></td>
-                <td>{{ total }}</td>
+                
         </tfoot>
     </table>   
 
