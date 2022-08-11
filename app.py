@@ -39,6 +39,17 @@ def after_request(response):
 @app.route("/")
 @login_required
 def index():
+    if session["user_status"] == "admin":
+        # передаем данные
+        # на всех путях проверять session[user_status]б чтобы не прошли просто по ссылке
+        return render_template("index")
+
+    if session["user_status"] == "manager":
+
+    if session["user_status"] == "couch":
+
+    #
+
     # user's balance
     cash = db.execute('SELECT * FROM users WHERE id = ?', session['user_id'])[0]['cash'] 
     # user's portfolio
