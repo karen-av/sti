@@ -132,6 +132,11 @@ def editSave():
         status  = request.form.get("status")
         position = request.form.get("position") 
 
+        # Проверка на существование пользователя
+        us = db.execute("SELECT username FROM users WHERE username = ?", username.lower())
+        if len(us) != 0:
+            return apology("User exist", 400)
+
         db.execute("UPDATE users SET name = ?, username = ?, hash = ?, status = ?, position = ?  WHERE id = ?", name, username, password, status, position, id)
         return redirect("/")
     else:
@@ -153,7 +158,7 @@ def delete():
 def register():
     if request.method == "POST" and session["user_status"] == "admin":
         name = request.form.get("name")
-        username = request.form.get("username")        
+        username = request.form.get("username").lower()        
         password = request.form.get("password")
         status = request.form.get("status")
         position = request.form.get("position")
@@ -180,11 +185,7 @@ def register():
         hash = password
         db.execute("INSERT INTO users (name, username, hash, status, position) VALUES(?, ?, ?, ?, ?)", name, username, hash, status, position)
         
-        # Remember which user has logged in
-       # session["user_id"] = db.execute("SELECT * FROM users WHERE username = ?", username)[0]["id"]
-       # session["user_name"] = db.execute("SELECT * FROM users WHERE username = ?", username)[0]["username"]
-       # session['user_status'] = db.execute("SELECT * FROM users WHERE username = ?", username)[0]["status"]
-        # Redirect user to home page
+       
         return redirect("/")
     else:
         return redirect("/")
