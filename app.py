@@ -39,11 +39,8 @@ def index():
         return render_template("admin.html", users = users)
      
 
-    if session["user_status"] == "manager":
+    elif session["user_status"] == "manager":
         return render_template("index.html")
-
-
-    #if session["user_status"] == "couch":
 
     else:
         return render_template("index.html")
@@ -133,11 +130,8 @@ def editSave():
         password = request.form.get("password")
         status  = request.form.get("status")
         position = request.form.get("position") 
-        
-        
+
         db.execute("UPDATE users SET name = ?, username = ?, hash = ?, status = ?, position = ?  WHERE id = ?", name, username, password, status, position, id)
-       
-       
         return redirect("/")
     else:
         return redirect("/")
