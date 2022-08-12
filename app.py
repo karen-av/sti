@@ -1,4 +1,5 @@
 import datetime
+from turtle import position
 from cs50 import SQL
 import sqlite3
 from flask import Flask, redirect, render_template, request, session
@@ -21,7 +22,7 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 # Configure CS50 Library to use SQLite database
-db = SQL("sqlite:///finance.db")
+db = SQL("sqlite:///sti.db")
 
 # Make sure API key is set
 #if not os.environ.get("API_KEY"):
@@ -39,30 +40,20 @@ def after_request(response):
 @app.route("/")
 @login_required
 def index():
-    #if session["user_status"] == "admin":
-        # передаем данные
+    if session["user_status"] == "admin":
+        users = db.execute("SELECT * FROM users")
         # на всех путях проверять session[user_status]б чтобы не прошли просто по ссылке
-     #   return render_template("index")
+        return render_template("admin.html", users = users)
+     
 
-    #if session["user_status"] == "manager":
+    if session["user_status"] == "manager":
+        return render_template("index.html")
+
 
     #if session["user_status"] == "couch":
 
-    #
-
-    # user's balance
-    cash = db.execute('SELECT * FROM users WHERE id = ?', session['user_id'])[0]['cash'] 
-    # user's portfolio
-    paper = db.execute("SELECT * FROM portfolio WHERE user_id = ?", session["user_id"]) 
-    
-    # value user's portfolio
-    total = 0
-    
-    listOfPapers = []
-   
-   
-
-    return render_template("index.html")
+    else:
+        return render_template("index.html")
 
 
         # create table portfolio (id INTEGER NOT NULL, user_id INTEGER NOT NULL, symbol_prt TEXT NOT NULL, name_prt TEXT, shares_prt INTEGER NOT NULL, PRIMARY KEY(id), FOREIGN KEY(user_id) REFERENCES users(id));
@@ -92,12 +83,14 @@ def login():
         rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username"))
 
         # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
+        #if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
+        if len(rows) != 1 or not request.form.get("password") in rows[0]["hash"]:
             return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
         session["user_id"] = rows[0]["id"]
         session["user_name"] = rows[0]["username"]
+        session["user_status"] = rows[0]["status"]
 
 
         # Redirect user to home page
@@ -119,25 +112,67 @@ def logout():
     return redirect("/")
 
 
+@app.route("/edit", methods = ["POST"])
+@login_required
+def edit():
+    if request.method == "POST" and session["user_status"] == "admin":
+        userId = request.form.get("user_id")
+        print(userId)
+        userData = db.execute("SELECT * FROM users WHERE id = ?", userId)
+        print(userData)
+        id = userData[0]['id']
+        name = userData[0]['name']
+        username = userData[0]['username']
+        password = userData[0]['hash']
+        status  = userData[0]['status']
+        position = userData[0]['position']
+        return render_template("edit.html", id = id, name= name, username = username, password = password, status = status, position = position)
+    else:
+        return redirect("/")
+
+@app.route("/editSave", methods = ["POST"])
+@login_required
+def editSave():
+    if request.method == "POST" and session["user_status"] == "admin":
+        id = request.form.get("id")
+        name = request.form.get("name")
+        username = request.form.get("username")
+        password = request.form.get("password")
+        status  = request.form.get("status")
+        position = request.form.get("position") 
+        print(id)
+        print(f" user name {name}")
+        
+        db.execute("UPDATE users SET name = ?, username = ?, hash = ?, status = ?, position = ?  WHERE id = ?", name, username, password, status, position, id)
+       
+       
+        return redirect("/")
+    else:
+        return redirect("/")
+
 
 
 @app.route("/register", methods=["GET", "POST"])
+@login_required
 def register():
-    if request.method == "POST":
+    if request.method == "POST" and session["user_status"] == "admin":
+        name = request.form.get("name")
         username = request.form.get("username")        
         password = request.form.get("password")
-        confirmation = request.form.get("confirmation")
-
+        status = request.form.get("status")
+        position = request.form.get("position")
+       
+        if not name:
+            return apology("Invalid name", 403)
         if not username or checkUsername(username):
             return apology("Invalid username", 403)
-        if not username or checkUsernameMastContain(username):
+        if checkUsernameMastContain(username):
             return apology("Usename not contain symbol from alphabet")
         if  not password or checkPassword(password):
             return apology("Invalid password", 403)
         if not password or checkPasswordBadSymbol(password):
             return apology("Invalid password 2", 403)
-        if  not confirmation or password != confirmation:
-            return apology("Invalid confirmation", 403)
+        
         
         # Проверка на существование пользователя
         us = db.execute("SELECT username FROM users WHERE username = ?", username)
@@ -145,15 +180,18 @@ def register():
             return apology("User exist", 400)
 
         # Добавляем пользователя и хеш пароля в бд
-        db.execute("INSERT INTO users (username, hash) VALUES(?, ?)", username, generate_password_hash(password, "pbkdf2:sha256"))
+        #hash = generate_password_hash(password, "pbkdf2:sha256")
+        hash = password
+        db.execute("INSERT INTO users (name, username, hash, status, position) VALUES(?, ?, ?, ?, ?)", name, username, hash, status, position)
         
         # Remember which user has logged in
-        session["user_id"] = db.execute("SELECT * FROM users WHERE username = ?", username)[0]["id"]
-        session["user_name"] = db.execute("SELECT * FROM users WHERE username = ?", username)[0]["username"]
+       # session["user_id"] = db.execute("SELECT * FROM users WHERE username = ?", username)[0]["id"]
+       # session["user_name"] = db.execute("SELECT * FROM users WHERE username = ?", username)[0]["username"]
+       # session['user_status'] = db.execute("SELECT * FROM users WHERE username = ?", username)[0]["status"]
         # Redirect user to home page
         return redirect("/")
     else:
-        return render_template("register.html")
+        return redirect("/")
 
 
 #function check password
