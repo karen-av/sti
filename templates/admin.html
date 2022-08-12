@@ -18,7 +18,8 @@
             </tr>
         </thead>
         <tbody>
-            <tr> {% for user in users %}
+            {% for user in users %}
+            <tr> 
                 <td style="text-align:left">{{ user.id }} </td>
                 <td style="text-align:left">{{ user.name }}</td>
                 <td>{{ user.username }}</td>
@@ -28,43 +29,65 @@
                 <td style="width:13%;"> <div style="float: left; ">
                     <form action="/edit" method="post">
                         <input type="hidden" value="{{ user.id }}" name ="user_id">
-                        <button type="submit" style="background-color:rgb(196, 199, 196);">Edit</button>
+                        <button class="btn btn-primary" type="submit">Edit</button>
                     </form>
                 </div>
                 </td>
-            </tr>{% endfor %}
-        </tbody>
-    </table>   
-    <p></p> 
-    <form action="/register" method="post" name="register" onsubmit="return validateForm()">
-        <table class="table table-striped"  style="margin:auto; width: 82%; text-align:left">
-            <tbody>
-                <tr> 
-                <td><input autocomplete="off" id="name" name="name"  placeholder="Name" type="text"  minlength="" maxlength="30"></td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <form action="/register" method="post" name="register" onsubmit="return validateForm()">
+                <td></td>
+                <td><input  autocomplete="off" id="name" name="name"  placeholder="ФИО" type="text"  minlength="" maxlength="30" ></td>
                 <td><input autocomplete="off" id="username" name="username"  placeholder="Username" type="text"  minlength="" maxlength="30"></td>
                 <td><input autocomplete="off" id="password" name="password" placeholder="Password" type="password"  minlength="" maxlength="30" ></td>
-                <td><input autocomplete="off" id="status" name="status"  placeholder="Status" type="text"  minlength="" maxlength="30"></td>
-                <td><input autocomplete="off" id="position" name="position"  placeholder="Position" type="text"  minlength="" maxlength="30"></td>
-                </tr> 
-            </tbody>
-        </table> 
-        <div>
-            <button class="btn btn-primary" type="submit" id="button" >Registr</button>
-    <p id="demo"></p>
-        </div>
-    
-    </form>
-    <p></p>        
+                <td>
+                    <select name="status" class="table table-striped">
+                        <option disabled selected>Status</option>
+                        <option>admin</option>
+                        <option>couch</option>
+                        <option>manager</option>
+                    </select>
+                </td>
+                <td>
+                    <select name="position" class="table table-striped">
+                        <option disabled selected>Position</option>
+                        <option>Директор</option>
+                        <option>Логист</option>
+                        <option>Повар</option>
+                    </select>
+                </td>
+                <td>
+                    <button class="btn btn-primary" type="submit" id="button" >Add</button>
+                    <p id="demo"></p>
+                </td>
+            </tr>  
+            </form>
+        </tbody>
+    </table>   
+          
     
     <script>
                 function validateForm() {
+                        let name = document.forms["register"]["name"].value;
                         let username = document.forms["register"]["username"].value;
                         let password = document.forms["register"]["password"].value;
-                        let confirmation = document.forms["register"]["confirmation"].value;
+                        
+                        
+                        if (name.length < 3 || name.length > 30) {
+                            document.getElementById("name").style.border = "1px solid red";
+                            alert("Поле name содержит меньше 3-х или более 30 символов.");
+                            document.getElementById("name").focus()
+                            return false;
+                        }
+                        else {
+                            document.getElementById("name").style.border = "1px solid green";
+                            document.getElementById("button").focus()
+                        }
         
                         if (username.length < 3 || username.length > 30) {
                             document.getElementById("username").style.border = "1px solid red";
-                            alert("Username is not available. Use thrуe or more characters.");
+                            alert("Поле username содержит менее 3-ч или более 30 символов");
                             document.getElementById("username").focus()
                             return false;
                         }
@@ -75,7 +98,7 @@
         
                         if (checkUsernameInvalidSymbol(username)) {
                             document.getElementById("username").style.border = "1px solid red";
-                            alert("Username contains an invalid character. Use upper and lower case characters of the English alphabet and digit from 0 to 9");
+                            alert("Поле Username содержит недопустимый символ. Используйте буквы латинского алфавита и цифры от 0 до 9");
                             document.getElementById("username").focus()
                             return false;
                         }
@@ -86,7 +109,7 @@
         
                         if (checkUsernameMastContain(username)) {
                             document.getElementById("username").style.border = "1px solid red";
-                            alert("Username not contains alphabet character. Use upper or lower case characters of the English alphabet and digit from 0 to 9");
+                            alert("Поле Username должно содержать хотябы одну букву. Используйте буквы латинского алфавита и цифры от 0 до 9");
                             document.getElementById("username").focus()
                             return false;
                         }
@@ -128,16 +151,7 @@
                             document.getElementById("button").focus()
                         }
         
-                        if (password != confirmation) {
-                            document.getElementById("confirmation").style.border = "1px solid red";
-                            alert("Password confirmation is different.");
-                            document.getElementById("confirmation").focus()
-                            return false;
-                        }
-                        else {
-                            document.getElementById("confirmation").style.border = "1px solid green";
-                            document.getElementById("button").focus()
-                        }
+                       
                         
                             return true;
                     }

@@ -171,7 +171,7 @@ def register():
         
         
         # Проверка на существование пользователя
-        us = db.execute("SELECT username FROM users WHERE username = ?", username)
+        us = db.execute("SELECT username FROM users WHERE username = ?", username.lower())
         if len(us) != 0:
             return apology("User exist", 400)
 
@@ -224,7 +224,7 @@ def checkUsername(name):
     if len(name) < 3 or len(name) > 30:
         return True
 
-    symbols = ['@', '$', '&','-'];
+    symbols = ['@', '$', '&','-', '_'];
     for n in name:
         if not n.isalpha() and not n.isdigit() and not n in symbols:
             return True
