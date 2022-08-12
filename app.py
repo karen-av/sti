@@ -1,4 +1,5 @@
 
+from crypt import methods
 from cs50 import SQL
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
@@ -137,6 +138,15 @@ def editSave():
         return redirect("/")
 
 
+@app.route("/delete", methods = ["POST"])
+@login_required
+def delete():
+    if request.method == "POST" and session["user_status"] == "admin":
+        id = request.form.get("id")
+        db.execute("DELETE FROM users WHERE id = ?", id)
+        return redirect("/")
+    else:
+        return redirect("/")
 
 @app.route("/register", methods=["GET", "POST"])
 @login_required

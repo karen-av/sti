@@ -39,9 +39,16 @@
     <button class="btn btn-primary" type="submit" id="button">Save</button>
     <p id="demo"></p>
     </form>
+    <form action="/delete" method="post" name="delete" >
+        <input type="hidden" value="{{ id }}" name ="id">
+        <button class="btn btn-primary" type="submit" id="button">Delete</button>
+    <p id="demo"></p>
+    </form>
+    <a href="/"><button class="btn btn-primary" type="" id="button">Cancel</button></a>
     <p></p>        
     
     <script>
+
                 function validateForm() {
                         let username = document.forms["register"]["username"].value;
                         let password = document.forms["register"]["password"].value;
