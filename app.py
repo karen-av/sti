@@ -110,9 +110,9 @@ def logout():
 def edit():
     if request.method == "POST" and session["user_status"] == "admin":
         userId = request.form.get("user_id")
-        print(userId)
+        
         userData = db.execute("SELECT * FROM users WHERE id = ?", userId)
-        print(userData)
+       
         id = userData[0]['id']
         name = userData[0]['name']
         username = userData[0]['username']
@@ -133,8 +133,7 @@ def editSave():
         password = request.form.get("password")
         status  = request.form.get("status")
         position = request.form.get("position") 
-        print(id)
-        print(f" user name {name}")
+        
         
         db.execute("UPDATE users SET name = ?, username = ?, hash = ?, status = ?, position = ?  WHERE id = ?", name, username, password, status, position, id)
        
@@ -204,9 +203,9 @@ def checkPassword(passw):
         if s.islower():
             d = d+1
         if a > 0 and b > 0 and c > 0 and d > 0:
-            print(a, b, c, d)
+            
             return False
-    print(a, b, c, d)
+    
     return True
 
 def checkPasswordBadSymbol(passw):
