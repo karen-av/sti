@@ -5,9 +5,9 @@
 {% endblock %}
 
 {% block main %}
-    <table class="table table-striped"  style="margin:auto; width: 82%; text-align:left">
+    <table class="table table-striped"  style="margin:auto; width: 82%; text-align:left; ">
         <thead>
-            <tr style="text-align:left">
+            <tr>
                 <th style="text-align:left">ID</th>
                 <th style="text-align:left">Name</th>
                 <th>Username</th>
@@ -38,10 +38,10 @@
             <tr>
                 <form action="/register" method="post" name="register" onsubmit="return validateForm()">
                 <td></td>
-                <td><input  autocomplete="off" id="name" name="name"  placeholder="ФИО" type="text"  minlength="" maxlength="30" ></td>
-                <td><input autocomplete="off" id="username" name="username"  placeholder="Username" type="text"  minlength="" maxlength="30"></td>
-                <td><input autocomplete="off" id="password" name="password" placeholder="Password" type="password"  minlength="" maxlength="30" ></td>
-                <td>
+                <td style="padding-top: 20px"><input  autocomplete="off" id="name" name="name"  placeholder="ФИО" type="text"  minlength="" maxlength="30" ></td>
+                <td style="padding-top: 20px"><input autocomplete="off" id="username" name="username"  placeholder="Username" type="text"  minlength="" maxlength="30"></td>
+                <td style="padding-top: 20px"><input autocomplete="off" id="password" name="password" placeholder="Password" type="password"  minlength="" maxlength="30" ></td>
+                <td style="padding-top: 20px">
                     <select name="status" class="table table-striped">
                         <option disabled selected>Status</option>
                         <option>admin</option>
@@ -49,7 +49,7 @@
                         <option>manager</option>
                     </select>
                 </td>
-                <td>
+                <td style="padding-top: 20px">
                     <select name="position" class="table table-striped">
                         <option disabled selected>Position</option>
                         <option>Директор</option>
@@ -58,7 +58,7 @@
                     </select>
                 </td>
                 <td>
-                    <button class="btn btn-primary" type="submit" id="button" >Add</button>
+                    <button class="btn btn-primary" type="submit" id="button">Add</button>
                     <p id="demo"></p>
                 </td>
             </tr>  

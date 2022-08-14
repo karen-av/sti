@@ -49,7 +49,8 @@ def index():
 
         # create table portfolio (id INTEGER NOT NULL, user_id INTEGER NOT NULL, symbol_prt TEXT NOT NULL, name_prt TEXT, shares_prt INTEGER NOT NULL, PRIMARY KEY(id), FOREIGN KEY(user_id) REFERENCES users(id));
         # create table history (id INTEGER NOT NULL, user_id_hst INTEGER NOT NULL, symbol_hst TEXT NOT NULL, name_hst TEXT, shares_hst INTEGER NOT NULL, price_hst INTEGER NOT NULL, date TEXT NOT NULL, PRIMARY KEY(id), FOREIGN KEY(user_id_hst) REFERENCES users(id));
-
+        # CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, hash TEXT NOT NULL, status TEXT, name text, position text);
+        # CREATE TABLE sqlite_sequence(name,seq);
  
 
 @app.route("/login", methods=["GET", "POST"])
@@ -127,14 +128,17 @@ def editSave():
     if request.method == "POST" and session["user_status"] == "admin":
         id = request.form.get("id")
         name = request.form.get("name")
-        username = request.form.get("username")
+        username = request.form.get("username").lower()
         password = request.form.get("password")
         status  = request.form.get("status")
         position = request.form.get("position") 
 
         # Проверка на существование пользователя
-        us = db.execute("SELECT username FROM users WHERE username = ?", username.lower())
-        if len(us) != 0:
+        us = db.execute("SELECT username FROM users WHERE username = ? AND id IS NOT ?",  username, id)
+        print(us)
+        print(len(us))
+        #us = db.execute("SELECT username FROM users WHERE username = ?", username.lower())
+        if len(us) != 0 :
             return apology("User exist", 400)
 
         db.execute("UPDATE users SET name = ?, username = ?, hash = ?, status = ?, position = ?  WHERE id = ?", name, username, password, status, position, id)
