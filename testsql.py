@@ -1,7 +1,7 @@
 
-import psycopg2
-from config import func_sql, host, user, password, db_name
+from config import func_sql
 
 name  = 'karen'
-x = "SELECT * FROM users = %s', (name, ));"
+
+x = '"SELECT * FROM users = %(name)s", {"name": name};'
 func_sql(x)

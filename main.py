@@ -48,4 +48,4 @@ name = 'Oleg'
 
 #x = "SELECT * FROM test WHERE f_name = 'Olegd';"
 #func_sql("SELECT * FROM test WHERE f_name = %(name)s", {'name': 'Oleg' })
-func_sql("SELECT * FROM test WHERE f_name = 'Olegd';")
+func_sql("SELECT * FROM users WHERE username = 'karen';")
