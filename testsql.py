@@ -1,7 +1,16 @@
+import csv
+from cs50 import SQL
 
-import psycopg2
-from config import func_sql, host, user, password, db_name
+db = SQL("sqlite:///sti.db")
 
-name  = 'karen'
-x = "SELECT * FROM users = %s', (name, ));"
-func_sql(x)
+with open('upload_files/111.csv') as f:
+    #print(f.readlines())
+    dr = csv.DictReader(f)
+    for i in dr:
+        print(i['\ufeff'])
+    
+    
+
+
+
+    
