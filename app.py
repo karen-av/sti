@@ -1,10 +1,15 @@
 
 from crypt import methods
+from turtle import position
 from cs50 import SQL
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
+import psycopg2
+from config import func_sql, host, user, password, db_name
 from helpers import apology, login_required, lookup, usd
+#from flask_sqlalchemy import SQLAlchemy
+
 
 # Configure application
 app = Flask(__name__)
@@ -21,7 +26,9 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 # Configure CS50 Library to use SQLite database
-db = SQL("sqlite:///sti.db")
+#db = SQL("sqlite:///sti.db")
+POSITIONS_LIST = ("Директор", "Логист", "Повар", "Садовник")
+STATUS_LIST = ('admin', 'couch', 'manager', 'BUH' )
 
 @app.after_request
 def after_request(response):
@@ -35,9 +42,32 @@ def after_request(response):
 @login_required
 def index():
     if session["user_status"] == "admin":
-        users = db.execute("SELECT * FROM users")
+        #users = db.execute("SELECT * FROM users")
+        #users = func_sql("SELECT * FROM users;")
+        try:
+            # connect to exist database
+            connection = psycopg2.connect(
+                host = host,
+                user = user,
+                password = password,
+                database = db_name
+            )
+            connection.autocommit = True  
+            #insert data to table
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT * FROM users ORDER BY id;")
+                users = cursor.fetchall()
+                print(users)
+        except Exception as _ex:
+            print("[INFO] Error while working with PostgresSQL", _ex)
+        finally:
+            if connection:
+                connection.close()
+                print("[INFO] PostgresSQL connection closed")
+
+        #print(f"users - {users}")
         # на всех путях проверять session[user_status]б чтобы не прошли просто по ссылке
-        return render_template("admin.html", users = users)
+        return render_template("admin.html", users = users, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
      
 
     elif session["user_status"] == "manager":
@@ -72,17 +102,37 @@ def login():
             return apology("must provide password", 403)
 
         # Query database for username
-        rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username"))
+        try:
+            connection = psycopg2.connect(
+                host = host,
+                user = user,
+                password = password,
+                database = db_name
+            )
+            connection.autocommit = True  
+            with connection.cursor() as cursor:
+                username = request.form.get('username')
+                cursor.execute("SELECT * FROM users WHERE username = %(username)s", {'username': username})
+                rows = cursor.fetchall()
+                print(len(rows))
+                
+        except Exception as _ex:
+            print("[INFO] Error while working with PostgresSQL", _ex)
+        finally:
+            if connection:
+                connection.close()
+                print("[INFO] PostgresSQL connection closed")
+        
 
         # Ensure username exists and password is correct
         #if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
-        if len(rows) != 1 or not request.form.get("password") in rows[0]["hash"]:
+        if len(rows) != 1 or request.form.get("password") != rows[0][3]:
             return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
-        session["user_id"] = rows[0]["id"]
-        session["user_name"] = rows[0]["username"]
-        session["user_status"] = rows[0]["status"]
+        session["user_id"] = rows[0][0]
+        session["user_name"] = rows[0][1]
+        session["user_status"] = rows[0][4]
 
 
         # Redirect user to home page
@@ -109,16 +159,34 @@ def logout():
 def edit():
     if request.method == "POST" and session["user_status"] == "admin":
         userId = request.form.get("user_id")
-        
-        userData = db.execute("SELECT * FROM users WHERE id = ?", userId)
-       
-        id = userData[0]['id']
-        name = userData[0]['name']
-        username = userData[0]['username']
-        password = userData[0]['hash']
-        status  = userData[0]['status']
-        position = userData[0]['position']
-        return render_template("edit.html", id = id, name= name, username = username, password = password, status = status, position = position)
+        print(userId)
+        try:
+            connection = psycopg2.connect(
+                host = host,
+                user = user,
+                password = password,
+                database = db_name
+            )
+            connection.autocommit = True  
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT * FROM users WHERE id = %(userId)s", {'userId': userId})
+                userData = cursor.fetchall()
+                print(userData)
+                
+        except Exception as _ex:
+            print("[INFO] Error while working with PostgresSQL", _ex)
+        finally:
+            if connection:
+                connection.close()
+                print("[INFO] PostgresSQL connection closed")
+  
+        id = userData[0][0]
+        username = userData[0][1]
+        name = userData[0][2]
+        userPassword = userData[0][3]
+        status  = userData[0][4]
+        position = userData[0][5]
+        return render_template("edit.html", id = id, name= name, username = username, userPassword = userPassword, status = status, position = position, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
     else:
         return redirect("/")
 
@@ -129,19 +197,49 @@ def editSave():
         id = request.form.get("id")
         name = request.form.get("name")
         username = request.form.get("username").lower()
-        password = request.form.get("password")
+        userPassword = request.form.get("password")
         status  = request.form.get("status")
-        position = request.form.get("position") 
+        position = request.form.get("position")
+        check = 'None'
+        print(status) 
 
-        # Проверка на существование пользователя
-        us = db.execute("SELECT username FROM users WHERE username = ? AND id IS NOT ?",  username, id)
-        print(us)
-        print(len(us))
-        #us = db.execute("SELECT username FROM users WHERE username = ?", username.lower())
-        if len(us) != 0 :
-            return apology("User exist", 400)
+        if not name:
+            return apology("Invalid name", 403)
+        if not username or checkUsername(username):
+            return apology("Invalid username", 403)
+        if checkUsernameMastContain(username):
+            return apology("Usename not contain symbol from alphabet")
+        if  not userPassword or checkPassword(userPassword):
+            return apology("Invalid password", 403)
+        if not userPassword or checkPasswordBadSymbol(userPassword):
+            return apology("Invalid password 2", 403)
+        if not status or not position or status == check or position == check:
+            return apology("Invalid status or position", 403)
 
-        db.execute("UPDATE users SET name = ?, username = ?, hash = ?, status = ?, position = ?  WHERE id = ?", name, username, password, status, position, id)
+        try:
+            connection = psycopg2.connect(
+                host = host,
+                user = user,
+                password = password,
+                database = db_name
+            )
+            connection.autocommit = True  
+            with connection.cursor() as cursor:
+                # Проверка на существование пользователя
+                cursor.execute("SELECT username FROM users WHERE username = %(username)s AND id != %(id)s", {'username': username, 'id': id})
+                us = cursor.fetchall()         
+                if len(us) != 0 :
+                    return apology("User exist", 400)
+                # внесение изменений
+                cursor.execute("UPDATE users SET name = %(name)s, username = %(username)s, hash = %(hash)s, status = %(status)s, position = %(position)s  WHERE id = %(id)s", {'name': name, 'username': username, 'hash': userPassword, 'status': status, 'position': position, 'id': id})
+                
+        except Exception as _ex:
+            print("[INFO] Error while working with PostgresSQL", _ex)
+        finally:
+            if connection:
+                connection.close()
+                print("[INFO] PostgresSQL connection closed")
+
         return redirect("/")
     else:
         return redirect("/")
@@ -152,7 +250,26 @@ def editSave():
 def delete():
     if request.method == "POST" and session["user_status"] == "admin":
         id = request.form.get("id")
-        db.execute("DELETE FROM users WHERE id = ?", id)
+
+        try:
+            connection = psycopg2.connect(
+                host = host,
+                user = user,
+                password = password,
+                database = db_name
+            )
+            connection.autocommit = True  
+            with connection.cursor() as cursor:
+                cursor.execute("DELETE FROM users WHERE id = %(id)s", {'id': id})
+
+        except Exception as _ex:
+            print("[INFO] Error while working with PostgresSQL", _ex)
+        finally:
+            if connection:
+                connection.close()
+                print("[INFO] PostgresSQL connection closed")
+
+        
         return redirect("/")
     else:
         return redirect("/")
@@ -163,7 +280,7 @@ def register():
     if request.method == "POST" and session["user_status"] == "admin":
         name = request.form.get("name")
         username = request.form.get("username").lower()        
-        password = request.form.get("password")
+        userPassword = request.form.get("password")
         status = request.form.get("status")
         position = request.form.get("position")
        
@@ -173,23 +290,43 @@ def register():
             return apology("Invalid username", 403)
         if checkUsernameMastContain(username):
             return apology("Usename not contain symbol from alphabet")
-        if  not password or checkPassword(password):
+        if  not userPassword or checkPassword(userPassword):
             return apology("Invalid password", 403)
-        if not password or checkPasswordBadSymbol(password):
+        if not userPassword or checkPasswordBadSymbol(userPassword):
             return apology("Invalid password 2", 403)
+        if not status or not position:
+            return apology("Invalid status or position", 403)
         
         
-        # Проверка на существование пользователя
-        us = db.execute("SELECT username FROM users WHERE username = ?", username.lower())
-        if len(us) != 0:
-            return apology("User exist", 400)
+        try:
+            connection = psycopg2.connect(
+                host = host,
+                user = user,
+                password = password,
+                database = db_name
+            )
+            connection.autocommit = True  
+            with connection.cursor() as cursor:
+                
+                # Проверка на существование пользователя
+                cursor.execute("SELECT username FROM users WHERE username = %(username)s", {'username': username})
+                us = cursor.fetchall()
+                if len(us) != 0:
+                    return apology("User exist", 400)
 
-        # Добавляем пользователя и хеш пароля в бд
-        #hash = generate_password_hash(password, "pbkdf2:sha256")
-        hash = password
-        db.execute("INSERT INTO users (name, username, hash, status, position) VALUES(?, ?, ?, ?, ?)", name, username, hash, status, position)
+                # Добавляем пользователя и хеш пароля в бд
+                #hash = generate_password_hash(password, "pbkdf2:sha256")
+                
+                cursor.execute("INSERT INTO users (name, username, hash, status, position) VALUES(%(name)s, %(username)s, %(hash)s, %(status)s, %(position)s)", {'name': name, 'username': username, 'hash': userPassword, 'status': status, 'position': position})
         
-       
+
+        except Exception as _ex:
+            print("[INFO] Error while working with PostgresSQL", _ex)
+        finally:
+            if connection:
+                connection.close()
+                print("[INFO] PostgresSQL connection closed")
+
         return redirect("/")
     else:
         return redirect("/")

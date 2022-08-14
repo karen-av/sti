@@ -20,13 +20,26 @@
         <tbody>
             <form action="/editSave" method="post" name="editSave" onsubmit="return validateForm()">
             <tr> 
-                
                 <td><input type="hidden" value="{{ id }}" name ="id">{{ id }}</td>
-                <td><input autocomplete="off" id="name" name="name"  value="{{ name }}" type="text"  minlength="" maxlength="30"></td>
-                <td><input autocomplete="off" id="username" name="username"  value="{{ username }}" type="text"  minlength="" maxlength="30" ></td>
-                <td><input autocomplete="off" id="password" name="password" value="{{ password }}" type="text"  minlength="" maxlength="30" ></td>
-                <td><input autocomplete="off" id="status" name="status"  value="{{ status }}" type="text"  minlength="" maxlength="30" ></td>
-                <td><input autocomplete="off" id="position" name="position"  value="{{ position }}" type="text"  minlength="" maxlength="30"></td>
+                <td style="padding-top: 20px"><input autocomplete="off" id="name" name="name"  value="{{ name }}" type="text"  minlength="" maxlength="30"></td>
+                <td style="padding-top: 20px"><input autocomplete="off" id="username" name="username"  value="{{ username }}" type="text"  minlength="" maxlength="30" ></td>
+                <td style="padding-top: 20px"><input autocomplete="off" id="password" name="password" value="{{ userPassword }}" type="text"  minlength="" maxlength="30" ></td>
+                <td style="padding-top: 20px">
+                    <select name="status" class="table table-striped" required>
+                        <option selected>{{ status }}</option>
+                        {% for stat in statusList%}
+                        <option>{{stat}}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td style="padding-top: 20px">
+                    <select name="position" class="table table-striped">
+                        <option>{{ position }}</option>
+                        {% for pos in positionList %}
+                        <option>{{ pos }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
                 <td>
                     <button class="btn btn-primary" type="submit" id="button">Save</button>
                     <p id="demo"></p>
@@ -35,7 +48,7 @@
                 <td>
                     <form action="/delete" method="post" name="delete" >
                         <input type="hidden" value="{{ id }}" name ="id">
-                        <button class="btn btn-primary" type="" id="" onclick="return show_alert()">Delete</button>
+                        <button class="btn btn-primary" type="" id="" onclick="return show_alert_delete()">Delete</button>
                     </form>
                 </td>
                 <td>
@@ -46,8 +59,15 @@
          
     
     <script>
-        function show_alert() {
-            if(confirm("Do you really want to do this?")) {
+        function show_alert_delete() {
+            if(confirm("Удалить пользователя?")) {
+                this.form.sybmit();
+            }
+            return false;
+        }
+
+        function show_alert_edit() {
+            if(confirm("Удалить пользователя?")) {
                 this.form.sybmit();
             }
             return false;
@@ -57,89 +77,91 @@
                 let name = document.forms["editSave"]["name"].value;
                 let username = document.forms["editSave"]["username"].value;
                 let password = document.forms["editSave"]["password"].value;
-                
-                
+
+
                 if (name.length < 3 || name.length > 30) {
                     document.getElementById("name").style.border = "1px solid red";
                     alert("Поле name содержит меньше 3-х или более 30 символов.");
-                    document.getElementById("name").focus()
+                    //document.getElementById("name").focus()
                     return false;
                 }
                 else {
                     document.getElementById("name").style.border = "1px solid green";
-                    document.getElementById("button").focus()
+                    //document.getElementById("button").focus()
                 }
 
                 if (username.length < 3 || username.length > 30) {
                     document.getElementById("username").style.border = "1px solid red";
                     alert("Поле username содержит менее 3-ч или более 30 символов");
-                    document.getElementById("username").focus()
+                    //document.getElementById("username").focus()
                     return false;
                 }
                 else {
                     document.getElementById("username").style.border = "1px solid green";
-                    document.getElementById("button").focus()
+                    //document.getElementById("button").focus()
                 }
 
                 if (checkUsernameInvalidSymbol(username)) {
                     document.getElementById("username").style.border = "1px solid red";
                     alert("Поле Username содержит недопустимый символ. Используйте буквы латинского алфавита и цифры от 0 до 9");
-                    document.getElementById("username").focus()
+                    //document.getElementById("username").focus()
                     return false;
                 }
                 else {
                     document.getElementById("username").style.border = "1px solid green";
-                    document.getElementById("button").focus()
+                    //document.getElementById("button").focus()
                 }
 
                 if (checkUsernameMastContain(username)) {
                     document.getElementById("username").style.border = "1px solid red";
                     alert("Поле Username должно содержать хотябы одну букву. Используйте буквы латинского алфавита и цифры от 0 до 9");
-                    document.getElementById("username").focus()
+                    //document.getElementById("username").focus()
                     return false;
                 }
                 else {
                     document.getElementById("username").style.border = "1px solid green";
-                    document.getElementById("button").focus()
+                    //document.getElementById("button").focus()
                 }
 
                 if (checkPasswordMastContain(password)) {
                     document.getElementById("password").style.border = "1px solid red";
                     alert("Password does not contain the necessary characters. Password mast contain at least one upper and lower case characters from English alphabet and one digit from 0 to 9 and one charecter from !, @, #, $, %, &, ?, -, +, =, ~.")
-                    document.getElementById("password").focus()
+                    //document.getElementById("password").focus()
                     return false;
                 }
                 else {
                     document.getElementById("password").style.border = "1px solid green";
-                    document.getElementById("button").focus()
+                    //document.getElementById("button").focus()
                 }
 
                 if (checkPasswordInvalidSymbol(password)) {
                     document.getElementById("password").style.border = "1px solid red";
                     alert("Password contains an invalid character.");
-                    document.getElementById("password").focus()
+                    //document.getElementById("password").focus()
                     return false;
                 }
                 else {
                     document.getElementById("password").style.border = "1px solid green";
-                    document.getElementById("button").focus()
+                    //document.getElementById("button").focus()
                 }
 
                 if (password.length < 6 || password.length > 30) {
                     document.getElementById("password").style.border = "1px solid red";
                     alert("Password is not available. Password mast be between 6 and 30 characters.");
-                    document.getElementById("password").focus()
+                    //document.getElementById("password").focus()
                     return false;
                 }
                 else {
                     document.getElementById("password").style.border = "1px solid green";
-                    document.getElementById("button").focus()
+                    //document.getElementById("button").focus()
                 }
-
                
                 
-                    return true;
-            }
+                if(confirm("Изменить данные пользователя?")) {
+                this.form.sybmit();
+                }
+                    return false;
+                }
 
     </script>
 {% endblock %}

@@ -20,15 +20,15 @@
         <tbody>
             {% for user in users %}
             <tr> 
-                <td style="text-align:left">{{ user.id }} </td>
-                <td style="text-align:left">{{ user.name }}</td>
-                <td>{{ user.username }}</td>
-                <td>{{ user.hash }}</td>
-                <td>{{ user.status }}</td>
-                <td>{{ user.position }}</td>
+                <td style="text-align:left">{{ user.0 }} </td>
+                <td style="text-align:left">{{ user.2 }}</td>
+                <td>{{ user.1 }}</td>
+                <td>{{ user.3 }}</td>
+                <td>{{ user.4 }}</td>
+                <td>{{ user.5 }}</td>
                 <td style="width:13%;"> <div style="float: left; ">
                     <form action="/edit" method="post">
-                        <input type="hidden" value="{{ user.id }}" name ="user_id">
+                        <input type="hidden" value="{{ user.0 }}" name ="user_id">
                         <button class="btn btn-primary" type="submit">Edit</button>
                     </form>
                 </div>
@@ -42,19 +42,19 @@
                 <td style="padding-top: 20px"><input autocomplete="off" id="username" name="username"  placeholder="Username" type="text"  minlength="" maxlength="30"></td>
                 <td style="padding-top: 20px"><input autocomplete="off" id="password" name="password" placeholder="Password" type="password"  minlength="" maxlength="30" ></td>
                 <td style="padding-top: 20px">
-                    <select name="status" class="table table-striped">
-                        <option disabled selected>Status</option>
-                        <option>admin</option>
-                        <option>couch</option>
-                        <option>manager</option>
+                    <select id="status" name="status" class="table table-striped" >
+                        <option disabled selected value="none">Status</option>
+                        {% for stat in statusList%}
+                        <option>{{ stat }}</option>
+                        {% endfor %}
                     </select>
                 </td>
                 <td style="padding-top: 20px">
-                    <select name="position" class="table table-striped">
-                        <option disabled selected>Position</option>
-                        <option>Директор</option>
-                        <option>Логист</option>
-                        <option>Повар</option>
+                    <select id="position" name="position" class="table table-striped" required>
+                        <option disabled selected value="none">Position</option>
+                        {% for pos in positionList %}
+                        <option>{{ pos }}</option>
+                        {% endfor %}
                     </select>
                 </td>
                 <td>
@@ -72,86 +72,108 @@
                         let name = document.forms["register"]["name"].value;
                         let username = document.forms["register"]["username"].value;
                         let password = document.forms["register"]["password"].value;
-                        
+                        let status = document.forms["register"]["status"].value;
+                        let position = document.forms["register"]["position"].value;
+                        let check = "none";
                         
                         if (name.length < 3 || name.length > 30) {
                             document.getElementById("name").style.border = "1px solid red";
                             alert("Поле name содержит меньше 3-х или более 30 символов.");
-                            document.getElementById("name").focus()
+                            //document.getElementById("name").focus()
                             return false;
                         }
                         else {
                             document.getElementById("name").style.border = "1px solid green";
-                            document.getElementById("button").focus()
+                            //document.getElementById("button").focus()
                         }
         
                         if (username.length < 3 || username.length > 30) {
                             document.getElementById("username").style.border = "1px solid red";
                             alert("Поле username содержит менее 3-ч или более 30 символов");
-                            document.getElementById("username").focus()
+                            //document.getElementById("username").focus()
                             return false;
                         }
                         else {
                             document.getElementById("username").style.border = "1px solid green";
-                            document.getElementById("button").focus()
+                            //document.getElementById("button").focus()
                         }
         
                         if (checkUsernameInvalidSymbol(username)) {
                             document.getElementById("username").style.border = "1px solid red";
                             alert("Поле Username содержит недопустимый символ. Используйте буквы латинского алфавита и цифры от 0 до 9");
-                            document.getElementById("username").focus()
+                            //document.getElementById("username").focus()
                             return false;
                         }
                         else {
                             document.getElementById("username").style.border = "1px solid green";
-                            document.getElementById("button").focus()
+                            //document.getElementById("button").focus()
                         }
         
                         if (checkUsernameMastContain(username)) {
                             document.getElementById("username").style.border = "1px solid red";
                             alert("Поле Username должно содержать хотябы одну букву. Используйте буквы латинского алфавита и цифры от 0 до 9");
-                            document.getElementById("username").focus()
+                            //document.getElementById("username").focus()
                             return false;
                         }
                         else {
                             document.getElementById("username").style.border = "1px solid green";
-                            document.getElementById("button").focus()
+                            //document.getElementById("button").focus()
                         }
         
                         if (checkPasswordMastContain(password)) {
                             document.getElementById("password").style.border = "1px solid red";
                             alert("Password does not contain the necessary characters. Password mast contain at least one upper and lower case characters from English alphabet and one digit from 0 to 9 and one charecter from !, @, #, $, %, &, ?, -, +, =, ~.")
-                            document.getElementById("password").focus()
+                            //document.getElementById("password").focus()
                             return false;
                         }
                         else {
                             document.getElementById("password").style.border = "1px solid green";
-                            document.getElementById("button").focus()
+                            //document.getElementById("button").focus()
                         }
         
                         if (checkPasswordInvalidSymbol(password)) {
                             document.getElementById("password").style.border = "1px solid red";
                             alert("Password contains an invalid character.");
-                            document.getElementById("password").focus()
+                            //document.getElementById("password").focus()
                             return false;
                         }
                         else {
                             document.getElementById("password").style.border = "1px solid green";
-                            document.getElementById("button").focus()
+                            //document.getElementById("button").focus()
                         }
         
                         if (password.length < 6 || password.length > 30) {
                             document.getElementById("password").style.border = "1px solid red";
                             alert("Password is not available. Password mast be between 6 and 30 characters.");
-                            document.getElementById("password").focus()
+                            //document.getElementById("password").focus()
                             return false;
                         }
                         else {
                             document.getElementById("password").style.border = "1px solid green";
-                            document.getElementById("button").focus()
+                            //document.getElementById("button").focus()
+                        }
+                       if (status === check) {
+                            document.getElementById("status").style.border = "1px solid red";
+                            alert("Status is not available.");
+                            //document.getElementById("status").focus()
+                            return false;
+                        }
+                        else {
+                            document.getElementById("status").style.border = "1px solid green";
+                            //document.getElementById("button").focus()
+                        }
+
+                        if (position === check) {
+                            document.getElementById("position").style.border = "1px solid red";
+                            alert("Position is not available.");
+                            //document.getElementById("status").focus()
+                            return false;
+                        }
+                        else {
+                            document.getElementById("position").style.border = "1px solid green";
+                            //document.getElementById("button").focus()
                         }
         
-                       
                         
                             return true;
                     }
