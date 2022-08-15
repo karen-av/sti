@@ -302,33 +302,24 @@ def register():
 @login_required
 def file():
     if request.method == "POST" and (session["user_status"] == "admin" or session["user_status"] == "couch"):
-        #f = request.files['file']
-        #f.save(secure_filename(f.filename))
-        #return 'file uploaded successfully'
-
-        if 'file' not in request.files:
+ 
+        if not request.files['file']:
             flash('Не могу прочитать файл или файл не загружен')
             return redirect('/')
         file = request.files['file']
         if file.filename == '':
             flash('Не могу прочитать файл')
             return redirect('/')
-        if file and allowed_file(file.filename):
+        if file :
             filename = secure_filename(file.filename)
-            #print(filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            #return redirect('/')
-
-        
+           
         if filename.endswith((".xlsx", ".xls")):
-            with open('upload_files/111.csv') as f:
-                #print(f.readlines())
-                dr = csv.DictReader(f)
-                for i in dr:
-                    print(i['\ufeff'])
+            with open('upload_files/{filename}') as f:
+                pass
 
         elif filename.endswith(".csv"):
-            with open('upload_files/users.csv', newline="") as csvfile:
+            with open(f'upload_files/{filename}', newline="") as csvfile:
                 userData = csv.reader(csvfile, delimiter=' ', quotechar='|')
                 try:
                     connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
@@ -376,11 +367,6 @@ def file():
     else:
         return redirect('/')
 
-
-def allowed_file(filename):
-    #Функция проверки расширения файла
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 #function check password
 def checkPassword(passw):
