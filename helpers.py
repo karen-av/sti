@@ -1,9 +1,10 @@
-import os
-import requests
-import urllib.parse
-
+import string 
+import secrets
 from flask import redirect, render_template, request, session
 from functools import wraps
+
+def createPassword():
+    return (''.join(secrets.choice(string.ascii_letters + string.digits) for x in range(10)) )
 
 
 def apology(message, code=400):
@@ -35,30 +36,49 @@ def login_required(f):
     return decorated_function
 
 
-def lookup(symbol):
-    """Look up quote for symbol."""
+#function check password
+def checkPassword(passw):
+    symbols = ['!', '@', '#', '$', '%', '&', '?', '-', '+', '=', '~']
+    if len(passw) < 6 or len(passw) > 30:
+        return True
 
-    # Contact API
-    try:
-        api_key = "pk_9246aec2df9a4c07b3690f2a007a7e3d"
-        url = f"https://cloud.iexapis.com/stable/stock/{urllib.parse.quote_plus(symbol)}/quote?token={api_key}"
-        response = requests.get(url)
-        response.raise_for_status()
-    except requests.RequestException:
-        return None
+    a, b, c, d = 0, 0, 0, 0
+    for s in passw:
+        if s in symbols:
+            a = a+1
+        if s.isdigit():
+            b = b+1
+        if s.isupper():
+            c = c+1
+        if s.islower():
+            d = d+1
+        if a > 0 and b > 0 and c > 0 and d > 0:
+            
+            return False
+    
+    return True
 
-    # Parse response
-    try:
-        quote = response.json()
-        return {
-            "name": quote["companyName"],
-            "price": float(quote["latestPrice"]),
-            "symbol": quote["symbol"]
-        }
-    except (KeyError, TypeError, ValueError):
-        return None
+def checkPasswordBadSymbol(passw):
+    symbols = ['!', '@', '#', '$', '%', '&', '?', '-', '+', '=', '~']
+    for p in passw:
+        if p not in symbols and not p.isdigit() and not p.isupper() and not p.islower():
+            return True
+    return False
+    
+# functionc check username
+def checkUsername(name):
+    if len(name) < 3 or len(name) > 30:
+        return True
 
+    symbols = ['@', '$', '&','-', '_'];
+    for n in name:
+        if not n.isalpha() and not n.isdigit() and not n in symbols:
+            return True
+    return False
 
-def usd(value):
-    """Format value as USD."""
-    return f"${value:,.2f}"
+def checkUsernameMastContain(name):
+    for n in name:
+        if n.isalpha():
+            return False
+    return True
+

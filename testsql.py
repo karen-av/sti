@@ -1,7 +1,13 @@
 
 from config import func_sql
 
-name  = 'karen'
+import string 
+import secrets
 
-x = '"SELECT * FROM users = %(name)s", {"name": name};'
-func_sql(x)
+
+symbols = ['!@#$%&?-+=~']
+num = 10
+res = ''.join(secrets.choice(string.ascii_letters + string.digits) for x in range(num)) 
+print(res)
+
+  

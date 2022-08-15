@@ -1,11 +1,9 @@
-
-from cs50 import SQL
-from flask import Flask, redirect, render_template, request, session, flash, url_for
+from flask import Flask, redirect, render_template, request, session, flash
 from flask_session import Session
 #from werkzeug.security import check_password_hash, generate_password_hash
 import psycopg2
 from config import host, user, password, db_name
-from helpers import apology, login_required
+from helpers import apology, login_required, createPassword, checkPassword, checkPasswordBadSymbol, checkUsername, checkUsernameMastContain
 import os
 from werkzeug.utils import secure_filename
 import csv
@@ -335,12 +333,11 @@ def file():
                             username = userD[2]
                             status = userD[3]
                             position = userD[4]
-                            hash = 'efFR4=rF4'
-                            #print(name + username + status + hash + position)
+                            hash = createPassword()
                             # проверить пользователя на сущесвование
                             cursor.execute("SELECT * FROM users WHERE username = %(username)s", {'username': username})
                             us = cursor.fetchall()
-                            
+
                             if len(us) != 0:
                                 countError = countError + 1
                                 usersError = usersError + us
@@ -361,55 +358,8 @@ def file():
         else:
             flash('Тип загруженного файла не поддерживается.')
             return redirect('/')
-        print(usersError)
-        print(usersUpload)
         return render_template('afterUpload.html', countError = countError, countUpload = countUpload, usersError = usersError, usersUpload = usersUpload)
     else:
         return redirect('/')
 
 
-#function check password
-def checkPassword(passw):
-    symbols = ['!', '@', '#', '$', '%', '&', '?', '-', '+', '=', '~']
-    if len(passw) < 6 or len(passw) > 30:
-        return True
-
-    a, b, c, d = 0, 0, 0, 0
-    for s in passw:
-        if s in symbols:
-            a = a+1
-        if s.isdigit():
-            b = b+1
-        if s.isupper():
-            c = c+1
-        if s.islower():
-            d = d+1
-        if a > 0 and b > 0 and c > 0 and d > 0:
-            
-            return False
-    
-    return True
-
-def checkPasswordBadSymbol(passw):
-    symbols = ['!', '@', '#', '$', '%', '&', '?', '-', '+', '=', '~']
-    for p in passw:
-        if p not in symbols and not p.isdigit() and not p.isupper() and not p.islower():
-            return True
-    return False
-    
-# functionc check username
-def checkUsername(name):
-    if len(name) < 3 or len(name) > 30:
-        return True
-
-    symbols = ['@', '$', '&','-', '_'];
-    for n in name:
-        if not n.isalpha() and not n.isdigit() and not n in symbols:
-            return True
-    return False
-
-def checkUsernameMastContain(name):
-    for n in name:
-        if n.isalpha():
-            return False
-    return True
