@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Upload Info
+{% endblock %}
+
+{% block main %}
+    <div>
+        <h4>Не удалось загрузить {{ countError }} пользователей.</h4> 
+        <h5>Вероятно, пользователь с таким адресом электронной почты уже существует.</h5>
+    </div> 
+    <table class="table table-striped"  style="margin:auto; width: 82%; text-align:left; ">
+        <thead>
+            <tr>
+                <th style="text-align:left">ID</th>
+                <th style="text-align:left">Name</th>
+                <th>Username</th>
+                <th>Password</th>
+                <th>Status</th>
+                <th>Position</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in usersError %}
+            <tr> 
+                <td style="text-align:left">{{ user.0 }} </td>
+                <td style="text-align:left">{{ user.2 }}</td>
+                <td>{{ user.1 }}</td>
+                <td>{{ user.3 }}</td>
+                <td>{{ user.4 }}</td>
+                <td>{{ user.5 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>   
+<p></p>
+<p></p>
+<p></p>
+    <div>
+        <h4>Успешно загружено {{ countUpload }} пользователей.</h4>
+    </div>
+    <table class="table table-striped"  style="margin:auto; width: 82%; text-align:left; ">
+        <thead>
+            <tr>
+                <th style="text-align:left">ID</th>
+                <th style="text-align:left">Name</th>
+                <th>Username</th>
+                <th>Password</th>
+                <th>Status</th>
+                <th>Position</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for users in usersUpload %}
+            <tr> 
+                <td style="text-align:left">{{ users.0 }} </td>
+                <td style="text-align:left">{{ users.2 }}</td>
+                <td>{{ users.1 }}</td>
+                <td>{{ users.3 }}</td>
+                <td>{{ users.4 }}</td>
+                <td>{{ users.5 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>   
+
+    <div><p></p>
+        <a href="/"><button>На главную</button></a>
+    </div>
+
+    
+{% endblock %}

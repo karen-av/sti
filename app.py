@@ -1,11 +1,14 @@
 
 from cs50 import SQL
-from flask import Flask, redirect, render_template, request, session
+from flask import Flask, redirect, render_template, request, session, flash, url_for
 from flask_session import Session
 #from werkzeug.security import check_password_hash, generate_password_hash
 import psycopg2
 from config import host, user, password, db_name
-from helpers import apology, login_required, usd
+from helpers import apology, login_required
+import os
+from werkzeug.utils import secure_filename
+import csv
 #from flask_sqlalchemy import SQLAlchemy
 
 
@@ -15,18 +18,22 @@ app = Flask(__name__)
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
-# Custom filter
-app.jinja_env.filters["usd"] = usd
-
-# Configure session to use filesystem (instead of signed cookies)
-app.config["SESSION_PERMANENT"] = False
-app.config["SESSION_TYPE"] = "filesystem"
-Session(app)
 
 # Configure CS50 Library to use SQLite database
 #db = SQL("sqlite:///sti.db")
 POSITIONS_LIST = ("Директор", "Логист", "Повар", "Садовник")
-STATUS_LIST = ('admin', 'couch', 'manager', 'BUH' )
+STATUS_LIST = ('admin', 'couch', 'manager', 'student' )
+UPLOAD_FOLDER = 'upload_files'
+ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'csv'}
+
+
+# Configure session to use filesystem (instead of signed cookies)
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+Session(app)
+
+
 
 @app.after_request
 def after_request(response):
@@ -40,34 +47,23 @@ def after_request(response):
 @login_required
 def index():
     if session["user_status"] == "admin":
-        #users = db.execute("SELECT * FROM users")
-        #users = func_sql("SELECT * FROM users;")
         try:
             # connect to exist database
-            connection = psycopg2.connect(
-                host = host,
-                user = user,
-                password = password,
-                database = db_name
-            )
+            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
             connection.autocommit = True  
             #insert data to table
             with connection.cursor() as cursor:
                 cursor.execute("SELECT * FROM users ORDER BY id;")
                 users = cursor.fetchall()
-                print(users)
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
         finally:
             if connection:
                 connection.close()
                 print("[INFO] PostgresSQL connection closed")
-
-        #print(f"users - {users}")
         # на всех путях проверять session[user_status]б чтобы не прошли просто по ссылке
         return render_template("admin.html", users = users, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
      
-
     elif session["user_status"] == "manager":
         return render_template("index.html")
 
@@ -75,10 +71,10 @@ def index():
         return render_template("index.html")
 
 
-        # create table portfolio (id INTEGER NOT NULL, user_id INTEGER NOT NULL, symbol_prt TEXT NOT NULL, name_prt TEXT, shares_prt INTEGER NOT NULL, PRIMARY KEY(id), FOREIGN KEY(user_id) REFERENCES users(id));
-        # create table history (id INTEGER NOT NULL, user_id_hst INTEGER NOT NULL, symbol_hst TEXT NOT NULL, name_hst TEXT, shares_hst INTEGER NOT NULL, price_hst INTEGER NOT NULL, date TEXT NOT NULL, PRIMARY KEY(id), FOREIGN KEY(user_id_hst) REFERENCES users(id));
-        # CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, hash TEXT NOT NULL, status TEXT, name text, position text);
-        # CREATE TABLE sqlite_sequence(name,seq);
+    # create table portfolio (id INTEGER NOT NULL, user_id INTEGER NOT NULL, symbol_prt TEXT NOT NULL, name_prt TEXT, shares_prt INTEGER NOT NULL, PRIMARY KEY(id), FOREIGN KEY(user_id) REFERENCES users(id));
+    # create table history (id INTEGER NOT NULL, user_id_hst INTEGER NOT NULL, symbol_hst TEXT NOT NULL, name_hst TEXT, shares_hst INTEGER NOT NULL, price_hst INTEGER NOT NULL, date TEXT NOT NULL, PRIMARY KEY(id), FOREIGN KEY(user_id_hst) REFERENCES users(id));
+    # CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, hash TEXT NOT NULL, status TEXT, name text, position text);
+    # CREATE TABLE sqlite_sequence(name,seq);
  
 
 @app.route("/login", methods=["GET", "POST"])
@@ -93,48 +89,44 @@ def login():
 
         # Ensure username was submitted
         if not request.form.get("username"):
-            return apology("must provide username", 403)
+            flash('Вы не указали логин')
+            return render_template('/login.html' )
+            #return apology("must provide username", 403)
 
         # Ensure password was submitted
         elif not request.form.get("password"):
-            return apology("must provide password", 403)
+            flash('Вы не указали пароль')
+            return render_template('/login.html' )
+            #return apology("must provide password", 403)
 
         # Query database for username
         try:
-            connection = psycopg2.connect(
-                host = host,
-                user = user,
-                password = password,
-                database = db_name
-            )
+            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True  
             with connection.cursor() as cursor:
                 username = request.form.get('username')
                 cursor.execute("SELECT * FROM users WHERE username = %(username)s", {'username': username})
                 rows = cursor.fetchall()
-                print(len(rows))
-                
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
         finally:
             if connection:
                 connection.close()
                 print("[INFO] PostgresSQL connection closed")
-        
 
         # Ensure username exists and password is correct
-        #if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
         if len(rows) != 1 or request.form.get("password") != rows[0][3]:
-            return apology("invalid username and/or password", 403)
+            flash('Вы указали неверный логин или пароль')
+            return render_template('/login.html' )
+            #return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
         session["user_id"] = rows[0][0]
         session["user_name"] = rows[0][1]
         session["user_status"] = rows[0][4]
 
-
         # Redirect user to home page
-        return redirect("/")
+        return redirect('/' )
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
@@ -157,20 +149,13 @@ def logout():
 def edit():
     if request.method == "POST" and session["user_status"] == "admin":
         userId = request.form.get("user_id")
-        print(userId)
         try:
-            connection = psycopg2.connect(
-                host = host,
-                user = user,
-                password = password,
-                database = db_name
-            )
+            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True  
             with connection.cursor() as cursor:
                 cursor.execute("SELECT * FROM users WHERE id = %(userId)s", {'userId': userId})
                 userData = cursor.fetchall()
-                print(userData)
-                
+
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
         finally:
@@ -215,12 +200,7 @@ def editSave():
             return apology("Invalid status or position", 403)
 
         try:
-            connection = psycopg2.connect(
-                host = host,
-                user = user,
-                password = password,
-                database = db_name
-            )
+            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True  
             with connection.cursor() as cursor:
                 # Проверка на существование пользователя
@@ -250,12 +230,7 @@ def delete():
         id = request.form.get("id")
 
         try:
-            connection = psycopg2.connect(
-                host = host,
-                user = user,
-                password = password,
-                database = db_name
-            )
+            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True  
             with connection.cursor() as cursor:
                 cursor.execute("DELETE FROM users WHERE id = %(id)s", {'id': id})
@@ -267,7 +242,6 @@ def delete():
                 connection.close()
                 print("[INFO] PostgresSQL connection closed")
 
-        
         return redirect("/")
     else:
         return redirect("/")
@@ -297,12 +271,7 @@ def register():
         
         
         try:
-            connection = psycopg2.connect(
-                host = host,
-                user = user,
-                password = password,
-                database = db_name
-            )
+            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True  
             with connection.cursor() as cursor:
                 
@@ -328,6 +297,75 @@ def register():
         return redirect("/")
     else:
         return redirect("/")
+
+@app.route("/file", methods=["POST"])
+@login_required
+def file():
+    if request.method == "POST" and (session["user_status"] == "admin" or session["user_status"] == "couch"):
+ 
+        if not request.files['file']:
+            flash('Не могу прочитать файл или файл не загружен')
+            return redirect('/')
+        file = request.files['file']
+        if file.filename == '':
+            flash('Не могу прочитать файл')
+            return redirect('/')
+        if file :
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+           
+        if filename.endswith((".xlsx", ".xls")):
+            with open('upload_files/{filename}') as f:
+                pass
+
+        elif filename.endswith(".csv"):
+            with open(f'upload_files/{filename}', newline="") as csvfile:
+                userData = csv.reader(csvfile, delimiter=' ', quotechar='|')
+                try:
+                    connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+                    connection.autocommit = True  
+                    countError = 0
+                    countUpload = 0
+                    usersError = []
+                    usersUpload = []
+
+                    with connection.cursor() as cursor:
+                        for userD in userData:
+                            name = (userD[0] +' ' + userD[1])
+                            username = userD[2]
+                            status = userD[3]
+                            position = userD[4]
+                            hash = 'efFR4=rF4'
+                            #print(name + username + status + hash + position)
+                            # проверить пользователя на сущесвование
+                            cursor.execute("SELECT * FROM users WHERE username = %(username)s", {'username': username})
+                            us = cursor.fetchall()
+                            
+                            if len(us) != 0:
+                                countError = countError + 1
+                                usersError = usersError + us
+                            else:
+                                cursor.execute("INSERT INTO users (username, name, hash, status, position) VALUES(%(username)s, %(name)s, %(hash)s, %(status)s, %(position)s)", {'username': username, 'name': name, 'hash': hash, 'status': status, 'position': position})
+                                countUpload = countUpload + 1
+                                cursor.execute("SELECT * FROM users WHERE username = %(username)s", {'username': username})
+                                usUpload = cursor.fetchall()
+                                usersUpload = usersUpload + usUpload
+
+                except Exception as _ex:
+                    print("[INFO] Error while working with PostgresSQL", _ex)
+                finally:
+                    if connection:
+                        connection.close()
+                        print("[INFO] PostgresSQL connection closed")                  
+
+        else:
+            flash('Тип загруженного файла не поддерживается.')
+            return redirect('/')
+        print(usersError)
+        print(usersUpload)
+        return render_template('afterUpload.html', countError = countError, countUpload = countUpload, usersError = usersError, usersUpload = usersUpload)
+    else:
+        return redirect('/')
 
 
 #function check password
