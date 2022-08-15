@@ -8,7 +8,7 @@
     <table class="table table-striped"  style="margin:auto; width: 82%; text-align:left; ">
         <thead>
             <tr>
-                <th style="text-align:left">ID</th>
+                <th style="text-align:left">N</th>
                 <th style="text-align:left">Name</th>
                 <th>Username</th>
                 <th>Password</th>
@@ -18,9 +18,10 @@
             </tr>
         </thead>
         <tbody>
+            
             {% for user in users %}
             <tr> 
-                <td style="text-align:left">{{ user.0 }} </td>
+                <td style="text-align:left">{{ loop.index }} </td>
                 <td style="text-align:left">{{ user.2 }}</td>
                 <td>{{ user.1 }}</td>
                 <td>{{ user.3 }}</td>

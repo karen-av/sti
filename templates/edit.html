@@ -8,7 +8,7 @@
     <table class="table table-striped"  style="margin:auto; width: 82%; text-align:center">
         <thead>
             <tr> 
-                <th >ID</th>
+                <th> </th>
                 <th>Name</th>
                 <th >Username</th>
                 <th>Password</th>
@@ -20,7 +20,7 @@
         <tbody>
             <form action="/editSave" method="post" name="editSave" onsubmit="return validateForm()">
             <tr> 
-                <td><input type="hidden" value="{{ id }}" name ="id">{{ id }}</td>
+                <td><input type="hidden" value="{{ id }}" name ="id"></td>
                 <td style="padding-top: 20px"><input autocomplete="off" id="name" name="name"  value="{{ name }}" type="text"  minlength="" maxlength="30"></td>
                 <td style="padding-top: 20px"><input autocomplete="off" id="username" name="username"  value="{{ username }}" type="text"  minlength="" maxlength="30" ></td>
                 <td style="padding-top: 20px"><input autocomplete="off" id="password" name="password" value="{{ userPassword }}" type="text"  minlength="" maxlength="30" ></td>
@@ -158,7 +158,7 @@
                
                 
                 if(confirm("Изменить данные пользователя?")) {
-                this.form.sybmit();
+                    return true;
                 }
                     return false;
                 }
