@@ -7,6 +7,7 @@ from helpers import apology, login_required, createPassword, checkPassword, chec
 import os
 from werkzeug.utils import secure_filename
 import csv
+import pandas as pd
 #from flask_sqlalchemy import SQLAlchemy
 
 
@@ -16,14 +17,10 @@ app = Flask(__name__)
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
-
-# Configure CS50 Library to use SQLite database
-#db = SQL("sqlite:///sti.db")
 POSITIONS_LIST = ("Директор", "Логист", "Повар", "Садовник")
 STATUS_LIST = ('admin', 'couch', 'manager', 'student' )
 UPLOAD_FOLDER = 'upload_files'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'csv'}
-
 
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
@@ -68,12 +65,6 @@ def index():
     else:
         return render_template("index.html")
 
-
-    # create table portfolio (id INTEGER NOT NULL, user_id INTEGER NOT NULL, symbol_prt TEXT NOT NULL, name_prt TEXT, shares_prt INTEGER NOT NULL, PRIMARY KEY(id), FOREIGN KEY(user_id) REFERENCES users(id));
-    # create table history (id INTEGER NOT NULL, user_id_hst INTEGER NOT NULL, symbol_hst TEXT NOT NULL, name_hst TEXT, shares_hst INTEGER NOT NULL, price_hst INTEGER NOT NULL, date TEXT NOT NULL, PRIMARY KEY(id), FOREIGN KEY(user_id_hst) REFERENCES users(id));
-    # CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, hash TEXT NOT NULL, status TEXT, name text, position text);
-    # CREATE TABLE sqlite_sequence(name,seq);
- 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -171,6 +162,7 @@ def edit():
     else:
         return redirect("/")
 
+
 @app.route("/editSave", methods = ["POST"])
 @login_required
 def editSave():
@@ -244,6 +236,7 @@ def delete():
     else:
         return redirect("/")
 
+
 @app.route("/register", methods=["GET", "POST"])
 @login_required
 def register():
@@ -296,6 +289,7 @@ def register():
     else:
         return redirect("/")
 
+
 @app.route("/file", methods=["POST"])
 @login_required
 def file():
@@ -311,29 +305,70 @@ def file():
         if file :
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+        countError = 0
+        countUpload = 0
+        usersError = []
+        usersUpload = []
            
         if filename.endswith((".xlsx", ".xls")):
-            with open('upload_files/{filename}') as f:
-                pass
+            xlsx = pd.ExcelFile(f'upload_files/{filename}')
+            table = xlsx.parse()
+            try:
+                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+                connection.autocommit = True 
+                with connection.cursor() as cursor:
+                    for i in range(len(table)):
+                        department = table.iloc[i,:][0]
+                        report_to = table.iloc[i,:][1]
+                        status = table.iloc[i,:][2]
+                        position = table.iloc[i,:][3]
+                        name = table.iloc[i,:][4]
+                        mail = table.iloc[i,:][5]
+                        hash = ''
+                        if status == 'couch' or status == 'head':
+                            hash = createPassword()
+                        
+                        # проверить пользователя на сущесвование
 
+                        #создать новую таблицу и писать уже под неее
+
+                        cursor.execute("SELECT * FROM users WHERE username = %(username)s", {'username': mail})
+                        us = cursor.fetchall()
+                        if len(us) != 0:
+                            countError = countError + 1
+                            usersError = usersError + us
+                        else:
+                            cursor.execute("INSERT INTO users (username, name, hash, status, position) VALUES(%(username)s, %(name)s, %(hash)s, %(status)s, %(position)s)", {'username': mail, 'name': name, 'hash': hash, 'status': status, 'position': position})
+                            countUpload = countUpload + 1
+                            cursor.execute("SELECT * FROM users WHERE username = %(username)s", {'username': mail})
+                            usUpload = cursor.fetchall()
+                            usersUpload = usersUpload + usUpload
+
+            except Exception as _ex:
+                    print("[INFO] Error while working with PostgresSQL", _ex)
+            finally:
+                if connection:
+                    connection.close()
+                    print("[INFO] PostgresSQL connection closed")  
+                    
         elif filename.endswith(".csv"):
             with open(f'upload_files/{filename}', newline="") as csvfile:
                 userData = csv.reader(csvfile, delimiter=' ', quotechar='|')
+                next(userData)
                 try:
                     connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
                     connection.autocommit = True  
-                    countError = 0
-                    countUpload = 0
-                    usersError = []
-                    usersUpload = []
-
+                    
                     with connection.cursor() as cursor:
                         for userD in userData:
                             name = (userD[0] +' ' + userD[1])
                             username = userD[2]
                             status = userD[3]
                             position = userD[4]
-                            hash = createPassword()
+                            hash = ''
+                            if status == 'couch' or status == 'head':
+                                hash = createPassword()
                             # проверить пользователя на сущесвование
                             cursor.execute("SELECT * FROM users WHERE username = %(username)s", {'username': username})
                             us = cursor.fetchall()
@@ -363,3 +398,7 @@ def file():
         return redirect('/')
 
 
+# create table portfolio (id INTEGER NOT NULL, user_id INTEGER NOT NULL, symbol_prt TEXT NOT NULL, name_prt TEXT, shares_prt INTEGER NOT NULL, PRIMARY KEY(id), FOREIGN KEY(user_id) REFERENCES users(id));
+# create table history (id INTEGER NOT NULL, user_id_hst INTEGER NOT NULL, symbol_hst TEXT NOT NULL, name_hst TEXT, shares_hst INTEGER NOT NULL, price_hst INTEGER NOT NULL, date TEXT NOT NULL, PRIMARY KEY(id), FOREIGN KEY(user_id_hst) REFERENCES users(id));
+# CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, hash TEXT NOT NULL, status TEXT, name text, position text);
+# CREATE TABLE sqlite_sequence(name,seq);
