@@ -9,18 +9,11 @@
         <thead>
             <tr> 
                 <th>Должность</th>
-                <th>Организованноть </th>
-                <th >Стремление к совершенству</th>
-                <th>Надежность</th>
-                <th>Приверженность</th>
-                <th>Командность</th>
-                <th>Ориентация на клиента</th>
-                <th>Эффективная коммуникация</th>
-                <th>Принятие решений</th>
-                <th>Управленческое мастерство</th>
-            </tr>
+                {% for comp in competence %}
+                <th>{{ comp }}</th>
+                {% endfor %} 
+            </tr> 
         </thead>
-    
         <tbody>
             <form action="/select" method="post" name="select" onsubmit="return validateForm()">
             <tr> 
@@ -84,8 +77,7 @@
                     <p id="demo"></p>
                 </td>
             </form>
-        </tr>{% endfor %}
-    </tbody>
-         
-    
+            </tr>{% endfor %}
+        </tbody>
+    </table>
 {% endblock %}

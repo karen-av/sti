@@ -24,6 +24,7 @@ ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'csv'}
 ADMIN = 'admin'
 COACH = 'coach'
 HEAD = 'head'
+COMPETENCE  = ('Организованноть', 'Стремление к совершенству', 'Надежность', 'Приверженность', 'Командность', 'Ориентация на клиента', 'Эффективная коммуникация', 'Принятие решений', 'Управленческое мастерство')
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
@@ -90,7 +91,7 @@ def index():
                     connection.close()
                     print("[INFO] PostgresSQL connection closed")
             print(users)
-            return render_template("for_head.html", users = users)
+            return render_template("for_head.html", users = users, competence = COMPETENCE)
 
         else:
             return render_template("login.html")
