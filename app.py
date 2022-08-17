@@ -17,11 +17,13 @@ app = Flask(__name__)
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
-POSITIONS_LIST = ("Директор", "Юрист", "Повар", "Садовник", 'Юрист')
+POSITIONS_LIST = ("Директор", "Юрист", "Повар", "Садовник", 'Слесарь')
 STATUS_LIST = ('admin', 'coach', 'manager', 'head')
 UPLOAD_FOLDER = 'upload_files'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'csv'}
-
+ADMIN = 'admin'
+COACH = 'coach'
+HEAD = 'head'
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
@@ -43,7 +45,7 @@ def after_request(response):
 @login_required
 def index():
     if request.method == "GET":
-        if session["user_status"] == "admin" or session["user_status"] == "coach":
+        if session["user_status"] == ADMIN or session["user_status"] == COACH:
             try:
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
                 connection.autocommit = True  
@@ -71,16 +73,31 @@ def index():
 
             return render_template("admin.html", users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, usereName =usereName, usereMail = usereMail, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
 
-        elif session["user_status"] == "head":
-
-            return render_template("for_head.html")
+        elif session["user_status"] == HEAD:
+            try:
+                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
+                connection.autocommit = True  
+                with connection.cursor() as cursor:
+                    #cursor.execute("SELECT * FROM positions WHERE reports_pos = %(reports_pos)s", {'reports_pos': session["user_name"]})
+                    cursor.execute("SELECT name FROM users WHERE mail = %(mail)s", {'mail': session["user_mail"]})
+                    headName = cursor.fetchone()
+                    cursor.execute("SELECT * FROM positions WHERE reports_pos = %(name)s", {'name': headName[0]})
+                    users = cursor.fetchall()
+            except Exception as _ex:
+                print("[INFO] Error while working with PostgresSQL", _ex)
+            finally:
+                if connection:
+                    connection.close()
+                    print("[INFO] PostgresSQL connection closed")
+            print(users)
+            return render_template("for_head.html", users = users)
 
         else:
             return render_template("login.html")
 
 
     elif request.method == "POST":
-        if session["user_status"] == "admin" or session["user_status"] == "coach":
+        if session["user_status"] == ADMIN or session["user_status"] == COACH:
             try:
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
                 connection.autocommit = True  
@@ -105,7 +122,6 @@ def index():
                     #name = request.form.get("name")
                     #mail = request.form.get("mail").lower()
                     if not department and not reports_to and not status and not position:
-                        print("AAA")
                         cursor.execute("SELECT * FROM users ORDER BY id;")
                         users = cursor.fetchall()
 
@@ -200,7 +216,7 @@ def login():
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True  
             with connection.cursor() as cursor:
-                mail = request.form.get('mail')
+                mail = request.form.get('mail').lower().strip()
                 cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
                 rows = cursor.fetchall()
         except Exception as _ex:
@@ -218,10 +234,11 @@ def login():
             #return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
-        print(rows[0][0], rows[0][3], rows[0][5])
         session["user_id"] = rows[0][0]
         session["user_name"] = rows[0][5]
         session["user_status"] = rows[0][3]
+        session["user_mail"] = rows[0][6]
+
 
         # Redirect user to home page
         return redirect('/' )
@@ -245,7 +262,7 @@ def logout():
 @app.route("/edit", methods = ["POST"])
 @login_required
 def edit():
-    if request.method == "POST" and (session["user_status"] == "admin" or session["user_status"] == "coach"):
+    if request.method == "POST" and (session["user_status"] == ADMIN or session["user_status"] == COACH):
         userId = request.form.get("user_id")
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
@@ -279,14 +296,14 @@ def edit():
 @app.route("/editSave", methods = ["POST"])
 @login_required
 def editSave():
-    if request.method == "POST" and (session["user_status"] == "admin" or session["user_status"] == "coach"):
+    if request.method == "POST" and (session["user_status"] == ADMIN or session["user_status"] == COACH):
         id = request.form.get("id")
         department = request.form.get("department")
         reports_to = request.form.get("reports_to")
         status = request.form.get("status")
         position  = request.form.get("position")
         name = request.form.get("name")
-        mail = request.form.get("mail").lower()
+        mail = request.form.get("mail").lower().strip()
         hash = request.form.get("hash")
 
         if not name:
@@ -295,10 +312,10 @@ def editSave():
             return apology("Invalid username", 403)
         if checkUsernameMastContain(mail):
             return apology("Usename not contain symbol from alphabet")
-        if  (status == "admin" or status == "coach") and (not hash or checkPassword(hash)):
+        if  (status == ADMIN or status == COACH) and (not hash or checkPassword(hash)):
             flash('Укажите правильный формат пароля')
             return redirect('/')
-        if (status == "admin" or status == "coach") and (not hash or checkPasswordBadSymbol(hash)):
+        if (status == ADMIN or status == COACH) and (not hash or checkPasswordBadSymbol(hash)):
             flash('Укажите правильный формат пароля')
             return redirect('/')
         if not status or not position or status == 'None' or position == 'None':
@@ -332,7 +349,7 @@ def editSave():
 @app.route("/delete", methods = ["POST"])
 @login_required
 def delete():
-    if request.method == "POST" and session["user_status"] == "admin":
+    if request.method == "POST" and (session["user_status"] == ADMIN or session["user_status"] == COACH):
         id = request.form.get("id")
 
         try:
@@ -356,13 +373,13 @@ def delete():
 @app.route("/register", methods=["GET", "POST"])
 @login_required
 def register():
-    if request.method == "POST" and (session["user_status"] == "admin" or session["user_status"] == "coach"):
+    if request.method == "POST" and (session["user_status"] == ADMIN or session["user_status"] == COACH):
         department = request.form.get("department")
         reports_to = request.form.get("reports_to")
         status = request.form.get("status")
         position  = request.form.get("position")
-        name = request.form.get("name")
-        mail = request.form.get("mail").lower()
+        name = request.form.get("name").strip()
+        mail = request.form.get("mail").lower().strip()
         hash = request.form.get("hash")
 
         if not name:
@@ -377,10 +394,10 @@ def register():
             flash('Укажите почту')
             return redirect('/')
             #return apology("Usename not contain symbol from alphabet")
-        if  (status == "admin" or status == "coach") and (not hash or checkPassword(hash)):
+        if  (status == ADMIN or status == COACH) and (not hash or checkPassword(hash)):
             flash('Укажите правильный формат пароля')
             return redirect('/')
-        if (status == "admin" or status == "coach") and (not hash or checkPasswordBadSymbol(hash)):
+        if (status == ADMIN or status == COACH) and (not hash or checkPasswordBadSymbol(hash)):
             flash('Укажите правильный формат пароля')
             return redirect('/')
         if not status or not position:
@@ -399,13 +416,8 @@ def register():
                 if len(us) != 0:
                     flash('Электронная почта уже зарегистрирована')
                     return redirect('/')
-                    #return apology("User exist", 400)
-
-                # Добавляем пользователя и хеш пароля в бд
-                #hash = generate_password_hash(password, "pbkdf2:sha256")
-                
                 cursor.execute("INSERT INTO users (department, reports_to, status, position, name, mail, hash) VALUES(%(department)s, %(reports_to)s, %(status)s, %(position)s, %(name)s, %(mail)s, %(hash)s)", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'hash': hash})
-        
+                cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
 
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
@@ -422,7 +434,7 @@ def register():
 @app.route("/file", methods=["POST"])
 @login_required
 def file():
-    if request.method == "POST" and (session["user_status"] == "admin" or session["user_status"] == "coach"):
+    if request.method == "POST" and (session["user_status"] == ADMIN or session["user_status"] == COACH):
  
         if not request.files['file']:
             flash('Не могу прочитать файл или файл не загружен')
@@ -440,24 +452,24 @@ def file():
         usersError = []
         usersUpload = []
            
-        if filename.endswith((".xlsx", ".xls", '.numbers')):
+        if filename.endswith((".xlsx", ".xls")):
             xlsx = pd.ExcelFile(f'upload_files/{filename}')
             table = xlsx.parse()
             try:
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
                 connection.autocommit = True 
                 with connection.cursor() as cursor:
+                    
                     for i in range(len(table)):
-                        department = table.iloc[i,:][0]
-                        reports_to = table.iloc[i,:][1]
-                        status = table.iloc[i,:][2]
-                        position = table.iloc[i,:][3]
-                        name = table.iloc[i,:][4]
-                        mail = table.iloc[i,:][5]
+                        department = str(table.iloc[i,:][0])
+                        reports_to = str(table.iloc[i,:][1])
+                        status = str(table.iloc[i,:][2])
+                        position = str(table.iloc[i,:][3])
+                        name = str(table.iloc[i,:][4]).strip()
+                        mail = str(table.iloc[i,:][5]).lower().strip()
                         hash = ''
                         if status == 'coach' or status == 'head':
                             hash = createPassword()
-                        
                         # проверить пользователя на сущесвование
                         cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
                         us = cursor.fetchall()
@@ -534,3 +546,6 @@ def file():
 
 #CREATE TABLE users (id INTEGER serial PRIMARY KEY AUTOINCREMENT NOT NULL, department VARCHAR(50), reports_to VARCHAR(50), status VARCHAR(50), position VARCHAR(50), name VARCHAR(50), mail VARCHAR(50), hash VARCHAR(50));
 # INSERT INTO users (department, reports_to, status, position, name, mail, hash) VALUES('1', 'Юр.Отдел', 'Виктор Иванов' , 'admin' , 'dev', 'Karen', 'asd@asd.ri', 'edrfTgr34=');
+# AUTOINCREMENT добавлять руками через pgAdmin
+
+#CREATE TABLE positions (ID INTEGER NOT NULL PRIMARY KEY, position_pos VARCHAR(50), reports_pos VARCHAR(50), comp_1 INTEGER, comp_2 INTEGER, comp_3 INTEGER, comp_4 INTEGER, comp_5 INTEGER, comp_6 INTEGER, comp_7 INTEGER, comp_8 INTEGER, comp_9 INTEGER);
