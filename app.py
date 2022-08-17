@@ -42,9 +42,41 @@ def after_request(response):
     return response
 
 
-@app.route("/", methods=["GET", "POST"])
+
+@app.route('/')
 @login_required
 def index():
+    if session["user_status"] == ADMIN or session["user_status"] == COACH:
+        return render_template('index.html')
+    else:
+        return redirect("/users")
+
+@app.route("/positions")
+@login_required
+def positions():
+    if session["user_status"] == ADMIN or session["user_status"] == COACH:
+        try:
+            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
+            connection.autocommit = True  
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT * FROM positions")
+                positions = cursor.fetchall()
+        except Exception as _ex:
+            print("[INFO] Error while working with PostgresSQL", _ex)
+        finally:
+            if connection:
+                connection.close()
+                print("[INFO] PostgresSQL connection closed")
+        print(positions)
+        return render_template('positions.html', positions = positions, competence = COMPETENCE)
+    
+    else:
+        return redirect("/")
+
+
+@app.route("/users", methods=["GET", "POST"])
+@login_required
+def users():
     if request.method == "GET":
         if session["user_status"] == ADMIN or session["user_status"] == COACH:
             try:
@@ -72,7 +104,7 @@ def index():
                     connection.close()
                     print("[INFO] PostgresSQL connection closed")
 
-            return render_template("admin.html", users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, usereName =usereName, usereMail = usereMail, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
+            return render_template("users.html", users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, usereName =usereName, usereMail = usereMail, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
 
         elif session["user_status"] == HEAD:
             try:
@@ -385,25 +417,25 @@ def register():
 
         if not name:
             flash('Укажите Имя')
-            return redirect('/')
+            return redirect('/users')
             #return apology("Invalid name", 403)
         if not mail or checkUsername(mail):
             flash('Укажите почту')
-            return redirect('/')
+            return redirect('/users')
             #return apology("Invalid username", 403)
         if checkUsernameMastContain(mail):
             flash('Укажите почту')
-            return redirect('/')
+            return redirect('/users')
             #return apology("Usename not contain symbol from alphabet")
         if  (status == ADMIN or status == COACH) and (not hash or checkPassword(hash)):
             flash('Укажите правильный формат пароля')
-            return redirect('/')
+            return redirect('/users')
         if (status == ADMIN or status == COACH) and (not hash or checkPasswordBadSymbol(hash)):
             flash('Укажите правильный формат пароля')
-            return redirect('/')
+            return redirect('/users')
         if not status or not position:
             flash('Укажите должность и статус')
-            return redirect('/')
+            return redirect('/users')
             #return apology("Invalid status or position", 403)
         
         try:
@@ -416,9 +448,12 @@ def register():
                 us = cursor.fetchall()
                 if len(us) != 0:
                     flash('Электронная почта уже зарегистрирована')
-                    return redirect('/')
+                    return redirect('/users')
                 cursor.execute("INSERT INTO users (department, reports_to, status, position, name, mail, hash) VALUES(%(department)s, %(reports_to)s, %(status)s, %(position)s, %(name)s, %(mail)s, %(hash)s)", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'hash': hash})
-                cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
+                
+                cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s", {'position': position})
+                if len(us) == 0:
+                    cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
 
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
@@ -427,7 +462,7 @@ def register():
                 connection.close()
                 print("[INFO] PostgresSQL connection closed")
 
-        return redirect("/")
+        return redirect("/users")
     else:
         return redirect("/")
 
@@ -436,7 +471,6 @@ def register():
 @login_required
 def file():
     if request.method == "POST" and (session["user_status"] == ADMIN or session["user_status"] == COACH):
- 
         if not request.files['file']:
             flash('Не могу прочитать файл или файл не загружен')
             return redirect('/')
@@ -460,7 +494,6 @@ def file():
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
                 connection.autocommit = True 
                 with connection.cursor() as cursor:
-                    
                     for i in range(len(table)):
                         department = str(table.iloc[i,:][0])
                         reports_to = str(table.iloc[i,:][1])
@@ -483,6 +516,10 @@ def file():
                             cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
                             usUpload = cursor.fetchall()
                             usersUpload = usersUpload + usUpload
+                            cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s", {'position': position})
+                            if len(us) == 0:
+                                cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
+
 
             except Exception as _ex:
                     print("[INFO] Error while working with PostgresSQL", _ex)

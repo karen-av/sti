@@ -5,48 +5,19 @@
 {% endblock %}
 
 {% block main %}
-    <table class="table table-striped"  style="margin:auto; width: 82%; text-align:right">
-        <thead>
-            <tr>
-                <th style="text-align:left">Должность</th>
-                <th style="text-align:left">Комп 1</th>
-                <th>Комп 2</th>
-                <th>Комп 3</th>
-                <th>Комп 4</th>
-                <th>Комп 5</th>
-                <th>Комп 6</th>
-                <th>Комп 7</th>
-                <th>Комп 8</th>
-                <th>Комп 9</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr> {% for name in listOfPapers %}
-                <td style="text-align:left">{{ name.competence_1 }} </td>
-                <td style="text-align:left">{{ name.competence_2 }}</td>
-                <td>{{ name.competence_3 }}</td>
-                <td>{{ name.competence_3 }}</td>
-                <td>{{ name.competence_4 }}</td>
-                <td>{{ name.competence_5 }}</td>
-                <td>{{ name.competence_6 }}</td>
-                <td>{{ name.competence_7 }}</td>
-                <td>{{ name.competence_8 }}</td>
-                <td>{{ name.competence_9 }}</td>
-                <td style="width:13%;">
-                    
-                    
-                </td>
-            </tr>{% endfor %}
-        </tbody>
-        <tfoot>
-            <tr>
-                
-            </tr>
-            <tr>
-                
-        </tfoot>
-    </table>   
+   
 
-            <p></p>
+<form action="/users" method="get">
+    <button>Пользователи</button>
+</form>
+<form action="/positions" method="get">
+    <button>Должности</button>
+</form>
+<form action="/users" method="get">
+    <button>Пользователи</button>
+</form>
+<form action="/users" method="get">
+    <button>Пользователи</button>
+</form>
    
 {% endblock %}

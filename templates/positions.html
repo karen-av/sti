@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Positions
+{% endblock %}
+
+{% block main %}
+    <table class="table table-striped"  style="margin:auto; width: 82%; text-align:left;">
+        <thead>
+            <tr>
+                <th>N</th>
+                <th>Долж</th>
+                <th>Рук</th>
+                {% for com in competence %}<th>{{ com }}</th>{% endfor%}
+            </tr>
+        </thead>
+        <tbody>
+           {% for pos in positions %}  <tr> 
+               
+                
+                <td>{{ loop.index }}</td>
+                <td>{{ pos.1 }}</td>
+                <td>{{ pos.2 }}</td>
+                <td>{{ pos.3 }}</td>
+                <td>{{ pos.4 }}</td>
+                <td>{{ pos.5 }}</td>
+                <td>{{ pos.6 }}</td>
+                <td>{{ pos.7 }}</td>
+                <td>{{ pos.8 }}</td>
+                <td>{{ pos.9 }}</td>
+                <td>{{ pos.10 }}</td>
+                <td>{{ pos.11}}</td>
+            </tr>{% endfor %}
+        </tbody>
+    </table>   
+          
+    
+{% endblock %}
