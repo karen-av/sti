@@ -1,4 +1,3 @@
-from turtle import pos, position
 from flask import Flask, redirect, render_template, request, session, flash
 from flask_session import Session
 #from werkzeug.security import check_password_hash, generate_password_hash
@@ -73,7 +72,7 @@ def index():
             return render_template("admin.html", users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, usereName =usereName, usereMail = usereMail, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
 
         elif session["user_status"] == "head":
-            
+
             return render_template("for_head.html")
 
         else:
