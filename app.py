@@ -1,3 +1,4 @@
+from turtle import pos, position
 from flask import Flask, redirect, render_template, request, session, flash
 from flask_session import Session
 #from werkzeug.security import check_password_hash, generate_password_hash
@@ -17,8 +18,8 @@ app = Flask(__name__)
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
-POSITIONS_LIST = ("Директор", "Логист", "Повар", "Садовник")
-STATUS_LIST = ('admin', 'couch', 'manager', 'student' )
+POSITIONS_LIST = ("Директор", "Юрист", "Повар", "Садовник", 'Юрист')
+STATUS_LIST = ('admin', 'coach', 'manager', 'head')
 UPLOAD_FOLDER = 'upload_files'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'csv'}
 
@@ -38,33 +39,140 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
-@app.route("/")
+
+@app.route("/", methods=["GET", "POST"])
 @login_required
 def index():
-    if session["user_status"] == "admin":
-        try:
-            # connect to exist database
-            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
-            connection.autocommit = True  
-            #insert data to table
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM users ORDER BY id;")
-                users = cursor.fetchall()
-        except Exception as _ex:
-            print("[INFO] Error while working with PostgresSQL", _ex)
-        finally:
-            if connection:
-                connection.close()
-                print("[INFO] PostgresSQL connection closed")
-        # на всех путях проверять session[user_status]б чтобы не прошли просто по ссылке
-        return render_template("admin.html", users = users, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
-     
-    elif session["user_status"] == "manager":
-        return render_template("index.html")
+    if request.method == "GET":
+        if session["user_status"] == "admin" or session["user_status"] == "coach":
+            try:
+                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
+                connection.autocommit = True  
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT * FROM users ORDER BY id;")
+                    users = cursor.fetchall()
+                    cursor.execute("SELECT DISTINCT department FROM users;")
+                    usereDepartment = cursor.fetchall()
+                    cursor.execute("SELECT DISTINCT reports_to FROM users;")
+                    usereReports_to = cursor.fetchall()
+                    cursor.execute("SELECT DISTINCT status FROM users;")
+                    usereStatus_to = cursor.fetchall()            
+                    cursor.execute("SELECT DISTINCT position FROM users UNIC;")
+                    userePosition = cursor.fetchall()
+                    cursor.execute("SELECT DISTINCT name FROM users;")
+                    usereName = cursor.fetchall()
+                    cursor.execute("SELECT DISTINCT mail FROM users;")
+                    usereMail = cursor.fetchall()
+            except Exception as _ex:
+                print("[INFO] Error while working with PostgresSQL", _ex)
+            finally:
+                if connection:
+                    connection.close()
+                    print("[INFO] PostgresSQL connection closed")
 
-    else:
-        return render_template("index.html")
+            return render_template("admin.html", users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, usereName =usereName, usereMail = usereMail, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
 
+        elif session["user_status"] == "head":
+            
+            return render_template("for_head.html")
+
+        else:
+            return render_template("login.html")
+
+
+    elif request.method == "POST":
+        if session["user_status"] == "admin" or session["user_status"] == "coach":
+            try:
+                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
+                connection.autocommit = True  
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT DISTINCT department FROM users;")
+                    usereDepartment = cursor.fetchall()
+                    cursor.execute("SELECT DISTINCT reports_to FROM users;")
+                    usereReports_to = cursor.fetchall()
+                    cursor.execute("SELECT DISTINCT status FROM users;")
+                    usereStatus_to = cursor.fetchall()            
+                    cursor.execute("SELECT DISTINCT position FROM users UNIC;")
+                    userePosition = cursor.fetchall()
+                    cursor.execute("SELECT DISTINCT name FROM users;")
+                    usereName = cursor.fetchall()
+                    cursor.execute("SELECT DISTINCT mail FROM users;")
+                    usereMail = cursor.fetchall()
+
+                    department = request.form.get("department")
+                    reports_to = request.form.get("reports_to")
+                    status = request.form.get("status")
+                    position  = request.form.get("position")
+                    #name = request.form.get("name")
+                    #mail = request.form.get("mail").lower()
+                    if not department and not reports_to and not status and not position:
+                        print("AAA")
+                        cursor.execute("SELECT * FROM users ORDER BY id;")
+                        users = cursor.fetchall()
+
+                    elif not reports_to and not status and not position:
+                        cursor.execute("SELECT * FROM users WHERE department = %(department)s ORDER BY id", {'department': department})
+                        users = cursor.fetchall()
+                        #cursor.execute("SELECT DISTINCT department FROM users WHERE department = %(department)s", {'department': department})
+                        #usereDepartment = cursor.fetchall()
+                    elif not department and not status and not position:
+                        cursor.execute("SELECT * FROM users WHERE reports_to = %(reports_to)s ORDER BY id", {'reports_to': reports_to})
+                        users = cursor.fetchall()
+                    elif not reports_to and not department and not position:
+                        cursor.execute("SELECT * FROM users WHERE status = %(status)s ORDER BY id", {'status': status})
+                        users = cursor.fetchall()
+                    elif not reports_to and not department and not status:
+                        cursor.execute("SELECT * FROM users WHERE position = %(position)s ORDER BY id", {'position': position})
+                        users = cursor.fetchall()
+
+                    elif not status and not position:
+                        cursor.execute("SELECT * FROM users WHERE department = %(department)s and reports_to = %(reports_to)s ORDER BY id", {'department': department, 'reports_to': reports_to})
+                        users = cursor.fetchall()
+                    elif not department and not position:
+                        cursor.execute("SELECT * FROM users WHERE reports_to = %(reports_to)s and status = %(status)s ORDER BY id", {'reports_to': reports_to, 'status': status})
+                        users = cursor.fetchall()
+                    elif not reports_to and not position:
+                        cursor.execute("SELECT * FROM users WHERE department = %(department)s and status = %(status)s ORDER BY id", {'department': department, 'status': status})
+                        users = cursor.fetchall()
+                    elif not department and not status:
+                        cursor.execute("SELECT * FROM users WHERE position = %(position)s and reports_to = %(reports_to)s ORDER BY id", {'position': position, 'reports_to': reports_to})
+                        users = cursor.fetchall()
+                    elif not department and not reports_to:
+                        cursor.execute("SELECT * FROM users WHERE status = %(status)s and position = %(position)s ORDER BY id", {'status': status, 'position': position})
+                        users = cursor.fetchall()
+                    elif not reports_to and not status:
+                        cursor.execute("SELECT * FROM users WHERE department = %(department)s and position = %(position)s ORDER BY id", {'department': department, 'position': position})
+                        users = cursor.fetchall()
+                    
+                    elif not reports_to:
+                        cursor.execute("SELECT * FROM users WHERE department = %(department)s and status = %(status)s and position = %(position)s ORDER BY id", {'department': department, 'status': status, 'position':position})
+                        users = cursor.fetchall()
+                    elif not department:
+                        cursor.execute("SELECT * FROM users WHERE position = %(position)s and reports_to = %(reports_to)s and status = %(status)s ORDER BY id", {'position': position, 'reports_to': reports_to, 'status': status})
+                        users = cursor.fetchall()
+                    elif not status:
+                        cursor.execute("SELECT * FROM users WHERE reports_to = %(reports_to)s and position = %(position)s and %(department)s ORDER BY id", {'reports_to': reports_to, 'position': position, 'department': department})
+                        users = cursor.fetchall()
+                    elif not position:
+                        cursor.execute("SELECT * FROM users WHERE department = %(department)s and reports_to = %(reports_to)s AND status = %(status)s ORDER BY id", {'department': department, 'status': status, 'reports_to': reports_to})
+                        users = cursor.fetchall()
+
+                    else:
+                        cursor.execute("SELECT * FROM users WHERE department = %(department)s and reports_to = %(reports_to)s and status = %(status)s and position = %(position)s ORDER BY id", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position})
+                        users = cursor.fetchall()
+
+                    #cursor.execute("SELECT * FROM users WHERE department = %(department)s and reports_to = %(reports_to)s and status = %(status)s and position = %(position)s and name = %(name)s and mail = %(mail)s ORDER BY id", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail})
+                    
+
+            except Exception as _ex:
+                print("[INFO] Error while working with PostgresSQL", _ex)
+            finally:
+                if connection:
+                    connection.close()
+                    print("[INFO] PostgresSQL connection closed")
+            # на всех путях проверять session[user_status]б чтобы не прошли просто по ссылке
+            return render_template("select.html", users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, usereName =usereName, usereMail = usereMail, tatusList = STATUS_LIST, positionList = POSITIONS_LIST)
+        
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -77,13 +185,13 @@ def login():
     if request.method == "POST":
 
         # Ensure username was submitted
-        if not request.form.get("username"):
+        if not request.form.get("mail"):
             flash('Вы не указали логин')
             return render_template('/login.html' )
             #return apology("must provide username", 403)
 
         # Ensure password was submitted
-        elif not request.form.get("password"):
+        elif not request.form.get("hash"):
             flash('Вы не указали пароль')
             return render_template('/login.html' )
             #return apology("must provide password", 403)
@@ -93,8 +201,8 @@ def login():
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True  
             with connection.cursor() as cursor:
-                username = request.form.get('username')
-                cursor.execute("SELECT * FROM users WHERE username = %(username)s", {'username': username})
+                mail = request.form.get('mail')
+                cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
                 rows = cursor.fetchall()
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
@@ -104,15 +212,17 @@ def login():
                 print("[INFO] PostgresSQL connection closed")
 
         # Ensure username exists and password is correct
-        if len(rows) != 1 or request.form.get("password") != rows[0][3]:
+        
+        if len(rows) != 1 or request.form.get("hash") != rows[0][7]:
             flash('Вы указали неверный логин или пароль')
             return render_template('/login.html' )
             #return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
+        print(rows[0][0], rows[0][3], rows[0][5])
         session["user_id"] = rows[0][0]
-        session["user_name"] = rows[0][1]
-        session["user_status"] = rows[0][4]
+        session["user_name"] = rows[0][5]
+        session["user_status"] = rows[0][3]
 
         # Redirect user to home page
         return redirect('/' )
@@ -136,7 +246,7 @@ def logout():
 @app.route("/edit", methods = ["POST"])
 @login_required
 def edit():
-    if request.method == "POST" and session["user_status"] == "admin":
+    if request.method == "POST" and (session["user_status"] == "admin" or session["user_status"] == "coach"):
         userId = request.form.get("user_id")
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
@@ -153,12 +263,16 @@ def edit():
                 print("[INFO] PostgresSQL connection closed")
   
         id = userData[0][0]
-        username = userData[0][1]
-        name = userData[0][2]
-        userPassword = userData[0][3]
-        status  = userData[0][4]
-        position = userData[0][5]
-        return render_template("edit.html", id = id, name= name, username = username, userPassword = userPassword, status = status, position = position, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
+        department = userData[0][1]
+        reports_to = userData[0][2]
+        status = userData[0][3]
+        position = userData[0][4]
+        name = userData[0][5]
+        mail = userData[0][6]
+        hash = userData[0][7]
+
+        
+        return render_template("edit.html", id = id, department = department, reports_to = reports_to, status = status, position = position, name = name, mail = mail, hash = hash, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
     else:
         return redirect("/")
 
@@ -166,40 +280,43 @@ def edit():
 @app.route("/editSave", methods = ["POST"])
 @login_required
 def editSave():
-    if request.method == "POST" and session["user_status"] == "admin":
+    if request.method == "POST" and (session["user_status"] == "admin" or session["user_status"] == "coach"):
         id = request.form.get("id")
+        department = request.form.get("department")
+        reports_to = request.form.get("reports_to")
+        status = request.form.get("status")
+        position  = request.form.get("position")
         name = request.form.get("name")
-        username = request.form.get("username").lower()
-        userPassword = request.form.get("password")
-        status  = request.form.get("status")
-        position = request.form.get("position")
-        check = 'None'
-        print(status) 
+        mail = request.form.get("mail").lower()
+        hash = request.form.get("hash")
 
         if not name:
             return apology("Invalid name", 403)
-        if not username or checkUsername(username):
+        if not mail or checkUsername(mail):
             return apology("Invalid username", 403)
-        if checkUsernameMastContain(username):
+        if checkUsernameMastContain(mail):
             return apology("Usename not contain symbol from alphabet")
-        if  not userPassword or checkPassword(userPassword):
-            return apology("Invalid password", 403)
-        if not userPassword or checkPasswordBadSymbol(userPassword):
-            return apology("Invalid password 2", 403)
-        if not status or not position or status == check or position == check:
-            return apology("Invalid status or position", 403)
+        if  (status == "admin" or status == "coach") and (not hash or checkPassword(hash)):
+            flash('Укажите правильный формат пароля')
+            return redirect('/')
+        if (status == "admin" or status == "coach") and (not hash or checkPasswordBadSymbol(hash)):
+            flash('Укажите правильный формат пароля')
+            return redirect('/')
+        if not status or not position or status == 'None' or position == 'None':
+            flash('Укажите статус и должность.')
+            return redirect('/')
 
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True  
             with connection.cursor() as cursor:
                 # Проверка на существование пользователя
-                cursor.execute("SELECT username FROM users WHERE username = %(username)s AND id != %(id)s", {'username': username, 'id': id})
+                cursor.execute("SELECT mail FROM users WHERE mail = %(mail)s AND id != %(id)s", {'mail': mail, 'id': id})
                 us = cursor.fetchall()         
                 if len(us) != 0 :
                     return apology("User exist", 400)
                 # внесение изменений
-                cursor.execute("UPDATE users SET name = %(name)s, username = %(username)s, hash = %(hash)s, status = %(status)s, position = %(position)s  WHERE id = %(id)s", {'name': name, 'username': username, 'hash': userPassword, 'status': status, 'position': position, 'id': id})
+                cursor.execute("UPDATE users SET department = %(department)s, reports_to = %(reports_to)s, status = %(status)s, position = %(position)s, name = %(name)s, mail = %(mail)s, hash = %(hash)s  WHERE id = %(id)s", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'hash': hash, 'id': id})
                 
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
@@ -240,26 +357,37 @@ def delete():
 @app.route("/register", methods=["GET", "POST"])
 @login_required
 def register():
-    if request.method == "POST" and session["user_status"] == "admin":
-        name = request.form.get("name")
-        username = request.form.get("username").lower()        
-        userPassword = request.form.get("password")
+    if request.method == "POST" and (session["user_status"] == "admin" or session["user_status"] == "coach"):
+        department = request.form.get("department")
+        reports_to = request.form.get("reports_to")
         status = request.form.get("status")
-        position = request.form.get("position")
-       
+        position  = request.form.get("position")
+        name = request.form.get("name")
+        mail = request.form.get("mail").lower()
+        hash = request.form.get("hash")
+
         if not name:
-            return apology("Invalid name", 403)
-        if not username or checkUsername(username):
-            return apology("Invalid username", 403)
-        if checkUsernameMastContain(username):
-            return apology("Usename not contain symbol from alphabet")
-        if  not userPassword or checkPassword(userPassword):
-            return apology("Invalid password", 403)
-        if not userPassword or checkPasswordBadSymbol(userPassword):
-            return apology("Invalid password 2", 403)
+            flash('Укажите Имя')
+            return redirect('/')
+            #return apology("Invalid name", 403)
+        if not mail or checkUsername(mail):
+            flash('Укажите почту')
+            return redirect('/')
+            #return apology("Invalid username", 403)
+        if checkUsernameMastContain(mail):
+            flash('Укажите почту')
+            return redirect('/')
+            #return apology("Usename not contain symbol from alphabet")
+        if  (status == "admin" or status == "coach") and (not hash or checkPassword(hash)):
+            flash('Укажите правильный формат пароля')
+            return redirect('/')
+        if (status == "admin" or status == "coach") and (not hash or checkPasswordBadSymbol(hash)):
+            flash('Укажите правильный формат пароля')
+            return redirect('/')
         if not status or not position:
-            return apology("Invalid status or position", 403)
-        
+            flash('Укажите должность и статус')
+            return redirect('/')
+            #return apology("Invalid status or position", 403)
         
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
@@ -267,15 +395,17 @@ def register():
             with connection.cursor() as cursor:
                 
                 # Проверка на существование пользователя
-                cursor.execute("SELECT username FROM users WHERE username = %(username)s", {'username': username})
+                cursor.execute("SELECT mail FROM users WHERE mail = %(mail)s", {'mail': mail})
                 us = cursor.fetchall()
                 if len(us) != 0:
-                    return apology("User exist", 400)
+                    flash('Электронная почта уже зарегистрирована')
+                    return redirect('/')
+                    #return apology("User exist", 400)
 
                 # Добавляем пользователя и хеш пароля в бд
                 #hash = generate_password_hash(password, "pbkdf2:sha256")
                 
-                cursor.execute("INSERT INTO users (name, username, hash, status, position) VALUES(%(name)s, %(username)s, %(hash)s, %(status)s, %(position)s)", {'name': name, 'username': username, 'hash': userPassword, 'status': status, 'position': position})
+                cursor.execute("INSERT INTO users (department, reports_to, status, position, name, mail, hash) VALUES(%(department)s, %(reports_to)s, %(status)s, %(position)s, %(name)s, %(mail)s, %(hash)s)", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'hash': hash})
         
 
         except Exception as _ex:
@@ -293,7 +423,7 @@ def register():
 @app.route("/file", methods=["POST"])
 @login_required
 def file():
-    if request.method == "POST" and (session["user_status"] == "admin" or session["user_status"] == "couch"):
+    if request.method == "POST" and (session["user_status"] == "admin" or session["user_status"] == "coach"):
  
         if not request.files['file']:
             flash('Не могу прочитать файл или файл не загружен')
@@ -311,7 +441,7 @@ def file():
         usersError = []
         usersUpload = []
            
-        if filename.endswith((".xlsx", ".xls")):
+        if filename.endswith((".xlsx", ".xls", '.numbers')):
             xlsx = pd.ExcelFile(f'upload_files/{filename}')
             table = xlsx.parse()
             try:
@@ -320,28 +450,25 @@ def file():
                 with connection.cursor() as cursor:
                     for i in range(len(table)):
                         department = table.iloc[i,:][0]
-                        report_to = table.iloc[i,:][1]
+                        reports_to = table.iloc[i,:][1]
                         status = table.iloc[i,:][2]
                         position = table.iloc[i,:][3]
                         name = table.iloc[i,:][4]
                         mail = table.iloc[i,:][5]
                         hash = ''
-                        if status == 'couch' or status == 'head':
+                        if status == 'coach' or status == 'head':
                             hash = createPassword()
                         
                         # проверить пользователя на сущесвование
-
-                        #создать новую таблицу и писать уже под неее
-
-                        cursor.execute("SELECT * FROM users WHERE username = %(username)s", {'username': mail})
+                        cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
                         us = cursor.fetchall()
                         if len(us) != 0:
                             countError = countError + 1
                             usersError = usersError + us
                         else:
-                            cursor.execute("INSERT INTO users (username, name, hash, status, position) VALUES(%(username)s, %(name)s, %(hash)s, %(status)s, %(position)s)", {'username': mail, 'name': name, 'hash': hash, 'status': status, 'position': position})
+                            cursor.execute("INSERT INTO users (department, reports_to, status, position, name, mail, hash) VALUES(%(department)s, %(reports_to)s, %(status)s, %(position)s, %(name)s, %(mail)s, %(hash)s)", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'hash': hash})
                             countUpload = countUpload + 1
-                            cursor.execute("SELECT * FROM users WHERE username = %(username)s", {'username': mail})
+                            cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
                             usUpload = cursor.fetchall()
                             usersUpload = usersUpload + usUpload
 
@@ -354,32 +481,35 @@ def file():
                     
         elif filename.endswith(".csv"):
             with open(f'upload_files/{filename}', newline="") as csvfile:
-                userData = csv.reader(csvfile, delimiter=' ', quotechar='|')
+                userData = csv.reader(csvfile, delimiter=';', quotechar='|')
                 next(userData)
                 try:
                     connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
                     connection.autocommit = True  
                     
                     with connection.cursor() as cursor:
+                        print(userData)
                         for userD in userData:
-                            name = (userD[0] +' ' + userD[1])
-                            username = userD[2]
-                            status = userD[3]
-                            position = userD[4]
+                            department = userD[0]
+                            reports_to = userD[1]
+                            status = userD[2]
+                            position = userD[3]
+                            name = userD[4]
+                            mail = userD[5]         
                             hash = ''
-                            if status == 'couch' or status == 'head':
+                            if status == 'coach' or status == 'head':
                                 hash = createPassword()
                             # проверить пользователя на сущесвование
-                            cursor.execute("SELECT * FROM users WHERE username = %(username)s", {'username': username})
+                            cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
                             us = cursor.fetchall()
 
                             if len(us) != 0:
                                 countError = countError + 1
                                 usersError = usersError + us
                             else:
-                                cursor.execute("INSERT INTO users (username, name, hash, status, position) VALUES(%(username)s, %(name)s, %(hash)s, %(status)s, %(position)s)", {'username': username, 'name': name, 'hash': hash, 'status': status, 'position': position})
+                                cursor.execute("INSERT INTO users (department, reports_to, status, position, name, mail, hash) VALUES(%(department)s, %(reports_to)s, %(status)s, %(position)s, %(name)s, %(mail)s, %(hash)s)", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'hash': hash})
                                 countUpload = countUpload + 1
-                                cursor.execute("SELECT * FROM users WHERE username = %(username)s", {'username': username})
+                                cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
                                 usUpload = cursor.fetchall()
                                 usersUpload = usersUpload + usUpload
 
@@ -402,3 +532,6 @@ def file():
 # create table history (id INTEGER NOT NULL, user_id_hst INTEGER NOT NULL, symbol_hst TEXT NOT NULL, name_hst TEXT, shares_hst INTEGER NOT NULL, price_hst INTEGER NOT NULL, date TEXT NOT NULL, PRIMARY KEY(id), FOREIGN KEY(user_id_hst) REFERENCES users(id));
 # CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, hash TEXT NOT NULL, status TEXT, name text, position text);
 # CREATE TABLE sqlite_sequence(name,seq);
+
+#CREATE TABLE users (id INTEGER serial PRIMARY KEY AUTOINCREMENT NOT NULL, department VARCHAR(50), reports_to VARCHAR(50), status VARCHAR(50), position VARCHAR(50), name VARCHAR(50), mail VARCHAR(50), hash VARCHAR(50));
+# INSERT INTO users (department, reports_to, status, position, name, mail, hash) VALUES('1', 'Юр.Отдел', 'Виктор Иванов' , 'admin' , 'dev', 'Karen', 'asd@asd.ri', 'edrfTgr34=');

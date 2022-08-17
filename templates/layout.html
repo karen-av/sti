@@ -36,10 +36,11 @@
                 <div class="collapse navbar-collapse" id="navbar">
                     {% if session["user_id"] %}
                         <ul class="navbar-nav me-auto mt-2">
-                            <li><h6>{{ session["user_name"] }}</h6></li>
+                            
+                            <li class="nav-item"><a class="nav-link" href="/">Главная</a></li>
                         </ul>
                         <ul class="navbar-nav ms-auto mt-2">
-                            
+                            <li class="nav-item"><a class="nav-link"> {{ session["user_name"] }} </a></li>
                             <li class="nav-item"><a class="nav-link" href="/logout">Log Out</a></li>
                         </ul>
                     {% else %}

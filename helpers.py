@@ -44,15 +44,15 @@ def checkPassword(passw):
 
     a, b, c, d = 0, 0, 0, 0
     for s in passw:
-        if s in symbols:
-            a = a+1
+        #if s in symbols:
+         #   a = a+1
         if s.isdigit():
             b = b+1
         if s.isupper():
             c = c+1
         if s.islower():
             d = d+1
-        if a > 0 and b > 0 and c > 0 and d > 0:
+        if  b > 0 and c > 0 and d > 0:
             
             return False
     

@@ -8,12 +8,14 @@
     <table class="table table-striped"  style="margin:auto; width: 82%; text-align:center">
         <thead>
             <tr> 
-                <th> </th>
-                <th>Name</th>
-                <th >Username</th>
-                <th>Password</th>
-                <th>Status</th>
-                <th>Position</th>
+                <th>N</th>
+                <th>Подразделение</th>
+                <th >Руководитель</th>
+                <th>Статус</th>
+                <th>Должность</th>
+                <th>ФИО</th>
+                <th>Почта</th>
+                <th>Пароль</th>
             </tr>
         </thead>
     
@@ -21,10 +23,9 @@
             <form action="/editSave" method="post" name="editSave" onsubmit="return validateForm()">
             <tr> 
                 <td><input type="hidden" value="{{ id }}" name ="id"></td>
-                <td style="padding-top: 20px"><input autocomplete="off" id="name" name="name"  value="{{ name }}" type="text"  minlength="" maxlength="30"></td>
-                <td style="padding-top: 20px"><input autocomplete="off" id="username" name="username"  value="{{ username }}" type="text"  minlength="" maxlength="30" ></td>
-                <td style="padding-top: 20px"><input autocomplete="off" id="password" name="password" value="{{ userPassword }}" type="text"  minlength="" maxlength="30" ></td>
-                <td style="padding-top: 20px">
+                <td><input autocomplete="off" id="department" name="department"  value="{{ department }}" type="text"  minlength="" maxlength="30"></td>
+                <td><input autocomplete="off" id="reports_to" name="reports_to"  value="{{ reports_to }}" type="text"  minlength="" maxlength="30"></td>
+                <td> 
                     <select name="status" class="table table-striped" required>
                         <option selected>{{ status }}</option>
                         {% for stat in statusList%}
@@ -32,7 +33,7 @@
                         {% endfor %}
                     </select>
                 </td>
-                <td style="padding-top: 20px">
+                <td>
                     <select name="position" class="table table-striped">
                         <option>{{ position }}</option>
                         {% for pos in positionList %}
@@ -40,19 +41,22 @@
                         {% endfor %}
                     </select>
                 </td>
+                <td><input autocomplete="off" id="name" name="name"  value="{{ name }}" type="text"  minlength="" maxlength="30"></td>
+                <td><input autocomplete="off" id="mail" name="mail"  value="{{ mail }}" type="text"  minlength="" maxlength="30" ></td>
+                <td><input autocomplete="off" id="hash" name="hash" value="{{ hash }}" type="text"  minlength="" maxlength="30" ></td>
                 <td>
-                    <button class="btn btn-primary" type="submit" id="button">Save</button>
+                    <button class="btn btn-primary" type="submit" id="button">S</button>
                     <p id="demo"></p>
                 </td>
             </form>
                 <td>
                     <form action="/delete" method="post" name="delete" >
                         <input type="hidden" value="{{ id }}" name ="id">
-                        <button class="btn btn-primary" type="" id="" onclick="return show_alert_delete()">Delete</button>
+                        <button class="btn btn-primary" type="" id="" onclick="return show_alert_delete()">D</button>
                     </form>
                 </td>
                 <td>
-                    <a href="/"><button class="btn btn-primary" type="button" id="">Cancel</button></a>
+                    <a href="/"><button class="btn btn-primary" type="button" id="">C</button></a>
                 </td>
              </tr>
     </tbody>
@@ -75,8 +79,8 @@
 
         function validateForm() {
                 let name = document.forms["editSave"]["name"].value;
-                let username = document.forms["editSave"]["username"].value;
-                let password = document.forms["editSave"]["password"].value;
+                let username = document.forms["editSave"]["mail"].value;
+                let password = document.forms["editSave"]["hash"].value;
 
 
                 if (name.length < 3 || name.length > 30) {
@@ -90,69 +94,69 @@
                     //document.getElementById("button").focus()
                 }
 
-                if (username.length < 3 || username.length > 30) {
-                    document.getElementById("username").style.border = "1px solid red";
+                if (mail.length < 3 || mail.length > 30) {
+                    document.getElementById("mail").style.border = "1px solid red";
                     alert("Поле username содержит менее 3-ч или более 30 символов");
                     //document.getElementById("username").focus()
                     return false;
                 }
                 else {
-                    document.getElementById("username").style.border = "1px solid green";
+                    document.getElementById("mail").style.border = "1px solid green";
                     //document.getElementById("button").focus()
                 }
 
-                if (checkUsernameInvalidSymbol(username)) {
-                    document.getElementById("username").style.border = "1px solid red";
-                    alert("Поле Username содержит недопустимый символ. Используйте буквы латинского алфавита и цифры от 0 до 9");
+                if (checkUsernameInvalidSymbol(mail)) {
+                    document.getElementById("mail").style.border = "1px solid red";
+                    alert("Поле Почта содержит недопустимый символ. Используйте буквы латинского алфавита и цифры от 0 до 9");
                     //document.getElementById("username").focus()
                     return false;
                 }
                 else {
-                    document.getElementById("username").style.border = "1px solid green";
+                    document.getElementById("mail").style.border = "1px solid green";
                     //document.getElementById("button").focus()
                 }
 
-                if (checkUsernameMastContain(username)) {
-                    document.getElementById("username").style.border = "1px solid red";
-                    alert("Поле Username должно содержать хотябы одну букву. Используйте буквы латинского алфавита и цифры от 0 до 9");
+                if (checkUsernameMastContain(mail)) {
+                    document.getElementById("mail").style.border = "1px solid red";
+                    alert("Поле Почта должно содержать хотябы одну букву. Используйте буквы латинского алфавита и цифры от 0 до 9");
                     //document.getElementById("username").focus()
                     return false;
                 }
                 else {
-                    document.getElementById("username").style.border = "1px solid green";
+                    document.getElementById("mail").style.border = "1px solid green";
                     //document.getElementById("button").focus()
                 }
 
-                if (checkPasswordMastContain(password)) {
-                    document.getElementById("password").style.border = "1px solid red";
+                if (checkPasswordMastContain(hash)) {
+                    document.getElementById("hash").style.border = "1px solid red";
                     alert("Password does not contain the necessary characters. Password mast contain at least one upper and lower case characters from English alphabet and one digit from 0 to 9 and one charecter from !, @, #, $, %, &, ?, -, +, =, ~.")
                     //document.getElementById("password").focus()
                     return false;
                 }
                 else {
-                    document.getElementById("password").style.border = "1px solid green";
+                    document.getElementById("hash").style.border = "1px solid green";
                     //document.getElementById("button").focus()
                 }
 
-                if (checkPasswordInvalidSymbol(password)) {
-                    document.getElementById("password").style.border = "1px solid red";
+                if (checkPasswordInvalidSymbol(hash)) {
+                    document.getElementById("hash").style.border = "1px solid red";
                     alert("Password contains an invalid character.");
                     //document.getElementById("password").focus()
                     return false;
                 }
                 else {
-                    document.getElementById("password").style.border = "1px solid green";
+                    document.getElementById("hash").style.border = "1px solid green";
                     //document.getElementById("button").focus()
                 }
 
-                if (password.length < 6 || password.length > 30) {
-                    document.getElementById("password").style.border = "1px solid red";
+                if (hash.length < 6 || hash.length > 30) {
+                    document.getElementById("hash").style.border = "1px solid red";
                     alert("Password is not available. Password mast be between 6 and 30 characters.");
                     //document.getElementById("password").focus()
                     return false;
                 }
                 else {
-                    document.getElementById("password").style.border = "1px solid green";
+                    document.getElementById("hash").style.border = "1px solid green";
                     //document.getElementById("button").focus()
                 }
                
