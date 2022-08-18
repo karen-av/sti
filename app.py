@@ -472,7 +472,7 @@ def register():
             return redirect('/users')
             #return apology("Usename not contain symbol from alphabet")
             # Если пользователь со статусом ... создаем пароль
-        if  status == ADMIN or status == COACH or status == HEAD # and (not hash or checkPassword(hash)):
+        if  status == ADMIN or status == COACH or status == HEAD: # and (not hash or checkPassword(hash)):
             hash = createPassword()
             # flash('Укажите правильный формат пароля')
             # return redirect('/users')

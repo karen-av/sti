@@ -25,16 +25,8 @@ nav .navbar-brand .green
 .btn-primary
 {
 background-color: rgb(163, 170, 170);
-
 }
 
-
-caption {
-    caption-side: bottom;
-    text-align: right;
-    padding: 10px 0;
-    font-size: 14px;
- }
 
 
 table {
@@ -43,9 +35,6 @@ table {
     border: 1px solid grey;
     /*устанавливаем для таблицы внешнюю границу серого цвета толщиной 1px*/
     table-layout: fixed;
-    
-
-   
 }
 
 .table-striped {
@@ -57,3 +46,9 @@ table {
     text-align:center"
 }
 
+caption {
+    caption-side: bottom;
+    text-align: right;
+    padding: 10px 0;
+    font-size: 14px;
+ }
