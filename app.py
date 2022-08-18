@@ -60,7 +60,7 @@ def positions():
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
             connection.autocommit = True  
             with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM positions")
+                cursor.execute("SELECT * FROM positions ORDER BY id")
                 positions = cursor.fetchall()
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
@@ -381,22 +381,25 @@ def editSave():
         name = request.form.get("name")
         mail = request.form.get("mail").lower().strip()
         hash = request.form.get("hash")
-
-        if not name:
-            return apology("Invalid name", 403)
-        if not mail or checkUsername(mail):
-            return apology("Invalid username", 403)
-        if checkUsernameMastContain(mail):
-            return apology("Usename not contain symbol from alphabet")
-        if  (status == ADMIN or status == COACH) and (not hash or checkPassword(hash)):
-            flash('Укажите правильный формат пароля')
-            return redirect('/')
-        if (status == ADMIN or status == COACH) and (not hash or checkPasswordBadSymbol(hash)):
-            flash('Укажите правильный формат пароля')
-            return redirect('/')
         if not status or not position or status == 'None' or position == 'None':
-            flash('Укажите статус и должность.')
-            return redirect('/')
+            flash('Изменения не сохранены. Укажите статус и должность.')
+            return redirect('/users')
+        if not name:
+            flash('Изменения не сохранены. Укажите правильный формат имени')
+            return redirect('/users')
+        if not mail or checkUsername(mail):
+            flash('Изменения не сохранены. Укажите правильный формат почты')
+            return redirect('/users')
+        if checkUsernameMastContain(mail):
+            flash('Изменения не сохранены. Укажите правильный формат почты')
+            return redirect('/users')
+        if  (status == ADMIN or status == COACH or status == HEAD) and (not hash or checkPassword(hash)):
+            flash('Изменения не сохранены. Укажите правильный формат пароля')
+            return redirect('/users')
+        if (status == ADMIN or status == COACH or status == HEAD) and (not hash or checkPasswordBadSymbol(hash)):
+            flash('Изменения не сохранены. Укажите правильный формат пароля')
+            return redirect('/users')
+        
 
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
@@ -409,14 +412,23 @@ def editSave():
                     return apology("User exist", 400)
                 # внесение изменений
                 cursor.execute("UPDATE users SET department = %(department)s, reports_to = %(reports_to)s, status = %(status)s, position = %(position)s, name = %(name)s, mail = %(mail)s, hash = %(hash)s  WHERE id = %(id)s", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'hash': hash, 'id': id})
-                
+                # Если изменили должность и такой нет в базе, добавляем
+
+                # Проверяем существует ли должность в базе. Если нет, то добавляем
+                cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s", {'position': position})
+                pos = cursor.fetchall()
+                if len(pos) == 0 and status != ADMIN and status != COACH:
+                    cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
+
+
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
         finally:
             if connection:
                 connection.close()
                 print("[INFO] PostgresSQL connection closed")
-
+        
+        flash('Изменения сохранены.')
         return redirect("/users")
     else:
         return redirect("/")
@@ -441,7 +453,8 @@ def delete():
                 connection.close()
                 print("[INFO] PostgresSQL connection closed")
 
-        return redirect("/")
+        flash('Пользователь удален.')
+        return redirect("/users")
     else:
         return redirect("/")
 
@@ -456,9 +469,12 @@ def register():
         position  = request.form.get("position")
         name = request.form.get("name").strip()
         mail = request.form.get("mail").lower().strip()
-       # hash = request.form.get("hash")
+        hash = ''
 
         # Проверка полученных данных
+        if not status or not position:
+            flash('Укажите должность и статус')
+            return redirect('/users')
         if not name:
             flash('Укажите Имя')
             return redirect('/users')
@@ -474,16 +490,7 @@ def register():
             # Если пользователь со статусом ... создаем пароль
         if  status == ADMIN or status == COACH or status == HEAD: # and (not hash or checkPassword(hash)):
             hash = createPassword()
-            # flash('Укажите правильный формат пароля')
-            # return redirect('/users')
-        if (status == ADMIN or status == COACH) and (not hash or checkPasswordBadSymbol(hash)):
-            flash('Укажите правильный формат пароля')
-            return redirect('/users')
-        if not status or not position:
-            flash('Укажите должность и статус')
-            return redirect('/users')
-            #return apology("Invalid status or position", 403)
-        
+          
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True  
@@ -497,9 +504,9 @@ def register():
                     return redirect('/users')
                 cursor.execute("INSERT INTO users (department, reports_to, status, position, name, mail, hash) VALUES(%(department)s, %(reports_to)s, %(status)s, %(position)s, %(name)s, %(mail)s, %(hash)s)", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'hash': hash})
                 
+                # Проверяем существует ли должность в базе. Если нет, то добавляем
                 cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s", {'position': position})
                 pos = cursor.fetchall()
-                print(f'pos- {pos}')
                 if len(pos) == 0 and status != ADMIN and status != COACH:
                     cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
 
@@ -509,7 +516,7 @@ def register():
             if connection:
                 connection.close()
                 print("[INFO] PostgresSQL connection closed")
-
+        flash('Пользователь добавлен.')
         return redirect("/users")
     else:
         return redirect("/")

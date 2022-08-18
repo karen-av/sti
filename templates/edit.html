@@ -25,19 +25,21 @@
                 <input type="hidden" value="{{ id }}" name ="id">
                 <td><input autocomplete="off" id="department" name="department"  value="{{ department }}" type="text"  minlength="" maxlength="30"></td>
                 <td><input autocomplete="off" id="reports_to" name="reports_to"  value="{{ reports_to }}" type="text"  minlength="" maxlength="30"></td>
-                <td><input autocomplete="off" id="status" name="status"  value="{{ status }}" type="text"  minlength="" maxlength="30"></td>
-                <td><input autocomplete="off" id="position" name="position"  value="{{ position }}" type="text"  minlength="" maxlength="30"></td>
-                <td><input autocomplete="off" id="name" name="name"  value="{{ name }}" type="text"  minlength="" maxlength="30"></td>
-                <td><input autocomplete="off" id="mail" name="mail"  value="{{ mail }}" type="text"  minlength="" maxlength="30" ></td>
+                <td><input autocomplete="off" id="status" name="status"  value="{{ status }}" type="text"  minlength="3" maxlength="30" required></td>
+                <td><input autocomplete="off" id="position" name="position"  value="{{ position }}" type="text"  minlength="3" maxlength="30" required></td>
+                <td><input autocomplete="off" id="name" name="name"  value="{{ name }}" type="text"  minlength="3" maxlength="30" required></td>
+                <td><input autocomplete="off" id="mail" name="mail"  value="{{ mail }}" type="text"  minlength="3" maxlength="30" required ></td>
                 <td><input autocomplete="off" id="hash" name="hash" value="{{ hash }}" type="text"  minlength="" maxlength="30" ></td>
             </tr >  
             <caption><button class="btn btn-primary" type="submit" id="button">Сохранить</button>
-            </form>
+                <button class="btn btn-primary"  type="reset">Сбросить</button>
+        </form>
+        <p></p>
             <form action="/delete" method="post" name="delete" >
                 <input type="hidden" value="{{ id }}" name ="id">
                 <button class="btn btn-primary"  type="" id="" onclick="return show_alert_delete()">Удалить</button>
-            </form>
-               <a href="/"><button class="btn btn-primary"  type="button" id="">Отмена</button></a>
+            
+               <a href='/users'><button class="btn btn-primary"  type="button">Назад</button></a></form>
             </caption>
     </tbody>
          
@@ -60,73 +62,25 @@
         function validateForm() {
                 let name = document.forms["editSave"]["name"].value;
                 let username = document.forms["editSave"]["mail"].value;
-                let password = document.forms["editSave"]["hash"].value;
+                
 
 
                 if (name.length < 3 || name.length > 30) {
                     document.getElementById("name").style.border = "1px solid red";
                     alert("Поле name содержит меньше 3-х или более 30 символов.");
-                    //document.getElementById("name").focus()
                     return false;
                 }
                 else {
                     document.getElementById("name").style.border = "1px solid green";
-                    //document.getElementById("button").focus()
                 }
 
                 if (mail.length < 3 || mail.length > 30) {
                     document.getElementById("mail").style.border = "1px solid red";
                     alert("Поле username содержит менее 3-ч или более 30 символов");
-                    //document.getElementById("username").focus()
                     return false;
                 }
                 else {
                     document.getElementById("mail").style.border = "1px solid green";
-                    //document.getElementById("button").focus()
-                }
-
-                if (checkUsernameInvalidSymbol(mail)) {
-                    document.getElementById("mail").style.border = "1px solid red";
-                    alert("Поле Почта содержит недопустимый символ. Используйте буквы латинского алфавита и цифры от 0 до 9");
-                    //document.getElementById("username").focus()
-                    return false;
-                }
-                else {
-                    document.getElementById("mail").style.border = "1px solid green";
-                    //document.getElementById("button").focus()
-                }
-
-                if (checkUsernameMastContain(mail)) {
-                    document.getElementById("mail").style.border = "1px solid red";
-                    alert("Поле Почта должно содержать хотябы одну букву. Используйте буквы латинского алфавита и цифры от 0 до 9");
-                    //document.getElementById("username").focus()
-                    return false;
-                }
-                else {
-                    document.getElementById("mail").style.border = "1px solid green";
-                    //document.getElementById("button").focus()
-                }
-
-                if (checkPasswordMastContain(hash)) {
-                    document.getElementById("hash").style.border = "1px solid red";
-                    alert("Password does not contain the necessary characters. Password mast contain at least one upper and lower case characters from English alphabet and one digit from 0 to 9 and one charecter from !, @, #, $, %, &, ?, -, +, =, ~.")
-                    //document.getElementById("password").focus()
-                    return false;
-                }
-                else {
-                    document.getElementById("hash").style.border = "1px solid green";
-                    //document.getElementById("button").focus()
-                }
-
-                if (checkPasswordInvalidSymbol(hash)) {
-                    document.getElementById("hash").style.border = "1px solid red";
-                    alert("Password contains an invalid character.");
-                    //document.getElementById("password").focus()
-                    return false;
-                }
-                else {
-                    document.getElementById("hash").style.border = "1px solid green";
-                    //document.getElementById("button").focus()
                 }
 
                 if (hash.length < 6 || hash.length > 30) {
