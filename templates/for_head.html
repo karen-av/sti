@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block main %}
-    <table class="table table-striped"  style="margin:auto; width: 82%; text-align:center">
+    <table class="table table-striped">
         <thead>
             <tr> 
                 <th>Должность</th>
@@ -14,70 +14,80 @@
                 {% endfor %} 
             </tr> 
         </thead>
+
         <tbody>
-            <form action="/select" method="post" name="select" onsubmit="return validateForm()">
-            <tr> 
-                {% for position in users %}
-                <td>{{ position.1 }}</td>
-                <td><select name="status" class="table table-striped" required>
+            <form action="/users" method="post" name="users">
+            <tr>                
+                <input type="hidden" name="position_pos" value="{{ positionFromList.0.1 }}">
+                <td>{{ positionFromList.0.1 }}</td>
+
+                <td><select name="comp_1" class="table table-striped" required>
                     <option disabled selected value="none"></option>
                     {% for i in range(1, 10) %}
                     <option>{{ i }}</option>
                     {% endfor %}
                 </select></td>
-                <td><select name="status" class="table table-striped" required>
+
+                <td><select name="comp_2" class="table table-striped" required>
                     <option disabled selected value="none"></option>
                     {% for i in range(1, 10) %}
                     <option>{{ i }}</option>
                     {% endfor %}
                 </select></td>
-                <td> 
-                    <select name="status" class="table table-striped" required>
-                        <option disabled selected value="none"></option>
-                        {% for i in range(1, 10) %}
-                        <option>{{ i }}</option>
-                        {% endfor %}
+
+                <td> <select name="comp_3" class="table table-striped" required>
+                   <option disabled selected value="none"></option>
+                    {% for i in range(1, 10) %}
+                    <option>{{ i }}</option>
+                    {% endfor %}
                     </select></td>
-                <td><select name="status" class="table table-striped" required>
+
+                <td><select name="comp_4" class="table table-striped" required>
                     <option disabled selected value="none"></option>
                     {% for i in range(1, 10) %}
                     <option>{{ i }}</option>
                     {% endfor %}
                 </select></td>
-                <td><select name="status" class="table table-striped" required>
-                    <option disabled selected value="none"></option>
-                    {% for i in range(1, 10) %}
-                    <option>{{ i }}</option>
-                    {% endfor %}
-                </select></td><td><select name="status" class="table table-striped" required>
-                    <option disabled selected value="none"></option>
-                    {% for i in range(1, 10) %}
-                    <option>{{ i }}</option>
-                    {% endfor %}
-                </select></td><td><select name="status" class="table table-striped" required>
+
+                <td><select name="comp_5" class="table table-striped" required>
                     <option disabled selected value="none"></option>
                     {% for i in range(1, 10) %}
                     <option>{{ i }}</option>
                     {% endfor %}
                 </select></td>
-                <td><select name="status" class="table table-striped" required>
+                
+                <td><select name="comp_6" class="table table-striped" required>
                     <option disabled selected value="none"></option>
                     {% for i in range(1, 10) %}
                     <option>{{ i }}</option>
                     {% endfor %}
                 </select></td>
-                <td><select name="status" class="table table-striped" required>
+                
+                <td><select name="comp_7" class="table table-striped" required>
                     <option disabled selected value="none"></option>
                     {% for i in range(1, 10) %}
                     <option>{{ i }}</option>
                     {% endfor %}
                 </select></td>
+
+                <td><select name="comp_8" class="table table-striped" required>
+                    <option disabled selected value="none"></option>
+                    {% for i in range(1, 10) %}
+                    <option>{{ i }}</option>
+                    {% endfor %}
+                </select></td>
+
                 <td>
-                    <button class="btn btn-primary" type="submit" id="button">S</button>
-                    <p id="demo"></p>
-                </td>
+                    <select name="comp_9" class="table table-striped" required>
+                    <option disabled selected value="none"></option>
+                    {% for i in range(1, 10) %}
+                    <option>{{ i }}</option>
+                    {% endfor %}
+                </select></td>
+                <caption><button class="btn btn-primary" type="submit" id="button">Отправить</button></caption>
+               
             </form>
-            </tr>{% endfor %}
+            </tr>
         </tbody>
     </table>
 {% endblock %}

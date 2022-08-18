@@ -41,22 +41,8 @@
                         {% endfor %}
                     </select>
                 </th>
-                <th>
-                    <select id="name" name="name">
-                        <option disabled selected value="none">ФИО</option>
-                        {% for name in usereName %}
-                        <option>{{ name.0 }}</option>
-                        {% endfor %}
-                    </select>
-                </th>
-                <th>
-                    <select id="mail" name="mail">
-                        <option disabled selected value="none">Почта</option>
-                        {% for mail in usereMail %}
-                        <option>{{ mail.0 }}</option>
-                        {% endfor %}
-                    </select>
-                </th>
+                <th>ФИО</th>
+                <th>Почта</th>
                 <th>Пароль</th>
                 <th><button class="btn btn-primary" type="submit" id="sort_button">Edit</button></th>
             </tr></form>
@@ -112,17 +98,6 @@
                 </td>
             </tr>  
             </form>
-            <tr>
-            <form action="/file" method="post" enctype=multipart/form-data>
-                <td></td><td></td><td></td>
-                <td colspan="5" ><div class="input-group">
-                    <input accept=".xlsx,.xls,.csv, .numbers" name="file" type="file" class="form-control" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" aria-label="Upload">
-                    <button class="btn btn-outline-secondary" type="sybmit" id="inputGroupFileAddon04">Загрузить</button>
-                  </div></td>
-                  <td></td>
-            </form>
-            </tr>
-            
         </tbody>
     </table>   
           

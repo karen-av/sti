@@ -47,8 +47,10 @@ def after_request(response):
 def index():
     if session["user_status"] == ADMIN or session["user_status"] == COACH:
         return render_template('index.html')
-    else:
+    elif session["user_status"] == HEAD:
         return redirect("/users")
+    else:
+        return redirect("/login")
 
 @app.route("/positions")
 @login_required
@@ -110,22 +112,24 @@ def users():
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
                 connection.autocommit = True  
                 with connection.cursor() as cursor:
-                    #cursor.execute("SELECT * FROM positions WHERE reports_pos = %(reports_pos)s", {'reports_pos': session["user_name"]})
                     cursor.execute("SELECT name FROM users WHERE mail = %(mail)s", {'mail': session["user_mail"]})
                     headName = cursor.fetchone()
-                    cursor.execute("SELECT * FROM positions WHERE reports_pos = %(name)s", {'name': headName[0]})
-                    users = cursor.fetchall()
+                    cursor.execute("SELECT * FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) AND reports_pos = %(name)s LIMIT 1", {'name': headName[0]})
+                    positionFromList = cursor.fetchall()
+                    print(f' positionFromList - {positionFromList}')
+                    if len(positionFromList) != 0:
+                        return render_template("for_head.html", positionFromList = positionFromList, competence = COMPETENCE)
+                    else:
+                        return render_template('theEnd.html')
             except Exception as _ex:
                 print("[INFO] Error while working with PostgresSQL", _ex)
             finally:
                 if connection:
                     connection.close()
                     print("[INFO] PostgresSQL connection closed")
-            print(users)
-            return render_template("for_head.html", users = users, competence = COMPETENCE)
-
+        
         else:
-            return render_template("login.html")
+            return redirect("/")
 
 
     elif request.method == "POST":
@@ -218,8 +222,48 @@ def users():
                     connection.close()
                     print("[INFO] PostgresSQL connection closed")
             # на всех путях проверять session[user_status]б чтобы не прошли просто по ссылке
-            return render_template("select.html", users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, usereName =usereName, usereMail = usereMail, tatusList = STATUS_LIST, positionList = POSITIONS_LIST)
+            return render_template("select.html", users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, usereName =usereName, usereMail = usereMail, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
         
+        elif session["user_status"] == HEAD:
+            position_pos = request.form.get('position_pos')
+            comp_1 = request.form.get('comp_1')
+            comp_2 = request.form.get('comp_2')
+            comp_3 = request.form.get('comp_3')
+            comp_4 = request.form.get('comp_4')
+            comp_5 = request.form.get('comp_5')
+            comp_6 = request.form.get('comp_6')
+            comp_7 = request.form.get('comp_7')
+            comp_8 = request.form.get('comp_8')
+            comp_9 = request.form.get('comp_9')
+
+            try:
+                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
+                connection.autocommit = True  
+                with connection.cursor() as cursor:
+                    # Вносим полученные данные
+                    cursor.execute("UPDATE positions SET comp_1 = %(comp_1)s, comp_2 = %(comp_2)s, comp_3 = %(comp_3)s, comp_4 = %(comp_4)s, comp_5 = %(comp_5)s, comp_6 = %(comp_6)s, comp_7 = %(comp_7)s, comp_8 = %(comp_8)s, comp_9 = %(comp_9)s WHERE position_pos = %(position_pos)s", {'comp_1': comp_1, 'comp_2':comp_2, 'comp_3': comp_3, 'comp_4': comp_4, 'comp_5': comp_5, 'comp_6': comp_6, 'comp_7': comp_7, 'comp_8':comp_8, 'comp_9': comp_9, 'position_pos': position_pos})
+                    # Находим имя руководителя
+                    cursor.execute("SELECT name FROM users WHERE mail = %(mail)s", {'mail': session["user_mail"]})
+                    headName = cursor.fetchone()
+                    # Находим неранжированную должность
+                    cursor.execute("SELECT * FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) AND reports_pos = %(name)s LIMIT 1", {'name': headName[0]})
+                    positionFromList = cursor.fetchall()
+                    # Если есть такая должность, то передаем ее для заполнения
+                    if len(positionFromList) != 0:
+                        return render_template("for_head.html", positionFromList = positionFromList, competence = COMPETENCE)
+                    # Если нет, то прощаемся 
+                    else:
+                        return render_template('theEnd.html')
+            except Exception as _ex:
+                print("[INFO] Error while working with PostgresSQL", _ex)
+            finally:
+                if connection:
+                    connection.close()
+                    print("[INFO] PostgresSQL connection closed")
+
+        else:
+            return redirect("/")
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -412,8 +456,9 @@ def register():
         position  = request.form.get("position")
         name = request.form.get("name").strip()
         mail = request.form.get("mail").lower().strip()
-        hash = request.form.get("hash")
+       # hash = request.form.get("hash")
 
+        # Проверка полученных данных
         if not name:
             flash('Укажите Имя')
             return redirect('/users')
@@ -426,9 +471,11 @@ def register():
             flash('Укажите почту')
             return redirect('/users')
             #return apology("Usename not contain symbol from alphabet")
-        if  (status == ADMIN or status == COACH) and (not hash or checkPassword(hash)):
-            flash('Укажите правильный формат пароля')
-            return redirect('/users')
+            # Если пользователь со статусом ... создаем пароль
+        if  status == ADMIN or status == COACH or status == HEAD # and (not hash or checkPassword(hash)):
+            hash = createPassword()
+            # flash('Укажите правильный формат пароля')
+            # return redirect('/users')
         if (status == ADMIN or status == COACH) and (not hash or checkPasswordBadSymbol(hash)):
             flash('Укажите правильный формат пароля')
             return redirect('/users')
@@ -452,7 +499,7 @@ def register():
                 
                 cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s", {'position': position})
                 pos = cursor.fetchall()
-                print(pos)
+                print(f'pos- {pos}')
                 if len(pos) == 0 and status != ADMIN and status != COACH:
                     cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
 
@@ -496,6 +543,7 @@ def file():
                 connection.autocommit = True 
                 with connection.cursor() as cursor:
                     for i in range(len(table)):
+                        # Разбираем данные из считанных строк
                         department = str(table.iloc[i,:][0])
                         reports_to = str(table.iloc[i,:][1])
                         status = str(table.iloc[i,:][2])
@@ -503,20 +551,24 @@ def file():
                         name = str(table.iloc[i,:][4]).strip()
                         mail = str(table.iloc[i,:][5]).lower().strip()
                         hash = ''
-                        if status == COACH or status == ADMIN or status == 'head':
+                        # если статус ... устанавливаем рандомный пароль
+                        if status == COACH or status == ADMIN or status == HEAD:
                             hash = createPassword()
                         # проверить пользователя на сущесвование
                         cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
                         us = cursor.fetchall()
+                        # Если сузествует, то не записываем в базу. Добавляем в список
                         if len(us) != 0:
                             countError = countError + 1
                             usersError = usersError + us
+                        # Если нет пользователя в базе, то записываем туда и добавляем в список
                         else:
                             cursor.execute("INSERT INTO users (department, reports_to, status, position, name, mail, hash) VALUES(%(department)s, %(reports_to)s, %(status)s, %(position)s, %(name)s, %(mail)s, %(hash)s)", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'hash': hash})
                             countUpload = countUpload + 1
                             cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
                             usUpload = cursor.fetchall()
                             usersUpload = usersUpload + usUpload
+                            # Проверяем должность в базе. Если существует, то пропускам
                             cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s", {'position': position})
                             pos = cursor.fetchall()
                             if len(pos) == 0 and status != ADMIN and status != COACH:
@@ -548,7 +600,7 @@ def file():
                             name = userD[4]
                             mail = userD[5]         
                             hash = ''
-                            if status == 'coach' or status == 'head':
+                            if status == 'coach' or status == HEAD:
                                 hash = createPassword()
                             # проверить пользователя на сущесвование
                             cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})

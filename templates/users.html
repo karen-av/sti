@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block main %}
-    <table class="table table-striped"  style="margin:auto; width: 82%; text-align:left;">
+    <table class="table table-striped" >
         <thead ><form action="users" method="post" name="sort">
             <tr >
                 <th>N</th>
@@ -41,28 +41,13 @@
                         {% endfor %}
                     </select>
                 </th>
-                <th>
-                    <select id="name" name="name">
-                        <option disabled selected value="none">ФИО</option>
-                        {% for name in usereName %}
-                        <option>{{ name.0 }}</option>
-                        {% endfor %}
-                    </select>
-                </th>
-                <th>
-                    <select id="mail" name="mail">
-                        <option disabled selected value="none">Почта</option>
-                        {% for mail in usereMail %}
-                        <option>{{ mail.0 }}</option>
-                        {% endfor %}
-                    </select>
-                </th>
+                <th>ФИО</th>
+                <th>Почта</th>
                 <th>Пароль</th>
-                <th><button class="btn btn-primary" type="submit" id="sort_button">Edit</button></th>
+                <th><button class="btn btn-primary" type="submit" id="sort_button">Применить</button></th>
             </tr></form>
         </thead>
-        <tbody>
-            
+        <tbody> 
             {% for user in users %}
             <tr> 
                 <td>{{ loop.index }} </td>
@@ -73,10 +58,10 @@
                 <td>{{ user.5 }}</td>
                 <td>{{ user.6 }}</td>
                 <td>{{ user.7 }}</td>
-                <td style="width:13%;"> <div style="float: left; ">
+                <td>
                     <form action="/edit" method="post">
                         <input type="hidden" value="{{ user.0 }}" name ="user_id">
-                        <button class="btn btn-primary" type="submit">Edit</button>
+                        <button class="btn btn-primary" type="submit">Редакт</button>
                     </form>
                 </div>
                 </td>
@@ -85,31 +70,14 @@
             <tr>
                 <td></td>
                 <form action="/register" method="post" name="register" onsubmit="return validateForm()">
-                <td><input  autocomplete="off" id="department" name="department"  placeholder="Подразделение" type="text"  minlength="" maxlength="30" ></td>
-                <td><input  autocomplete="off" id="reports_to" name="reports_to"  placeholder="Руководитель" type="text"  minlength="" maxlength="30" ></td>
-                <td>
-                    <select id="status" name="status" >
-                        <option disabled selected value="none">Status</option>
-                        {% for stat in statusList%}
-                        <option>{{ stat }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-                <td>
-                    <select id="position" name="position" required>
-                        <option disabled selected value="none">Position</option>
-                        {% for pos in positionList %}
-                        <option>{{ pos }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-                <td><input  autocomplete="off" id="name" name="name"  placeholder="ФИО" type="text"  minlength="" maxlength="30" ></td>
-                <td><input autocomplete="off" id="mail" name="mail"  placeholder="Почта" type="text"  minlength="" maxlength="30"></td>
-                <td><input autocomplete="off" id="hash" name="hash" placeholder="Пароль" type="text"  minlength="" maxlength="30" ></td>               
-                <td>
-                    <button class="btn btn-primary" type="submit" id="button">Add</button>
-                    <p id="demo"></p>
-                </td>
+                <td><input autocomplete="off" id="department" name="department"  placeholder="Подразделение" type="text"  minlength="" maxlength="30" required></td>
+                <td><input autocomplete="off" id="reports_to" name="reports_to"  placeholder="Руководитель" type="text"  minlength="" maxlength="30" ></td>
+                <td><input autocomplete="off" id="status" name="status" placeholder="Status"></td>
+                <td><input autocomplete="off" id="position" name="position" placeholder="Должность"required></td>
+                <td><input autocomplete="off" id="name" name="name"  placeholder="ФИО" type="text"  minlength="" maxlength="30" ></td>
+                <td><input autocomplete="off" id="mail" name="mail"  placeholder="Почта" type="text"  minlength="" maxlength="30"></td>      
+                <td><input autocomplete="off" id="hash" name="hash"  placeholder="Почта" type="text"  minlength="" maxlength="30"></td>      
+                <td><button class="btn btn-primary" type="submit" id="button">Добавить</button></td>
             </tr>  
             </form>
             <tr>
@@ -117,7 +85,7 @@
                 <td></td><td></td><td></td>
                 <td colspan="5" ><div class="input-group">
                     <input accept=".xlsx,.xls,.csv, .numbers" name="file" type="file" class="form-control" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" aria-label="Upload">
-                    <button class="btn btn-outline-secondary" type="sybmit" id="inputGroupFileAddon04">Загрузить</button>
+                    <button class="btn btn-primary" type="sybmit" id="inputGroupFileAddon04">Загрузить</button>
                   </div></td>
                   <td></td>
             </form>

@@ -28,7 +28,32 @@ background-color: rgb(163, 170, 170);
 
 }
 
-.tab
-{
-width: 50%;
+
+caption {
+    caption-side: bottom;
+    text-align: right;
+    padding: 10px 0;
+    font-size: 14px;
+ }
+
+
+table {
+    border-collapse: collapse;
+    /*убираем пустые промежутки между ячейками*/
+    border: 1px solid grey;
+    /*устанавливаем для таблицы внешнюю границу серого цвета толщиной 1px*/
+    table-layout: fixed;
+    
+
+   
 }
+
+.table-striped {
+    table-layout: fixed;
+    border-collapse: collapse;
+   
+    width: 90%;
+    margin:auto; 
+    text-align:center"
+}
+
