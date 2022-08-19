@@ -524,20 +524,24 @@ def register():
     else:
         return redirect("/")
 
-@app.route("/file", methods=["POST"])
+
+@app.route("/file_users", methods=["GET", "POST"])
 @login_required
 def file():
-    if request.method == "POST" and (session["user_status"] == ADMIN or session["user_status"] == COACH):
+    if request.method == "GET" and (session["user_status"] == ADMIN or session["user_status"] == COACH):
+        return render_template('upload_file.html', typeDataFlag = 'users')
+
+    elif request.method == "POST" and (session["user_status"] == ADMIN or session["user_status"] == COACH):
         
         # Проверяем получен ли файл
         if not request.files['file']:
             flash('Не могу прочитать файл или файл не загружен')
-            return redirect('/')
+            return redirect('/file_users')
         file = request.files['file']
         # Проверка имени файла
         if file.filename == '':
             flash('Не могу прочитать файл')
-            return redirect('/')
+            return redirect('/file_users')
         # Безовасное сохраниение имени файла
         if file :
             filename = secure_filename(file.filename)
@@ -648,7 +652,12 @@ def file():
         else:
             flash('Тип загруженного файла не поддерживается.')
             return redirect('/')
-        return render_template('afterUpload.html', countError = countError, countUpload = countUpload, usersError = usersError, usersUpload = usersUpload)
+        
+        flash(f"Загруженно {countUpload} пользователей. Не загружено {countError} пользователей.")
+        return redirect ('/users')
+        # не самый красивый вариант
+        #return render_template('afterUpload.html', countError = countError, countUpload = countUpload, usersError = usersError, usersUpload = usersUpload)
+    
     else:
         return redirect('/')
 
@@ -682,7 +691,7 @@ def testResults():
 @login_required
 def file_test():
     if request.method == 'GET' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
-        return render_template('upload_test_results.html')
+        return render_template('upload_file.html', typeDataFlag = 'results')
 
     # Описание есть в загрузке файла с пользователями /file
     elif request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
