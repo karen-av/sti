@@ -1,54 +1,26 @@
-{% extends "layout.html" %}
+Можно удалять
+
+<!-- {% extends "layout.html" %}
 
 {% block title %}
     Select
 {% endblock %}
 
 {% block main %}
-    <table class="table table-striped"  style="margin:auto; width: 82%; text-align:left;">
+    <table class="table table-striped">
         <thead ><form action="/users" method="post" name="sort">
             <tr >
                 <th>N</th>
-                <th>
-                    <select id="department" name="department" >
-                        <option disabled selected value="none" multiple>Подразделение</option>
-                        {% for dep in userDepartment %}
-                        <option>{{ dep.0 }}</option>
-                        {% endfor %}
-                    </select>
-                </th>
-                <th>
-                    <select id="reports_to" name="reports_to">
-                        <option disabled selected value="none">Руководитель</option>
-                        {% for rep in usereReports_to %}
-                        <option>{{ rep.0 }}</option>
-                        {% endfor %}
-                    </select>
-                </th>
-                <th>
-                    <select id="status" name="status">
-                        <option disabled selected value="none">Статус</option>
-                        {% for stat in usereStatus_to %}
-                        <option>{{ stat.0 }}</option>
-                        {% endfor %}
-                    </select>
-                </th>
-                <th>
-                    <select id="position" name="position">
-                        <option disabled selected value="none">Должность</option>
-                        {% for pos in userePosition %}
-                        <option>{{ pos.0 }}</option>
-                        {% endfor %}
-                    </select>
-                </th>
+                <th>Подразделение</th>
+                <th>Руководитель</th>
+                <th>Статус</th>
+                <td>Должность</td>
                 <th>ФИО</th>
                 <th>Почта</th>
                 <th>Пароль</th>
-                <th><button class="btn btn-primary" type="submit" id="sort_button">Edit</button></th>
-            </tr></form>
+            </tr>
         </thead>
         <tbody>
-            
             {% for user in users %}
             <tr> 
                 <td>{{ loop.index }} </td>
@@ -59,45 +31,14 @@
                 <td>{{ user.5 }}</td>
                 <td>{{ user.6 }}</td>
                 <td>{{ user.7 }}</td>
-                <td style="width:13%;"> <div style="float: left; ">
+                <td >
                     <form action="/edit" method="post">
                         <input type="hidden" value="{{ user.0 }}" name ="user_id">
-                        <button class="btn btn-primary" type="submit">Edit</button>
+                        <button class="btn btn-primary" type="submit">Редактировать</button>
                     </form>
-                </div>
                 </td>
             </tr>
             {% endfor %}
-            <tr>
-                <td></td>
-                <form action="/register" method="post" name="register" onsubmit="return validateForm()">
-                <td><input  autocomplete="off" id="department" name="department"  placeholder="Подразделение" type="text"  minlength="" maxlength="30" ></td>
-                <td><input  autocomplete="off" id="reports_to" name="reports_to"  placeholder="Руководитель" type="text"  minlength="" maxlength="30" ></td>
-                <td>
-                    <select id="status" name="status" >
-                        <option disabled selected value="none">Status</option>
-                        {% for stat in statusList%}
-                        <option>{{ stat }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-                <td>
-                    <select id="position" name="position" required>
-                        <option disabled selected value="none">Position</option>
-                        {% for pos in positionList %}
-                        <option>{{ pos }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-                <td><input  autocomplete="off" id="name" name="name"  placeholder="ФИО" type="text"  minlength="" maxlength="30" ></td>
-                <td><input autocomplete="off" id="mail" name="mail"  placeholder="Почта" type="text"  minlength="" maxlength="30"></td>
-                <td><input autocomplete="off" id="hash" name="hash" placeholder="Пароль" type="text"  minlength="" maxlength="30" ></td>               
-                <td>
-                    <button class="btn btn-primary" type="submit" id="button">Add</button>
-                    <p id="demo"></p>
-                </td>
-            </tr>  
-            </form>
         </tbody>
     </table>   
           

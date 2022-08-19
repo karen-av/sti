@@ -56,3 +56,34 @@ caption {
     margin:auto; 
     text-align:center"
 }
+
+.btn-primary {
+    
+
+    text-align: right"
+}
+
+
+#buttonFiltrShow , #buttonFiltrHid{
+    
+    top:11%;
+       right:10%;
+       width: 150px;;
+       height:auto;
+       position: absolute;
+       z-index: 2;
+}
+
+#buttonAddShow , #buttonAddHid{
+    
+    top:11%;
+       right:22%;
+       width: 200;;
+       height:auto;
+       position: absolute;
+       z-index: 2;
+}
+
+.filtr {
+    margin:40px;
+}

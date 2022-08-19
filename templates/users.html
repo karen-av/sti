@@ -5,47 +5,72 @@
 {% endblock %}
 
 {% block main %}
-    <table class="table table-striped" >
-        <thead ><form action="users" method="post" name="sort">
-            <tr >
-                <th>N</th>
-                <th>
+
+<div class="filtr">
+<button class="btn btn-primary" id="buttonFiltrShow" type="button" onclick="funcFiltrShow()">Открыть фильтр</button>
+<button class="btn btn-primary" id="buttonFiltrHid" type="button" style="display:none" onclick="funcFiltrHid()" >Скрыть фильтр</button>
+
+<button class="btn btn-primary" id="buttonAddShow" type="button" style="display:block" onclick="funcAddShow()" >Добавить пользователя</button>
+<button class="btn btn-primary" id="buttonAddHid" type="button" style="display:none" onclick="funcAddHid()">Скрыть форму</button>
+</div>    
+
+<div class="filtr" style="display:none" id="addUser">
+    <form action="/register" method="post" name="register" onsubmit="return validateForm()">
+        <input autocomplete="off" id="department" name="department"  placeholder="Подразделение" type="text"  maxlength="30">
+        <input autocomplete="off" id="reports_to" name="reports_to"  placeholder="Руководитель" type="text"  maxlength="30">
+        <input autocomplete="off" id="status" name="status" placeholder="Status">
+        <input autocomplete="off" id="position" name="position" placeholder="Должность">
+        <input autocomplete="off" id="name" name="name"  placeholder="ФИО" type="text" maxlength="30" r>
+        <input autocomplete="off" id="mail" name="mail"  placeholder="Почта" type="text"  maxlength="30">
+        <button class="btn btn-primary" type="submit" id="button">Добавить</button>
+    </form>
+</div>
+
+<div class="filtr" style="display:none" id="filtr">
+        <form action="/users" method="post" name="sort">
                     <select id="department" name="department" >
                         <option disabled selected value="none" multiple>Подразделение</option>
                         {% for dep in userDepartment %}
                         <option>{{ dep.0 }}</option>
                         {% endfor %}
                     </select>
-                </th>
-                <th>
+              
                     <select id="reports_to" name="reports_to">
                         <option disabled selected value="none">Руководитель</option>
                         {% for rep in usereReports_to %}
                         <option>{{ rep.0 }}</option>
                         {% endfor %}
                     </select>
-                </th>
-                <th>
+                
                     <select id="status" name="status">
                         <option disabled selected value="none">Статус</option>
                         {% for stat in usereStatus_to %}
                         <option>{{ stat.0 }}</option>
                         {% endfor %}
                     </select>
-                </th>
-                <th>
+                
                     <select id="position" name="position">
                         <option disabled selected value="none">Должность</option>
                         {% for pos in userePosition %}
                         <option>{{ pos.0 }}</option>
                         {% endfor %}
                     </select>
-                </th>
+                    <button class="btn btn-primary" type="submit" id="sort_button">Применить фильт</button>
+        </form>
+</div>
+
+    <table class="table table-striped" >
+        <thead >
+            <tr >
+                <th>N</th>
+                <th>Подразделение</th>
+                <th>Руководитель</th>
+                <th>Статус</th>
+                <th>Должность</th>
                 <th>ФИО</th>
                 <th>Почта</th>
-                <th>Пароль</th>
-                <th><button class="btn btn-primary" type="submit" id="sort_button">Применить</button></th>
-            </tr></form>
+                <th>Пароль</th> 
+            </tr>
         </thead>
         <tbody> 
             {% for user in users %}
@@ -67,35 +92,43 @@
                 </td>
             </tr>
             {% endfor %}
-            <tr>
-                <td></td>
-                <form action="/register" method="post" name="register" onsubmit="return validateForm()">
-                <td><input autocomplete="off" id="department" name="department"  placeholder="Подразделение" type="text"  maxlength="30"></td>
-                <td><input autocomplete="off" id="reports_to" name="reports_to"  placeholder="Руководитель" type="text"  maxlength="30" ></td>
-                <td><input autocomplete="off" id="status" name="status" placeholder="Status"></td>
-                <td><input autocomplete="off" id="position" name="position" placeholder="Должность"></td>
-                <td><input autocomplete="off" id="name" name="name"  placeholder="ФИО" type="text" maxlength="30" r></td>
-                <td><input autocomplete="off" id="mail" name="mail"  placeholder="Почта" type="text"  maxlength="30"></td>      
-                <td></td>      
-                <td><button class="btn btn-primary" type="submit" id="button">Добавить</button></td>
-            </tr>  
-            </form>
-            <tr>
-            <!-- <form action="/file_users" method="post" enctype=multipart/form-data>
-                <td></td><td></td><td></td>
-                <td colspan="5" ><div class="input-group">
-                    <input accept=".xlsx,.xls,.csv" name="file" type="file" class="form-control" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" aria-label="Upload">
-                    <button class="btn btn-primary" type="sybmit" id="inputGroupFileAddon04">Загрузить</button>
-                  </div></td>
-                  <td></td>
-            </form> -->
-            </tr>
-            
         </tbody>
     </table>   
-          
-    
+     
     <script>
+        function funcFiltrShow() {
+            document.getElementById("filtr").style.display = "block";
+            document.getElementById("buttonFiltrShow").style.display = "none"
+            document.getElementById("buttonFiltrHid").style.display = "block"
+            document.getElementById("buttonAddShow").style.display = "none"
+        }
+
+        function funcFiltrHid() {
+            document.getElementById("filtr").style.display = "none";
+            document.getElementById("buttonFiltrHid").style.display = "none"
+            document.getElementById("buttonFiltrShow").style.display = "block"
+            document.getElementById("buttonAddShow").style.display = "block"
+        }
+
+        function funcAddShow() {
+            document.getElementById("addUser").style.display = "block";
+            document.getElementById("buttonFiltrShow").style.display = "none"
+            document.getElementById("buttonAddHid").style.display = "block"
+            document.getElementById("buttonAddShow").style.display = "none"
+
+        }
+
+        function funcAddHid() {
+            document.getElementById("addUser").style.display = "none";
+            document.getElementById("buttonFiltrShow").style.display = "block"
+            document.getElementById("buttonAddShow").style.display = "block"
+            document.getElementById("buttonAddHid").style.display = "none"
+
+        }
+
+
+
+
                 function validateForm() {
                         let name = document.forms["register"]["name"].value;
                         let username = document.forms["register"]["username"].value;

@@ -225,7 +225,7 @@ def users():
                     connection.close()
                     print("[INFO] PostgresSQL connection closed")
             # на всех путях проверять session[user_status]б чтобы не прошли просто по ссылке
-            return render_template("select.html", users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, usereName =usereName, usereMail = usereMail, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
+            return render_template("users.html", users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, usereName =usereName, usereMail = usereMail, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
         
         elif session["user_status"] == HEAD:
             position_pos = request.form.get('position_pos')
@@ -349,6 +349,7 @@ def edit():
             with connection.cursor() as cursor:
                 cursor.execute("SELECT * FROM users WHERE id = %(userId)s", {'userId': userId})
                 userData = cursor.fetchall()
+                print(userData)
 
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
@@ -365,7 +366,6 @@ def edit():
         name = userData[0][5]
         mail = userData[0][6]
         hash = userData[0][7]
-
         
         return render_template("edit.html", id = id, department = department, reports_to = reports_to, status = status, position = position, name = name, mail = mail, hash = hash, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
     else:

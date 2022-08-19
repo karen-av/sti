@@ -21,7 +21,9 @@
     </thead>
     <tbody>
         {% for i in testResults %}
-        <tr><td>{{ loop.index }}</td>
+        <tr>
+            <td>{{ loop.index }}</td>
+            
             {% for n in i %}
             <td>{{ n }}</td> {% endfor %}
         </tr>{% endfor %}
