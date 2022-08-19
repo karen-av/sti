@@ -1,4 +1,3 @@
-from crypt import methods
 from flask import Flask, redirect, render_template, request, session, flash
 from flask_session import Session
 #from werkzeug.security import check_password_hash, generate_password_hash
@@ -283,13 +282,13 @@ def login():
         if not request.form.get("mail"):
             flash('Вы не указали логин')
             return render_template('/login.html' )
-            #return apology("must provide username", 403)
+           
 
         # Ensure password was submitted
-        elif not request.form.get("hash"):
-            flash('Вы не указали пароль')
+        elif not request.form.get("hash") or len(request.form.get("hash")) < 3:
+            flash('Вы указали неверный пароль')
             return render_template('/login.html' )
-            #return apology("must provide password", 403)
+            
 
         # Query database for username
         try:
@@ -663,9 +662,8 @@ def testResults():
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True
             with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM test_results;")
+                cursor.execute("SELECT mail , reliability , discipline , executive , responsibility , resolved , organizational , software , adaptation , planning , page , strengthening  , building_on_achievements  , building_for_development  , innovation  , approved  , loyalty  , currency  , country  , preparedness_for_compromise  , cooperation  , openness  , openness_of_feedback  , clientoority  , customer_needs_orientation  , partnership  , adoption_of_decisions  , systemic_thinking  , business  , forward_thinking  , effective_communication  , clean_communication  , impunity_and_influence  , negotiations  , cross_functional_interaction  , informal_leadership  , management  , implementation_management  , motivation_of_subordinates  , organization_of_work  , change_management  , development_of_subordinates  , command_management FROM test_results;")
                 testResults = cursor.fetchall()
-                print(testResults)
         except Exception as _ex:
             print("[INFO] Erroe while working with PostgraseSQL", _ex)
         finally :
@@ -676,6 +674,7 @@ def testResults():
         return render_template('/test_results.html', testResults = testResults, headerList = HEADER_LIST_FROM_TEST)
 
     else:
+        # МЕТЕД ПОСТ бУДЕТ РЕЗУЛЬТАТ ФЛЬТРА
         return redirect('/')
 
 

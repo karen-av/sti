@@ -12,7 +12,7 @@
        
         
         <tr>
-            <td>Id</td>
+            <td>N</td>
             <td>Почта</td> 
             {% for i in headerList %}<td>{{ i }}</td> {% endfor %}
             
@@ -21,7 +21,8 @@
     </thead>
     <tbody>
         {% for i in testResults %}
-        <tr>{% for n in i %}
+        <tr><td>{{ loop.index }}</td>
+            {% for n in i %}
             <td>{{ n }}</td> {% endfor %}
         </tr>{% endfor %}
          
