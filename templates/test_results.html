@@ -1,7 +1,33 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Edit
+    Test results
 {% endblock %}
 
 {% block main %}
+
+
+<table class="table table-striped" style="table-layout: auto">
+    <thead>
+       
+        
+        <tr>
+            <td>Id</td>
+            <td>Почта</td> 
+            {% for i in headerList %}<td>{{ i }}</td> {% endfor %}
+            
+        </tr>
+        
+    </thead>
+    <tbody>
+        {% for i in testResults %}
+        <tr>{% for n in i %}
+            <td>{{ n }}</td> {% endfor %}
+        </tr>{% endfor %}
+         
+    </tbody>
+</table>
+
+
+
+{% endblock%}
