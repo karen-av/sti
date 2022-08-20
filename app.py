@@ -238,6 +238,15 @@ def users():
             comp_7 = request.form.get('comp_7')
             comp_8 = request.form.get('comp_8')
             comp_9 = request.form.get('comp_9')
+            print(f'comp_1 - {comp_1}')
+
+            if not comp_1 or not comp_2 or not comp_3 or not comp_4 or not comp_5 or not comp_6 or not comp_7 or not comp_8 or not comp_9:
+                flash("Пожалуйста, укажите все значения")
+                return redirect ("/users")
+
+            if  int(comp_1) > 9 or int(comp_1) < 1 or int(comp_2) > 9 or int(comp_2) < 1 or int(comp_3) > 9 or int(comp_3) < 1 or int(comp_4) > 9 or int(comp_4) < 1 or int(comp_5) > 9 or int(comp_5) < 1 or int(comp_6) > 9 or int(comp_6) < 1 or int(comp_7) > 9 or int(comp_7) < 1 or int(comp_8) > 9 or int(comp_8) < 1 or int(comp_9) > 9 or int(comp_9) < 1:
+                flash("Пожалуйста, укажите все значения. Значения должны быть в диапазоне от 1 до 9.")
+                return redirect ("/users")
 
             try:
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
