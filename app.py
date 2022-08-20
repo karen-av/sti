@@ -6,6 +6,7 @@ from config import host, user, password, db_name
 from helpers import apology, login_required, createPassword, checkPassword, checkPasswordBadSymbol, checkUsername, checkUsernameMastContain
 import os
 from werkzeug.utils import secure_filename
+from werkzeug.security import check_password_hash, generate_password_hash
 import csv
 import pandas as pd
 #from flask_sqlalchemy import SQLAlchemy
@@ -316,7 +317,7 @@ def login():
 
         # Ensure username exists and password is correct
         
-        if len(rows) != 1 or request.form.get("hash") != rows[0][7]:
+        if len(rows) != 1 or not check_password_hash(rows[0][7], request.form.get("hash")):
             flash('Вы указали неверный логин или пароль')
             return render_template('/login.html' )
             #return apology("invalid username and/or password", 403)
@@ -356,7 +357,7 @@ def edit():
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True  
             with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM users WHERE id = %(userId)s", {'userId': userId})
+                cursor.execute("SELECT id, department, reports_to, status, position, name, mail FROM users WHERE id = %(userId)s", {'userId': userId})
                 userData = cursor.fetchall()
                 print(userData)
 
@@ -374,9 +375,8 @@ def edit():
         position = userData[0][4]
         name = userData[0][5]
         mail = userData[0][6]
-        hash = userData[0][7]
         
-        return render_template("edit.html", id = id, department = department, reports_to = reports_to, status = status, position = position, name = name, mail = mail, hash = hash, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
+        return render_template("edit.html", id = id, department = department, reports_to = reports_to, status = status, position = position, name = name, mail = mail, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
     else:
         return redirect("/")
 
@@ -405,12 +405,14 @@ def editSave():
         if checkUsernameMastContain(mail):
             flash('Изменения не сохранены. Укажите правильный формат почты')
             return redirect('/users')
-        if  (status == ADMIN or status == COACH or status == HEAD) and (not hash or checkPassword(hash)):
-            flash('Изменения не сохранены. Укажите правильный формат пароля')
-            return redirect('/users')
-        if (status == ADMIN or status == COACH or status == HEAD) and (not hash or checkPasswordBadSymbol(hash)):
-            flash('Изменения не сохранены. Укажите правильный формат пароля')
-            return redirect('/users')
+        if  hash and (status == ADMIN or status == COACH or status == HEAD):
+            if checkPassword(hash) or checkPasswordBadSymbol(hash):
+                flash('Изменения не сохранены. Укажите правильный формат пароля')
+                return redirect('/users')
+            hash = generate_password_hash(hash, "pbkdf2:sha256")
+            
+                
+
         
 
         try:
@@ -501,7 +503,8 @@ def register():
             #return apology("Usename not contain symbol from alphabet")
             # Если пользователь со статусом ... создаем пароль
         if  status == ADMIN or status == COACH or status == HEAD: # and (not hash or checkPassword(hash)):
-            hash = createPassword()
+            hash = generate_password_hash(createPassword(), "pbkdf2:sha256")
+            
           
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
@@ -582,7 +585,7 @@ def file():
                         hash = ''
                         # если статус ... устанавливаем рандомный пароль
                         if status == COACH or status == ADMIN or status == HEAD:
-                            hash = createPassword()
+                            hash = generate_password_hash(createPassword(), "pbkdf2:sha256")
                         # проверить пользователя на сущесвование
                         cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
                         us = cursor.fetchall()
@@ -630,7 +633,7 @@ def file():
                             mail = userD[5]         
                             hash = ''
                             if status == 'coach' or status == HEAD:
-                                hash = createPassword()
+                                hash = generate_password_hash(createPassword(), "pbkdf2:sha256")
                             # проверить пользователя на сущесвование
                             cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
                             us = cursor.fetchall()
