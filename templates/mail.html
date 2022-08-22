@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Users
+{% endblock %}
+
+{% block main %}
+
+
+
+    <table class="table table-striped" >
+        <thead >
+            <tr >
+                <th>N</th>
+                <th>Подразделение</th>
+                <th>Руководитель</th>
+                <th>Статус</th>
+                <th>Должность</th>
+                <th>ФИО</th>
+                <th>Почта</th>
+                <th>Письмо отправлено</th>
+            </tr>
+        </thead>
+        <tbody> 
+            {% for user in users %}
+            <tr> 
+                <td>{{ loop.index }} </td>
+                <td>{{ user.0 }}</td>
+                <td>{{ user.1 }}</td>
+                <td>{{ user.2 }}</td>
+                <td>{{ user.3 }}</td>
+                <td>{{ user.4 }}</td>
+                <td>{{ user.5 }}</td>
+                <td>{{ user.6 }}</td>
+                <td>
+                
+                </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>   
+     
+
+{% endblock %}
