@@ -5,10 +5,9 @@
 {% endblock %}
 
 {% block main %}
-    <table class="table table-striped" >
+    <table class="table table-striped">
         <thead>
             <tr> 
-               
                 <th>Подразделение</th>
                 <th >Руководитель</th>
                 <th>Статус</th>
@@ -23,24 +22,25 @@
             <form action="/editSave" method="post" name="editSave" onsubmit="return validateForm()">
             <tr> 
                 <input type="hidden" value="{{ id }}" name ="id">
-                <td><input autocomplete="off" id="department" name="department"  value="{{ department }}" type="text"  minlength="" maxlength="30"></td>
-                <td><input autocomplete="off" id="reports_to" name="reports_to"  value="{{ reports_to }}" type="text"  minlength="" maxlength="30"></td>
-                <td><input autocomplete="off" id="status" name="status"  value="{{ status }}" type="text"  minlength="3" maxlength="30" required></td>
-                <td><input autocomplete="off" id="position" name="position"  value="{{ position }}" type="text"  minlength="3" maxlength="30" required></td>
-                <td><input autocomplete="off" id="name" name="name"  value="{{ name }}" type="text"  minlength="3" maxlength="30" required></td>
-                <td><input autocomplete="off" id="mail" name="mail"  value="{{ mail }}" type="text"  minlength="3" maxlength="30" required ></td>
-                <td><input autocomplete="off" id="hash" name="hash" value="" type="text"  minlength="" maxlength="30" ></td>
-            </tr >  
-            <caption><button class="btn btn-primary" type="submit" id="button">Сохранить</button>
+                <td><input class="input edit" autocomplete="off" id="department" name="department"  value="{{ department }}" type="text"  minlength="" maxlength="30"></td>
+                <td><input class="input edit" autocomplete="off" id="reports_to" name="reports_to"  value="{{ reports_to }}" type="text"  minlength="" maxlength="30"></td>
+                <td><input class="input edit" autocomplete="off" id="status" name="status"  value="{{ status }}" type="text"  minlength="3" maxlength="30" required></td>
+                <td><input class="input edit" autocomplete="off" id="position" name="position"  value="{{ position }}" type="text"  minlength="3" maxlength="30" required></td>
+                <td><input class="input edit" autocomplete="off" id="name" name="name"  value="{{ name }}" type="text"  minlength="3" maxlength="30" required></td>
+                <td><input class="input edit" autocomplete="off" id="mail" name="mail"  value="{{ mail }}" type="text"  minlength="3" maxlength="30" required ></td>
+                <td><input class="input edit"autocomplete="off" id="hash" name="hash" value="" type="text"  minlength="" maxlength="30" ></td>
+            <caption>
+                <td colspan="4"></td>
+                <td colspan="3"><button class="btn btn-primary" type="submit" id="button">Сохранить</button>
                 <button class="btn btn-primary"  type="reset">Сбросить</button>
-        </form>
-        <p></p>
+            </form>
             <form action="/delete" method="post" name="delete" >
                 <input type="hidden" value="{{ id }}" name ="id">
                 <button class="btn btn-primary"  type="" id="" onclick="return show_alert_delete()">Удалить</button>
-            
-               <a href='/users'><button class="btn btn-primary"  type="button">Назад</button></a></form>
-            </caption>
+                <a href='/users'></a><button class="btn btn-primary" type="button" >Назад</button></td></a>
+            </form>
+            </caption> 
+            </tr> 
     </tbody>
          
     

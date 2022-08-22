@@ -9,7 +9,7 @@
 {% if 'users' in typeDataFlag %}
 <dev>Загрузите файл со списком сотрудников.</dev>
 <form action="/file_users" method="post" enctype=multipart/form-data class="">
-    <div class="input-group">
+    <div class="input-group form_upload">
         <input accept=".xlsx,.xls,.csv" name="file" type="file" class="form-control" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" aria-label="Upload">
         <button class="btn btn-primary" type="sybmit" id="inputGroupFileAddon04">Загрузить</button>
     </div>
@@ -18,7 +18,7 @@
 {% elif 'results' in typeDataFlag %}
 <dev>Загрузите файл с результатами тестирования.</dev>
 <form action="/file_test" method="post" enctype=multipart/form-data class="">
-    <div class="input-group">
+    <div class="input-group form_upload">
         <input accept=".xlsx,.xls,.csv" name="file" type="file" class="form-control" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" aria-label="Upload">
         <button class="btn btn-primary" type="sybmit" id="inputGroupFileAddon04">Загрузить</button>
     </div>

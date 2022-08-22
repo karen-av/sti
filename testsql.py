@@ -1,15 +1,33 @@
+from flask import Flask
+from flask_mail import Mail, Message
 
-import csv
-from fileinput import nextfile
-with open("upload_files/123321.csv", newline='') as file:
-    x = csv.reader(file, delimiter=';', quotechar='|', skipinitialspace=True)
-    next(x)
-    for i in x:
-        print(i[0])
-        #print(', '.join(i))
+app = Flask(__name__)
 
 
+app.config['DEBAG'] = True
+app.config['TESTING'] = False
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = True
+#app.config['MAIL_DEBUG'] = True
+app.config['MAIL_USERNAME'] = 'sti.partners2@gmail.com'
+app.config['MAIL_PASSWORD'] = 'feEG9e43=r4'
+app.config['MAIL_DEFAULT_SENDER'] = 'sti.partners2@gmail.com'
+app.config['MAIL_MAX_EMAILS'] = None
+#app.config['MAIL_SUPPRESS_SEND'] = False
+app.config['MAIL_ASCII_ATTACHMENTS'] = False
 
-   
+mail = Mail(app)
 
-  
+#mail = Mail()
+#mail.init_app(app)
+
+@app.route('/')
+def index():
+    msg = Message('Hey There', recipients=['mahiho1080@yasiok.com'])
+    mail.send(msg)
+    return 'Messege hes bin sent!'
+
+if __name__ == '__main__':
+    app.run()

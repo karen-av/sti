@@ -32,9 +32,10 @@
                 <td>{{ user.4 }}</td>
                 <td>{{ user.5 }}</td>
                 <td>{{ user.6 }}</td>
-                <td>
-                
-                </div>
+                <td><form action="/mail_heads" method="post">
+                    <input type="hidden" value="{{ user.5 }}" name ="user_mail">
+                    <button class="btn btn-primary" type="submit">Пригласить</button>
+                </form>
                 </td>
             </tr>
             {% endfor %}
