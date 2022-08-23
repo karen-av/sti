@@ -4,7 +4,7 @@ from flask_session import Session
 #from werkzeug.security import check_password_hash, generate_password_hash
 import psycopg2
 from config import host, user, password, db_name
-from helpers import apology, login_required, createPassword, checkPassword, checkPasswordBadSymbol, checkUsername, checkUsernameMastContain, checkEmail, isValid
+from helpers import apology, login_required, createPassword, checkPassword, checkPasswordBadSymbol, checkUsername, checkUsernameMastContain
 import os
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -844,13 +844,7 @@ def mail_heads():
         if flag == 'single':
             user_name = request.form.get('user_name')
             user_mail = request.form.get('user_mail')
-            # check valid email
-            print(user_mail)
-            print(checkEmail(user_mail))
-            if not user_mail or checkEmail(user_mail) or isValid(user_mail):
-                flash("Сообщение не отправлено. Проверьте коректно ли указана электронная почта.")
-                return redirect('/mail_heads')
-            else:
+            try:
                 # create date, password and message
                 today = datetime.date.today()
                 user_password = createPassword()
@@ -859,12 +853,8 @@ def mail_heads():
                 #msg.body = (f'Welcom to 123.com.\nYour login {user_mail}\nYour password {user_password}')
                 msg.body = render_template("head_email.txt", user_name = user_name, user_mail = user_mail, user_password = user_password)
                 msg.html = render_template("head_email.html", user_name = user_name, user_mail = user_mail, user_password = user_password)
-                print('BBB')
-                if not mail.send(msg):
-                    flash("Сообщение не отправлено. Проверьте коректно ли указана электронная почта.")
-                    return redirect('/mail_heads')
-                flash(f'Приглашение отправлено')
-
+                mail.send(msg)
+    
                 # update database
                 try:
                     connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
@@ -878,8 +868,15 @@ def mail_heads():
                     if connection:
                         connection.close()
                         print("[INFO] PostgresSQL nonnection closed")
-                        
+                flash(f'Приглашение отправлено')
+                print(f'[INFO] Message has bin sent via mail sender.')
                 return redirect('/mail_heads')
+
+            except Exception as _ex:
+                flash("Сообщение не отправлено. Проверьте коректно ли указана электронная почта.")
+                print(f'[INFO] Error while working mail sender', _ex)
+                return redirect('/mail_heads')
+
 
         elif flag == 'all_invite':
             today = today = datetime.date.today()
@@ -891,15 +888,7 @@ def mail_heads():
                     cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status':HEAD})
                     users = cursor.fetchall()
                     for singleUser in users:
-                        print(singleUser[5])
-                        print(checkEmail(singleUser[5]))
-                        if checkEmail(singleUser[5]) or isValid(singleUser[5]):
-                            x = 1
-                            notSendList.append(singleUser)
-                            counterNotSend = counterNotSend + 1 
-                            print(notSendList)
-                        else:
-                            print('AAA')
+                        try:
                             user_password = createPassword()
                             hash  = generate_password_hash(user_password, "pbkdf2:sha256")
                             msg = Message("From STI-Partners", recipients=[singleUser[5]])
@@ -908,13 +897,21 @@ def mail_heads():
                             mail.send(msg)
                             counterSend = counterSend + 1
                             cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
-
+                            print(f'[INFO] Message has bin sent via mail sender.')
+                        except Exception as _ex:
+                            x = 1
+                            notSendList.append(singleUser)
+                            counterNotSend = counterNotSend + 1 
+                            print(f'[INFO] Error while working mail sender', _ex)
+                        
+                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status':HEAD})
+                    users = cursor.fetchall()
+                            
             except Exception as _ex:
                 print(f'[INFO] Error while working PostgresSQL', _ex)
                 x = 1
                 notSendList.append(singleUser)
                 counterNotSend = counterNotSend + 1 
-                print(notSendList)
             finally:
                 if connection:
                     connection.close()
@@ -932,17 +929,8 @@ def mail_heads():
                     #cursor.execute("SELECT name, mail  FROM users WHERE status = %(status)s", {'status': HEAD})
                     cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s and mail_date = '-'", {'status':HEAD})
                     users = cursor.fetchall()
-                    print(users)
                     for singleUser in users:
-                        print(singleUser[5])
-                        print(checkEmail(singleUser[5]))
-                        if checkEmail(singleUser[5]) or isValid(singleUser[5]):
-                            x = 1
-                            notSendList.append(singleUser)
-                            counterNotSend = counterNotSend + 1 
-                            print(notSendList)
-                        else:
-                            print('AAA')
+                        try:
                             user_password = createPassword()
                             hash  = generate_password_hash(user_password, "pbkdf2:sha256")
                             msg = Message("From STI-Partners", recipients=[singleUser[5]])
@@ -951,13 +939,21 @@ def mail_heads():
                             mail.send(msg)
                             counterSend = counterSend + 1
                             cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
+                            print(f'[INFO] Message has bin sent via mail sender.')
+                        except Exception as _ex:
+                            x = 1
+                            notSendList.append(singleUser)
+                            counterNotSend = counterNotSend + 1 
+                            print(f'[INFO] Error while working mail sender', _ex)
+
+                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status':HEAD})
+                    users = cursor.fetchall()
 
             except Exception as _ex:
                 print(f'[INFO] Error while working PostgresSQL', _ex)
                 x = 1
                 notSendList.append(singleUser)
                 counterNotSend = counterNotSend + 1 
-                print(notSendList)
             finally:
                 if connection:
                     connection.close()
