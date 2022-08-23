@@ -11,7 +11,6 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import csv
 import pandas as pd
 import datetime
-import re
 #from flask_sqlalchemy import SQLAlchemy
 
 
