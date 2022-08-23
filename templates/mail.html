@@ -7,13 +7,13 @@
 {% block main %}
 {% if x == 0 %}
 <div class="filtr">
-    <form action="/mail_heads" method="post">
+    <form action="/mail_heads" method="post" onclick="return show_alert('Отправить приглашение всем пользователям?')">
         <input type="hidden" value="all_invite" name ="flag"> 
-        <button class="btn btn-primary" type="submit" onclick="show_alert('Отправить приглашение всем пользователям?')">Отправить приглашение всем</button>
+        <button class="btn btn-primary" type="submit" >Отправить приглашение всем</button>
     </form>
-    <form action="/mail_heads" method="post">
+    <form action="/mail_heads" method="post" onclick=" return show_alert('Отправить приглашение всем пользователям?')">
         <input type="hidden" value="has_not_invite" name ="flag">
-        <button class="btn btn-primary" type="submit" onclick="show_alert()()" >Отправить приглашение тем пользователям, которые еще не поучали приглашение</button>
+        <button class="btn btn-primary" type="submit">Отправить приглашение тем пользователям, которые еще не поучали приглашение</button>
     </form>
 </div>
 

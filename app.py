@@ -925,7 +925,7 @@ def mail_heads():
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
                 connection.autocommit = True
                 with connection.cursor() as cursor:
-                    #cursor.execute("SELECT name, mail  FROM users WHERE status = %(status)s", {'status': HEAD})
+                    # default value mail_date is -
                     cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s and mail_date = '-'", {'status':HEAD})
                     users = cursor.fetchall()
                     for singleUser in users:
