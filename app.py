@@ -834,31 +834,73 @@ def mail_heads():
 
         return render_template('mail.html', users = users)
 
-    else:
-        user_mail = request.form.get('user_mail')
-        if not user_mail:
-            pass
-            flash("Не указана электронная почта получателя приглашения")
+    elif request.method == 'POST':
+        flag  = request.form.get('flag')
+        if flag == 'single':
+            user_name = request.form.get('user_name')
+            user_mail = request.form.get('user_mail')
+            if not user_mail:
+                pass
+                flash("Не указана электронная почта получателя приглашения")
 
-        today = datetime.date.today()
-        user_password = createPassword()
-        hash = generate_password_hash(user_password, "pbkdf2:sha256")
-        msg = Message('Hey There!', recipients=[user_mail])
-        msg.body = (f'Welcom to 123.com.\nYour login {user_mail}\nYour password {user_password}')
-        mail.send(msg)
+            today = datetime.date.today()
+            user_password = createPassword()
+            hash = generate_password_hash(user_password, "pbkdf2:sha256")
+            msg = Message('From STI-Partners', recipients=[user_mail])
+            #msg.body = (f'Welcom to 123.com.\nYour login {user_mail}\nYour password {user_password}')
+            msg.body = render_template("head_email.txt", user_name = user_name, user_mail = user_mail, user_password = user_password)
+            msg.html = render_template("head_email.html", user_name = user_name, user_mail = user_mail, user_password = user_password)
+            mail.send(msg)
 
-        try:
-            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
-            connection.autocommit = True
-            with connection.cursor() as cursor:
-                cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':user_mail})
-                users = cursor.fetchall()
-        except Exception as _ex:
-            print(f'[INFO] Error while working PostgresSQL', _ex)
-        finally:
-            if connection:
-                connection.close()
-                print(f"[INFO] PostgresSQL nonnection closed")
+            try:
+                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+                connection.autocommit = True
+                with connection.cursor() as cursor:
+                    cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':user_mail})
+                    users = cursor.fetchall()
+            except Exception as _ex:
+                print(f'[INFO] Error while working PostgresSQL', _ex)
+            finally:
+                if connection:
+                    connection.close()
+                    print(f"[INFO] PostgresSQL nonnection closed")
+
+        elif flag == 'all_invite':
+            today = today = datetime.date.today()
+            counterSend = 0
+            counterNotSend = 0
+            notSendList = []
+            try: 
+                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+                connection.autocommit = True
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT name, mail  FROM users WHERE status = %(status)s", {'status': HEAD})
+                    users = cursor.fetchall()
+                    for singleUser in users:
+                        if checkUsername(singleUser[1]):
+                            user_password = createPassword()
+                            hash  = generate_password_hash(user_password, "pbkdf2:sha256")
+                            msg = Message("From STI-Partners", recipients=[singleUser[1]])
+                            msg.body = render_template("head_email.txt", user_name = singleUser[0], user_mail = singleUser[1], user_password = user_password)
+                            msg.html = render_template('head_email.html', user_name = singleUser[0], user_mail = singleUser[1], user_password = user_password)
+                            mail.send(msg)
+                            counterSend = counterSend + 1
+                        else:
+                            print(singleUser)
+                            print(singleUser[1])
+                            notSendList.append(singleUser[1])
+                            counterNotSend = counterNotSend + 1 
+                            print(notSendList)
+
+
+            except Exception as _ex:
+                print(f'[INFO] Error while working PostgresSQL', _ex)
+            finally:
+                if connection:
+                    connection.close()
+                    print(f"[INFO] PostgresSQL nonnection closed")
+
+
 
         flash('Приглашение отправлено.')
         return redirect('/mail_heads')

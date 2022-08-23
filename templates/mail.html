@@ -6,7 +6,15 @@
 
 {% block main %}
 
-
+<div class="filtr">
+    <form action="/mail_heads" method="post">
+        <input type="hidden" value="all_invite" name ="flag">
+        
+    <button class="btn btn-primary" type="submit" onclick="show_alert('Отправить приглашение всем пользователям?')">Отправить приглашение всем</button></form>
+    <form action="/mail_heads" method="post">
+        <input type="hidden" value="has_not_invit" name ="flag">
+    <button class="btn btn-primary" type="submit" onclick="show_alert()()" >Отправить приглашение тем пользователям, которые еще не поучали приглашение</button></form>
+</div>
 
     <table class="table table-striped" >
         <thead >
@@ -32,8 +40,10 @@
                 <td>{{ user.4 }}</td>
                 <td>{{ user.5 }}</td>
                 <td>{{ user.6 }}</td>
-                <td><form action="/mail_heads" method="post">
+                <td><form action="/mail_heads" method="post" onclick="return show_alert('Отправить приглашение пользователю?')">
+                    <input type="hidden" value="single" name ="flag">
                     <input type="hidden" value="{{ user.5 }}" name ="user_mail">
+                    <input type="hidden" value="{{ user.4 }}" name ="user_name">
                     <button class="btn btn-primary" type="submit">Пригласить</button>
                 </form>
                 </td>
@@ -42,5 +52,4 @@
         </tbody>
     </table>   
      
-
 {% endblock %}

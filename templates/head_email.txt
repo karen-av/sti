@@ -1,0 +1,11 @@
+Dear {{user_name}},
+
+Please visit our website and answe a few qiestion.
+Click on the link www.sti-partners.heroku.com to visit on quwtion's page:
+
+Your login: {{ user_mail }}
+Your password: {{ user_password }}
+
+Regards,
+
+STI Partners.
