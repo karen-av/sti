@@ -5,15 +5,16 @@
 {% endblock %}
 
 {% block main %}
-
+{% if x == 0 %}
 <div class="filtr">
     <form action="/mail_heads" method="post">
-        <input type="hidden" value="all_invite" name ="flag">
-        
-    <button class="btn btn-primary" type="submit" onclick="show_alert('Отправить приглашение всем пользователям?')">Отправить приглашение всем</button></form>
+        <input type="hidden" value="all_invite" name ="flag"> 
+        <button class="btn btn-primary" type="submit" onclick="show_alert('Отправить приглашение всем пользователям?')">Отправить приглашение всем</button>
+    </form>
     <form action="/mail_heads" method="post">
-        <input type="hidden" value="has_not_invit" name ="flag">
-    <button class="btn btn-primary" type="submit" onclick="show_alert()()" >Отправить приглашение тем пользователям, которые еще не поучали приглашение</button></form>
+        <input type="hidden" value="has_not_invite" name ="flag">
+        <button class="btn btn-primary" type="submit" onclick="show_alert()()" >Отправить приглашение тем пользователям, которые еще не поучали приглашение</button>
+    </form>
 </div>
 
     <table class="table table-striped" >
@@ -50,6 +51,84 @@
             </tr>
             {% endfor %}
         </tbody>
-    </table>   
+    </table> 
+{% else %}
+    
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th colspan="9">Пользователи, которым не удалось отправить сообщениею</th>
+            </tr>
+            <tr>
+                <th>N</th>
+                <th>Подразделение</th>
+                <th>Руководитель</th>
+                <th>Статус</th>
+                <th>Должность</th>
+                <th>ФИО</th>
+                <th>Почта</th>
+                <th>Письмо отправлено</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in notSendList %}
+            <tr> 
+                <td>{{ loop.index }} </td>
+                <td>{{ user.0 }}</td>
+                <td>{{ user.1 }}</td>
+                <td>{{ user.2 }}</td>
+                <td>{{ user.3 }}</td>
+                <td>{{ user.4 }}</td>
+                <td>{{ user.5 }}</td>
+                <td>{{ user.6 }}</td>
+                <td><form action="/s" method="post" onclick="return show_alert('Отправить приглашение пользователю?')">
+                    <input type="hidden" value="single" name ="flag">
+                    <input type="hidden" value="{{ user.5 }}" name ="user_mail">
+                    <input type="hidden" value="{{ user.4 }}" name ="user_name">
+                    <button class="btn btn-primary" type="submit">Редактировать?</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+<p style="margin-bottom: 30px;"></p>
+        <table class="table table-striped" >
+            <thead >
+                <tr >
+                    <th>N</th>
+                    <th>Подразделение</th>
+                    <th>Руководитель</th>
+                    <th>Статус</th>
+                    <th>Должность</th>
+                    <th>ФИО</th>
+                    <th>Почта</th>
+                    <th>Письмо отправлено</th>
+                </tr>
+            </thead>
+            <tbody> 
+                {% for user in users %}
+                <tr> 
+                    <td>{{ loop.index }} </td>
+                    <td>{{ user.0 }}</td>
+                    <td>{{ user.1 }}</td>
+                    <td>{{ user.2 }}</td>
+                    <td>{{ user.3 }}</td>
+                    <td>{{ user.4 }}</td>
+                    <td>{{ user.5 }}</td>
+                    <td>{{ user.6 }}</td>
+                    <td><form action="/mail_heads" method="post" onclick="return show_alert('Отправить приглашение пользователю?')">
+                        <input type="hidden" value="single" name ="flag">
+                        <input type="hidden" value="{{ user.5 }}" name ="user_mail">
+                        <input type="hidden" value="{{ user.4 }}" name ="user_name">
+                        <button class="btn btn-primary" type="submit">Пригласить</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table> 
+
+{% endif %}
      
 {% endblock %}
