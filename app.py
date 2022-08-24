@@ -108,6 +108,7 @@ def positions():
     elif request.method == 'POST' and session["user_status"] == ADMIN or session["user_status"] == COACH:
         reports_to = request.form.get('reports_to')
         ready_status = request.form.get('ready_status')
+        print(f'reports_to - {reports_to}. ready_status - {ready_status}')
         if not reports_to and not ready_status:
             return redirect ('/positions')
         try:
