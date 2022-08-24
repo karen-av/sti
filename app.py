@@ -83,7 +83,7 @@ def index():
 @login_required
 def positions():
     readyStatusList = ['Все', 'Заполнено', 'Не заполнено']
-    if request.method == 'GET' and session["user_status"] == ADMIN or session["user_status"] == COACH:
+    if request.method == 'GET' and (session["user_status"] == ADMIN or session["user_status"] == COACH):
         print('[INFO] route: /positions. method: GET')
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
@@ -106,7 +106,7 @@ def positions():
 
         return render_template('positions.html', positions = positions, headList = headList, readyStatusList = readyStatusList, competence = COMPETENCE)
 
-    elif request.method == 'POST' and session["user_status"] == ADMIN or session["user_status"] == COACH:
+    elif request.method == 'POST' and (session["user_status"] == ADMIN or session["user_status"] == COACH):
         print('[INFO] route: /positions. method: POST')
         reports_to = request.form.get('reports_to')
         ready_status = request.form.get('ready_status')
