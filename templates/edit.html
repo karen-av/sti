@@ -5,6 +5,11 @@
 {% endblock %}
 
 {% block main %}
+
+<div class="route">
+    <a href="/">Главная</a> - <a href="/users">Пользователи</a> - Редактировать
+</div>
+
     <table class="table table-striped">
         <thead>
             <tr> 
@@ -19,8 +24,9 @@
         </thead>
     
         <tbody>
-            <form action="/editSave" method="post" name="editSave" onsubmit="return show_alert('Сохранить изменения?')">
+            <form action="/edit" method="post" name="edit" onsubmit="return show_alert('Сохранить изменения?')">
             <tr> 
+                <input type="hidden" value="save" name ="flag">
                 <input type="hidden" value="{{ id }}" name ="id">
                 <td><input class="input edit" autocomplete="off" id="department" name="department"  value="{{ department }}" type="text"  minlength="" maxlength="30"></td>
                 <td><input class="input edit" autocomplete="off" id="reports_to" name="reports_to"  value="{{ reports_to }}" type="text"  minlength="" maxlength="30"></td>
@@ -28,17 +34,18 @@
                 <td><input class="input edit" autocomplete="off" id="position" name="position"  value="{{ position }}" type="text"  minlength="3" maxlength="30" required></td>
                 <td><input class="input edit" autocomplete="off" id="name" name="name"  value="{{ name }}" type="text"  minlength="3" maxlength="30" required></td>
                 <td><input class="input edit" autocomplete="off" id="mail" name="mail"  value="{{ mail }}" type="email"  minlength="3" maxlength="30" required ></td>
-                <td><input class="input edit"autocomplete="off" id="hash" name="hash" value="" type="text"  minlength="" maxlength="30" ></td>
+                <td><input class="input edit"autocomplete="off" id="hash" name="hash" type="text"  minlength="6" maxlength="30"></td>
             <caption>
                 <td colspan="4"></td>
-                <td colspan="3"><button class="btn btn-primary" type="submit" id="button">Сохранить</button>
-                <button class="btn btn-primary"  type="reset" onclick="return show_alert('Отменить изменения?')">Сбросить</button>
+                <td colspan="3">
+                    <button class="btn btn-primary" type="submit" id="button">Сохранить</button>
+                    <button class="btn btn-primary"  type="reset" onclick="return show_alert('Отменить изменения?')">Сбросить</button>
             </form>
             <form action="/delete" method="post" name="delete" >
-                <input type="hidden" value="{{ id }}" name ="id">
-                <button class="btn btn-primary"  type="" id="" onclick="return show_alert('Удалить пользователя?')">Удалить</button>
-                <a href='/users'></a><button class="btn btn-primary" type="button" onclick="return show_alert('Изменения не будут сохранены. Вы уверены, что хотите вернуться назад?')">Назад</button></td></a>
-            </form>
+                    <input type="hidden" value="{{ id }}" name ="id">
+                    <button class="btn btn-primary"  type="" id="" onclick="return show_alert('Удалить пользователя?')">Удалить</button></form>
+                    <a href='/users'><button class="btn btn-primary" type="button" onclick="return show_alert('Изменения не будут сохранены. Вы уверены, что хотите вернуться назад?')">Назад</button></a>
+                </td>
             </caption> 
             </tr> 
     </tbody>
@@ -48,8 +55,8 @@
    /*
 
         function validateForm() {
-                let name = document.forms["editSave"]["name"].value;
-                let username = document.forms["editSave"]["mail"].value;
+                let name = document.forms["edit"]["name"].value;
+                let username = document.forms["edit"]["mail"].value;
                 
 
 

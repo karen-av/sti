@@ -86,3 +86,15 @@ form {
     margin:40px;
 }
 
+.route{
+    left: 5%;
+    bottom: 85%;
+    position: absolute;
+    padding-bottom: 1px;
+    margin-bottom: 10px;   
+}
+
+a {
+    color: grey
+   }
+

@@ -1,3 +1,4 @@
+
 from flask import Flask, redirect, render_template, request, session, flash
 from flask_mail import Mail, Message
 from flask_session import Session
@@ -45,10 +46,12 @@ ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'csv'}
 ADMIN = 'admin'
 COACH = 'coach'
 HEAD = 'head'
-COMPETENCE  = ('Организованноть', 'Стремление к совершенству', 'Надежность', 'Приверженность', 'Командность', 'Ориентация на клиента', 'Эффективная коммуникация', 'Принятие решений', 'Управленческое мастерство')
+COMPETENCE  = ('Организованноcть', 'Стремление к совершенству', 'Надежность', 'Приверженность', 'Командность', 'Ориентация на клиента', 'Эффективная коммуникация', 'Принятие решений', 'Управленческое мастерство')
 HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ', 'Дисциплинированность', 'Исполнительность', 'Ответственность', 'Решительность', 'ОРГАНИЗОВАННОСТЬ', 'Чёткое целеполагание', 'Адаптивность', 'Планирование', 'Стремление к порядку', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ', 'Стремление к достижениям', 'Стремление к развитию', 'Инновационность', 'ПРИВЕРЖЕННОСТЬ', 'Лояльность', 'Взаимовыручка', 'КОМАНДНОСТЬ', 'Готовность к компромиссу', 'Сотрудничество', 'Открытость', 'Открытость обратной связи', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ', 'Ориентация на потребности клиента', 'Партнёрство', 'ПРИНЯТИЕ РЕШЕНИЙ', 'Системное мышление', 'Бизнес-мышление', 'Перспективное мышление', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ', 'Чёткая коммуникация', 'Убеждение и влияние', 'Ведение переговоров', 'Кроссфункциональное взаимодействие', 'Неформальное лидерство', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО', 'Управление исполнением', 'Мотивация подчинённых', 'Организация работы', 'Управление изменениями', 'Развитие подчинённых', 'Управление командой')
 #HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ', 'Дисциплинированность', 'Исполнительность', 'Ответственность')
 #HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ 1', 'Дисциплинированность 2', 'Исполнительность 3', 'Ответственность 4', 'Решительность5', 'ОРГАНИЗОВАННОСТЬ6', 'Чёткое целеполагание7', 'Адаптивность8', 'Планирование9', 'Стремление к порядку10', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ11', 'Стремление к достижениям12', 'Стремление к развитию13', 'Инновационность14', 'ПРИВЕРЖЕННОСТЬ15', 'Лояльность16', 'Взаимовыручка17', 'КОМАНДНОСТЬ18', 'Готовность к компромиссу19', 'Сотрудничество20', 'Открытость21', 'Открытость обратной связи22', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ23', 'Ориентация на потребности клиента24', 'Партнёрство25', 'ПРИНЯТИЕ РЕШЕНИЙ26', 'Системное мышление27', 'Бизнес-мышление28', 'Перспективное мышление29', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ30', 'Чёткая коммуникация31', 'Убеждение и влияние32', 'Ведение переговоров33', 'Кроссфункциональное взаимодействие34', 'Неформальное лидерство35', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО36', 'Управление исполнением37', 'Мотивация подчинённых38', 'Организация работы39', 'Управление изменениями40', 'Развитие подчинённых41', 'Управление командой42')
+HEAD_COACH_EMAIL = 'hd.spk27@gmail.com'
+
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
@@ -72,28 +75,82 @@ def index():
     if session["user_status"] == ADMIN or session["user_status"] == COACH:
         return render_template('index.html')
     elif session["user_status"] == HEAD:
-        return redirect("/users")
+        return render_template("/instruction_for_head.html")
     else:
         return redirect("/login")
 
-@app.route("/positions")
+@app.route("/positions", methods=['POST','GET'])
 @login_required
 def positions():
-    if session["user_status"] == ADMIN or session["user_status"] == COACH:
+    readyStatusList = ['Все', 'Заполнено', 'Не заполнено']
+    if request.method == 'GET' and session["user_status"] == ADMIN or session["user_status"] == COACH:
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
             connection.autocommit = True  
             with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM positions ORDER BY id")
+                cursor.execute("SELECT * FROM positions ORDER BY reports_pos ")
                 positions = cursor.fetchall()
+                #cursor.execute("SELECT * FROM positions WHERE  (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) ORDER BY reports_pos ")
+                #positionsNotDone = cursor.fetchall()
+                cursor.execute("SELECT DISTINCT reports_pos FROM positions ORDER BY reports_pos")
+                headList = cursor.fetchall()
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
+            flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+            return redirect('/')
         finally:
             if connection:
                 connection.close()
                 print("[INFO] PostgresSQL connection closed")
 
-        return render_template('positions.html', positions = positions, competence = COMPETENCE)
+        return render_template('positions.html', positions = positions, headList = headList, readyStatusList = readyStatusList, competence = COMPETENCE)
+
+    elif request.method == 'POST' and session["user_status"] == ADMIN or session["user_status"] == COACH:
+        reports_to = request.form.get('reports_to')
+        ready_status = request.form.get('ready_status')
+        if not reports_to and not ready_status:
+            return redirect ('/positions')
+        try:
+            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
+            connection.autocommit = True  
+            with connection.cursor() as cursor:
+                if reports_to and not ready_status:
+                    cursor.execute("SELECT * FROM positions  WHERE reports_pos = %(reports_pos)s ORDER BY reports_pos", {'reports_pos': reports_to})
+                    positions = cursor.fetchall()
+                elif ready_status and not reports_to:
+                    if ready_status == readyStatusList[0]: # all
+                        cursor.execute("SELECT * FROM positions ORDER BY reports_pos")
+                        positions = cursor.fetchall()
+                    elif ready_status == readyStatusList[1]: # done
+                        cursor.execute("SELECT * FROM positions WHERE comp_1 IS NOT NULL AND comp_2 IS NOT NULL AND comp_3 IS NOT NULL AND comp_4 IS NOT NULL AND comp_5 IS NOT NULL AND comp_6 IS NOT NULL AND comp_7 IS NOT NULL AND comp_8 IS NOT NULL AND comp_9 IS NOT NULL ORDER BY reports_pos")
+                        positions = cursor.fetchall()
+                    elif ready_status == readyStatusList[2]: # done not
+                        cursor.execute("SELECT * FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) ORDER BY reports_pos")
+                        positions = cursor.fetchall()
+                elif  reports_to and ready_status:
+                    print("AAA")
+                    if ready_status == readyStatusList[0]: # all
+                        cursor.execute("SELECT * FROM positions WHERE reports_pos = %(reports_pos)s ORDER BY reports_pos", {'reports_pos': reports_to})
+                        positions = cursor.fetchall()
+                    elif ready_status == readyStatusList[1]: # done
+                        cursor.execute("SELECT * FROM positions WHERE reports_pos = %(reports_pos)s and comp_1 IS NOT NULL AND comp_2 IS NOT NULL AND comp_3 IS NOT NULL AND comp_4 IS NOT NULL AND comp_5 IS NOT NULL AND comp_6 IS NOT NULL AND comp_7 IS NOT NULL AND comp_8 IS NOT NULL AND comp_9 IS NOT NULL ORDER BY reports_pos", {'reports_pos': reports_to})
+                        positions = cursor.fetchall()
+                    elif ready_status == readyStatusList[2]: # done not
+                        cursor.execute("SELECT * FROM positions WHERE reports_pos = %(reports_pos)s AND (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) ORDER BY reports_pos" , {'reports_pos': reports_to})
+                        positions = cursor.fetchall()
+                    
+                cursor.execute("SELECT DISTINCT reports_pos FROM positions ORDER BY reports_pos")
+                headList = cursor.fetchall()
+        except Exception as _ex:
+            print("[INFO] Error while working with PostgresSQL", _ex)
+            flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+            return redirect('/')
+        finally:
+            if connection:
+                connection.close()
+                print("[INFO] PostgresSQL connection closed")
+
+        return render_template('positions.html', positions = positions, headList = headList, readyStatusList = readyStatusList, competence = COMPETENCE)
     
     else:
         return redirect("/")
@@ -124,6 +181,8 @@ def users():
                     usereMail = cursor.fetchall()
             except Exception as _ex:
                 print("[INFO] Error while working with PostgresSQL", _ex)
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                return redirect('/')
             finally:
                 if connection:
                     connection.close()
@@ -142,11 +201,13 @@ def users():
                     positionFromList = cursor.fetchall()
                     print(f' positionFromList - {positionFromList}')
                     if len(positionFromList) != 0:
-                        return render_template("for_head.html", positionFromList = positionFromList, competence = COMPETENCE)
+                        return render_template("questions_for_head.html", positionFromList = positionFromList, competence = COMPETENCE)
                     else:
                         return render_template('theEnd.html')
             except Exception as _ex:
                 print("[INFO] Error while working with PostgresSQL", _ex)
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                return redirect('/')
             finally:
                 if connection:
                     connection.close()
@@ -170,17 +231,12 @@ def users():
                     usereStatus_to = cursor.fetchall()            
                     cursor.execute("SELECT DISTINCT position FROM users UNIC;")
                     userePosition = cursor.fetchall()
-                    cursor.execute("SELECT DISTINCT name FROM users;")
-                    usereName = cursor.fetchall()
-                    cursor.execute("SELECT DISTINCT mail FROM users;")
-                    usereMail = cursor.fetchall()
 
                     department = request.form.get("department")
                     reports_to = request.form.get("reports_to")
                     status = request.form.get("status")
                     position  = request.form.get("position")
-                    #name = request.form.get("name")
-                    #mail = request.form.get("mail").lower()
+    
                     if not department and not reports_to and not status and not position:
                         cursor.execute("SELECT * FROM users ORDER BY id;")
                         users = cursor.fetchall()
@@ -241,12 +297,14 @@ def users():
 
             except Exception as _ex:
                 print("[INFO] Error while working with PostgresSQL", _ex)
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                return redirect('/')
             finally:
                 if connection:
                     connection.close()
                     print("[INFO] PostgresSQL connection closed")
-            # на всех путях проверять session[user_status]б чтобы не прошли просто по ссылке
-            return render_template("users.html", users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, usereName =usereName, usereMail = usereMail, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
+
+            return render_template("users.html", users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
         
         elif session["user_status"] == HEAD:
             position_pos = request.form.get('position_pos')
@@ -289,6 +347,8 @@ def users():
                         return render_template('theEnd.html')
             except Exception as _ex:
                 print("[INFO] Error while working with PostgresSQL", _ex)
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                return redirect('/')
             finally:
                 if connection:
                     connection.close()
@@ -330,6 +390,8 @@ def login():
                 rows = cursor.fetchall()
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
+            flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+            return redirect('/')
         finally:
             if connection:
                 connection.close()
@@ -372,95 +434,99 @@ def logout():
 @login_required
 def edit():
     if request.method == "POST" and (session["user_status"] == ADMIN or session["user_status"] == COACH):
-        userId = request.form.get("user_id")
-        try:
-            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
-            connection.autocommit = True  
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT id, department, reports_to, status, position, name, mail FROM users WHERE id = %(userId)s", {'userId': userId})
-                userData = cursor.fetchall()
-                print(userData)
+        if request.form.get('flag') == 'render':
+            userId = request.form.get("user_id")
+            try:
+                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+                connection.autocommit = True  
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT id, department, reports_to, status, position, name, mail FROM users WHERE id = %(userId)s", {'userId': userId})
+                    userData = cursor.fetchall()
+                    print(userData)
 
-        except Exception as _ex:
-            print("[INFO] Error while working with PostgresSQL", _ex)
-        finally:
-            if connection:
-                connection.close()
-                print("[INFO] PostgresSQL connection closed")
-  
-        id = userData[0][0]
-        department = userData[0][1]
-        reports_to = userData[0][2]
-        status = userData[0][3]
-        position = userData[0][4]
-        name = userData[0][5]
-        mail = userData[0][6]
+            except Exception as _ex:
+                print("[INFO] Error while working with PostgresSQL", _ex)
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                return redirect('/')
+            finally:
+                if connection:
+                    connection.close()
+                    print("[INFO] PostgresSQL connection closed")
+    
+            id = userData[0][0]
+            department = userData[0][1]
+            reports_to = userData[0][2]
+            status = userData[0][3]
+            position = userData[0][4]
+            name = userData[0][5]
+            mail = userData[0][6]
+            
+            return render_template("edit.html", id = id, department = department, reports_to = reports_to, status = status, position = position, name = name, mail = mail, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
         
-        return render_template("edit.html", id = id, department = department, reports_to = reports_to, status = status, position = position, name = name, mail = mail, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
-    else:
-        return redirect("/")
-
-
-@app.route("/editSave", methods = ["POST"])
-@login_required
-def editSave():
-    if request.method == "POST" and (session["user_status"] == ADMIN or session["user_status"] == COACH):
-        id = request.form.get("id")
-        department = request.form.get("department")
-        reports_to = request.form.get("reports_to")
-        status = request.form.get("status")
-        position  = request.form.get("position")
-        name = request.form.get("name")
-        mail = request.form.get("mail").lower().strip()
-        hash = request.form.get("hash")
-        if not status or not position or status == 'None' or position == 'None':
-            flash('Изменения не сохранены. Укажите статус и должность.')
-            return redirect('/users')
-        if not name:
-            flash('Изменения не сохранены. Укажите правильный формат имени')
-            return redirect('/users')
-        if not mail or checkUsername(mail):
-            flash('Изменения не сохранены. Укажите правильный формат почты')
-            return redirect('/users')
-        if checkUsernameMastContain(mail):
-            flash('Изменения не сохранены. Укажите правильный формат почты')
-            return redirect('/users')
-        if  hash and (status == ADMIN or status == COACH or status == HEAD):
-            if checkPassword(hash) or checkPasswordBadSymbol(hash):
-                flash('Изменения не сохранены. Укажите правильный формат пароля')
+        elif request.form.get('flag') == 'save':
+            id = request.form.get("id")
+            department = request.form.get("department")
+            reports_to = request.form.get("reports_to")
+            status = request.form.get("status")
+            position  = request.form.get("position")
+            name = request.form.get("name")
+            mail = request.form.get("mail").lower().strip()
+            hash = request.form.get("hash")
+            if not status or not position or status == 'None' or position == 'None':
+                flash('Изменения не сохранены. Укажите статус и должность.')
                 return redirect('/users')
-            hash = generate_password_hash(hash, "pbkdf2:sha256")
+            if not name:
+                flash('Изменения не сохранены. Укажите правильный формат имени')
+                return redirect('/users')
+            if not mail or checkUsername(mail):
+                flash('Изменения не сохранены. Укажите правильный формат почты')
+                return redirect('/users')
+            if checkUsernameMastContain(mail):
+                flash('Изменения не сохранены. Укажите правильный формат почты')
+                return redirect('/users')
+            if  hash and (status == ADMIN or status == COACH or status == HEAD):
+                print("AAA")
+                if checkPassword(hash) or checkPasswordBadSymbol(hash):
+                    flash('Изменения не сохранены. Укажите правильный формат пароля')
+                    return redirect('/users')
+                hash = generate_password_hash(hash, "pbkdf2:sha256")
 
 
-        try:
-            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
-            connection.autocommit = True  
-            with connection.cursor() as cursor:
-                # Проверка на существование пользователя
-                cursor.execute("SELECT mail FROM users WHERE mail = %(mail)s AND id != %(id)s", {'mail': mail, 'id': id})
-                us = cursor.fetchall()         
-                if len(us) != 0 :
-                    return apology("User exist", 400)
-                # внесение изменений
-                cursor.execute("UPDATE users SET department = %(department)s, reports_to = %(reports_to)s, status = %(status)s, position = %(position)s, name = %(name)s, mail = %(mail)s, hash = %(hash)s  WHERE id = %(id)s", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'hash': hash, 'id': id})
-                # Если изменили должность и такой нет в базе, добавляем
+            try:
+                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+                connection.autocommit = True  
+                with connection.cursor() as cursor:
+                    # Проверка на существование пользователя
+                    cursor.execute("SELECT mail FROM users WHERE mail = %(mail)s AND id != %(id)s", {'mail': mail, 'id': id})
+                    us = cursor.fetchall()         
+                    if len(us) != 0 :
+                        return apology("User exist", 400)
+                    # внесение изменений
+                    # если меняли пароль b  если не меняли
+                    if hash:
+                        cursor.execute("UPDATE users SET department = %(department)s, reports_to = %(reports_to)s, status = %(status)s, position = %(position)s, name = %(name)s, mail = %(mail)s, hash = %(hash)s  WHERE id = %(id)s", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'hash': hash, 'id': id})
+                    else:
+                        cursor.execute("UPDATE users SET department = %(department)s, reports_to = %(reports_to)s, status = %(status)s, position = %(position)s, name = %(name)s, mail = %(mail)s WHERE id = %(id)s", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'id': id})
+                    # Если изменили должность и такой нет в базе, добавляем
+                    # Проверяем существует ли должность в базе. Если нет, то добавляем
+                    cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s", {'position': position})
+                    pos = cursor.fetchall()
+                    if len(pos) == 0 and status != ADMIN and status != COACH:
+                        cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
 
-                # Проверяем существует ли должность в базе. Если нет, то добавляем
-                cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s", {'position': position})
-                pos = cursor.fetchall()
-                if len(pos) == 0 and status != ADMIN and status != COACH:
-                    cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
 
+            except Exception as _ex:
+                print("[INFO] Error while working with PostgresSQL", _ex)
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                return redirect('/')
+            finally:
+                if connection:
+                    connection.close()
+                    print("[INFO] PostgresSQL connection closed")
+            
+            flash('Изменения сохранены.')
+            return redirect("/users")
 
-        except Exception as _ex:
-            print("[INFO] Error while working with PostgresSQL", _ex)
-        finally:
-            if connection:
-                connection.close()
-                print("[INFO] PostgresSQL connection closed")
-        
-        flash('Изменения сохранены.')
-        return redirect("/users")
     else:
         return redirect("/")
 
@@ -479,6 +545,8 @@ def delete():
 
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
+            flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+            return redirect('/')
         finally:
             if connection:
                 connection.close()
@@ -500,6 +568,7 @@ def register():
         position  = request.form.get("position")
         name = request.form.get("name").strip()
         mail = request.form.get("mail").lower().strip()
+        user_password = request.form.get("password")
         hash = ''
 
         # Проверка полученных данных
@@ -520,8 +589,10 @@ def register():
             #return apology("Usename not contain symbol from alphabet")
             # Если пользователь со статусом ... создаем пароль
         if  status == ADMIN or status == COACH or status == HEAD: # and (not hash or checkPassword(hash)):
-            hash = generate_password_hash(createPassword(), "pbkdf2:sha256")
-            
+            if not user_password:
+                hash = generate_password_hash(createPassword(), "pbkdf2:sha256")
+            else:
+                hash = generate_password_hash(user_password, "pbkdf2:sha256")      
           
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
@@ -544,6 +615,8 @@ def register():
 
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
+            flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+            return redirect('/')
         finally:
             if connection:
                 connection.close()
@@ -625,7 +698,9 @@ def file():
 
 
             except Exception as _ex:
-                    print("[INFO] Error while working with PostgresSQL", _ex)
+                print("[INFO] Error while working with PostgresSQL", _ex)
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                return redirect('/')
             finally:
                 if connection:
                     connection.close()
@@ -673,6 +748,8 @@ def file():
 
                 except Exception as _ex:
                     print("[INFO] Error while working with PostgresSQL", _ex)
+                    flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                    return redirect('/')
                 finally:
                     if connection:
                         connection.close()
@@ -690,11 +767,11 @@ def file():
     else:
         return redirect('/')
 
-@app.route('/testResults', methods=['POST', 'GET'])
-@login_required
-def testResults():
-    if request.method == 'GET' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
 
+@app.route('/test_results', methods=['POST', 'GET'])
+@login_required
+def test_results():
+    if request.method == 'GET' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
         # подключаемся к базе и передаем на страницу все результатьы тестов пользователей
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
@@ -704,6 +781,8 @@ def testResults():
                 testResults = cursor.fetchall()
         except Exception as _ex:
             print("[INFO] Erroe while working with PostgraseSQL", _ex)
+            flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+            return redirect('/')
         finally :
             if connection:
                 connection.close()
@@ -804,6 +883,8 @@ def file_test():
 
             except Exception as _ex:
                 print(f'[INFO] Error while working PostgresSQL', _ex)
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                return redirect('/')
             finally:
                 if connection:
                     connection.close()
@@ -813,6 +894,7 @@ def file_test():
 
     else:
         return redirect ('/')
+
 
 @app.route('/mail_heads', methods = ['GET', 'POST'])
 @login_required
@@ -830,6 +912,8 @@ def mail_heads():
                 users = cursor.fetchall()
         except Exception as _ex:
             print(f'[INFO] Error while working PostgresSQL', _ex)
+            flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+            return redirect('/')
         finally:
             if connection:
                 connection.close()
@@ -850,8 +934,8 @@ def mail_heads():
                 hash = generate_password_hash(user_password, "pbkdf2:sha256")
                 msg = Message('From STI-Partners', recipients=[user_mail])
                 #msg.body = (f'Welcom to 123.com.\nYour login {user_mail}\nYour password {user_password}')
-                msg.body = render_template("head_email.txt", user_name = user_name, user_mail = user_mail, user_password = user_password)
-                msg.html = render_template("head_email.html", user_name = user_name, user_mail = user_mail, user_password = user_password)
+                msg.body = render_template("to_head_email.txt", user_name = user_name, user_mail = user_mail, user_password = user_password)
+                msg.html = render_template("to_head_email.html", user_name = user_name, user_mail = user_mail, user_password = user_password)
                 mail.send(msg)
     
                 # update database
@@ -862,6 +946,8 @@ def mail_heads():
                         cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':user_mail})
                 except Exception as _ex:
                     print(f'[INFO] Error while working PostgresSQL', _ex)
+                    flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                    return redirect('/')
                     
                 finally:
                     if connection:
@@ -875,7 +961,6 @@ def mail_heads():
                 flash("Сообщение не отправлено. Проверьте коректно ли указана электронная почта.")
                 print(f'[INFO] Error while working mail sender', _ex)
                 return redirect('/mail_heads')
-
 
         elif flag == 'all_invite':
             today = today = datetime.date.today()
@@ -891,8 +976,8 @@ def mail_heads():
                             user_password = createPassword()
                             hash  = generate_password_hash(user_password, "pbkdf2:sha256")
                             msg = Message("From STI-Partners", recipients=[singleUser[5]])
-                            msg.body = render_template("head_email.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
-                            msg.html = render_template('head_email.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
+                            msg.body = render_template("to_head_email.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
+                            msg.html = render_template('to_head_email.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
                             mail.send(msg)
                             counterSend = counterSend + 1
                             cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
@@ -901,7 +986,7 @@ def mail_heads():
                             x = 1
                             notSendList.append(singleUser)
                             counterNotSend = counterNotSend + 1 
-                            print(f'[INFO] Error while working mail sender', _ex)
+                            print(f'[INFO] Error while working mail sender:', _ex)
                         
                     cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status':HEAD})
                     users = cursor.fetchall()
@@ -910,7 +995,10 @@ def mail_heads():
                 print(f'[INFO] Error while working PostgresSQL', _ex)
                 x = 1
                 notSendList.append(singleUser)
-                counterNotSend = counterNotSend + 1 
+                counterNotSend = counterNotSend + 1
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                return redirect('/')
+                 
             finally:
                 if connection:
                     connection.close()
@@ -933,8 +1021,8 @@ def mail_heads():
                             user_password = createPassword()
                             hash  = generate_password_hash(user_password, "pbkdf2:sha256")
                             msg = Message("From STI-Partners", recipients=[singleUser[5]])
-                            msg.body = render_template("head_email.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
-                            msg.html = render_template('head_email.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
+                            msg.body = render_template("to_head_email.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
+                            msg.html = render_template('to_head_email.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
                             mail.send(msg)
                             counterSend = counterSend + 1
                             cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
@@ -943,16 +1031,18 @@ def mail_heads():
                             x = 1
                             notSendList.append(singleUser)
                             counterNotSend = counterNotSend + 1 
-                            print(f'[INFO] Error while working mail sender', _ex)
+                            print(f'[INFO] Error while working mail sender:', _ex)
 
                     cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status':HEAD})
                     users = cursor.fetchall()
 
             except Exception as _ex:
-                print(f'[INFO] Error while working PostgresSQL', _ex)
+                print(f'[INFO] Error while working PostgresSQL:', _ex)
                 x = 1
                 notSendList.append(singleUser)
                 counterNotSend = counterNotSend + 1 
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                return redirect('/')
             finally:
                 if connection:
                     connection.close()
@@ -960,6 +1050,27 @@ def mail_heads():
 
             flash(f'Приглашение отправлено {counterSend}. Не удалось отправить {counterNotSend} сообщений.')
             return render_template('mail.html', users = users, notSendList = notSendList, x = x)
+
+        elif flag == 'mail_from_head':
+            message_from_head = request.form.get('messege_from_head')
+            if message_from_head:  
+                try:
+                    head_mail = session['user_mail']
+                    head_name = session['user_name']
+                    msg = Message("From Burusan's project", recipients=[HEAD_COACH_EMAIL])
+                    msg.body = render_template("from_head_email.txt", head_name = head_name, head_mail = head_mail, message_from_head = message_from_head)
+                    msg.html = render_template('from_head_email.html', head_name = head_name, head_mail = head_mail, message_from_head = message_from_head)
+                    mail.send(msg)
+                    print(f'[INFO] Message has bin sent via mail sender.')
+                    flash(f"Сообщение отправлено. Спасибо!")
+                    return render_template('theEnd.html')
+                except Exception as _ex:
+                    print(f'[INFO] Error while working mail sender:', _ex)
+                    flash(f"В процессе отправки сообщения произошла ошибка.\nПожалуйста, обновите страницу и повторите попытку.")
+                    return render_template('theEnd.html')
+            else:
+                flash(f"Вы попытались отправить пустое сообщение.\nПожалуйста, введите текст сообщение и повторите попытку.")
+                return render_template('theEnd.html')
 
 
 

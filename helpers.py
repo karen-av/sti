@@ -54,7 +54,6 @@ def checkPassword(passw):
         if s.islower():
             d = d+1
         if  b > 0 and c > 0 and d > 0:
-            
             return False
     
     return True

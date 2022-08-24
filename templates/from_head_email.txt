@@ -1,0 +1,11 @@
+Dear head coach,
+
+This message from head {{ head_name }}.
+
+{{ text_message }}
+
+Head's email: {{ head_mail }}
+
+
+Regards,
+STI Partners.

@@ -5,7 +5,11 @@
 {% endblock %}
 
 {% block main %}
+
 {% if x == 0 %}
+<div class="route">
+    <a href="/">Главная</a> - Сообщения руководителям
+</div>
 <div class="filtr">
     <form action="/mail_heads" method="post" onclick="return show_alert('Отправить приглашение всем пользователям?')">
         <input type="hidden" value="all_invite" name ="flag"> 
@@ -53,7 +57,9 @@
         </tbody>
     </table> 
 {% else %}
-    
+<div class="route">
+    <a href="/">Главная</a> - <a href='/mail_heads'>Сообщения руководителям</a> - Результаты
+</div>
     <table class="table table-striped">
         <thead>
             <tr>
