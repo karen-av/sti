@@ -58,3 +58,10 @@ function checkUsernameMastContain(word) {
     return true; */
     return false
 }
+
+function show_alert(text) {
+    if(confirm(text)) {
+        this.form.sybmit();
+    }
+    return false;
+}

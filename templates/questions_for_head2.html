@@ -1,0 +1,118 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Главная
+{% endblock %}
+
+{% block main %}
+
+<table class="table table-striped" style="width: auto; caption-side: top">
+<thead>
+    <tr>{{ positionFromList.0.1 }}</tr>
+</thead>
+<tbody> <form action="/users" method="post" name="users">
+    {% for comp in competence %}
+    <tr>     
+        <!-- другая форма заполнения-->
+        <td>{{ comp }}</td>
+        <td><div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1">
+            <label class="form-check-label" for="inlineRadio1">1</label>
+          </div>
+        <td>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2">
+            <label class="form-check-label" for="inlineRadio2">2</label>
+          </div>
+        <td>
+            <input type="hidden" name="position_pos" value="{{ positionFromList.0.1 }}">
+            <select name="comp_{{ loop.index }}" id="id_{{ loop.index }}" required onchange='check()'>
+            <option disabled selected></option>
+            {% for i in range(1, 10) %}
+            <option >{{ i }}</option>
+            {% endfor %} 
+            </select>
+        </td>
+    </tr>{% endfor %}
+    <caption><button class="btn btn-primary" type="submit" id="button" >Отправить</button></caption></form>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+    {% endblock %}
+
+
+
+<!--
+
+    {% extends "layout.html" %}
+
+{% block title %}
+    Upload Test Results
+{% endblock %}
+
+{% block main %}
+
+
+{% if 'users' in typeDataFlag %}
+<div class="route">
+    <a href="/">Главная</a> - Загрузить сотрудников
+</div>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>
+                Загрузите файл со списком сотрудников.
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <form action="/file_users" method="post" enctype=multipart/form-data class="">
+                <div class="input-group form_upload">
+                    <input accept=".xlsx,.xls,.csv" name="file" type="file" class="form-control" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" aria-label="Upload">
+                    <button class="btn btn-primary" type="sybmit" id="inputGroupFileAddon04">Загрузить</button>
+                </div>
+                </form>
+            </td>
+        </tr>
+    </tbody>
+
+
+
+{% elif 'results' in typeDataFlag %}
+<div class="route">
+    <a href="/">Главная</a> - Загрузите файл с результатами тестирования 'Дельта аи'
+</div>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>
+                Загрузите файл с результатами тестирования.
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <form action="/file_test" method="post" enctype=multipart/form-data class="">
+                    <div class="input-group form_upload">
+                        <input accept=".xlsx,.xls,.csv" name="file" type="file" class="form-control" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" aria-label="Upload">
+                        <button class="btn btn-primary" type="sybmit" id="inputGroupFileAddon04">Загрузить</button>
+                    </div>
+                </form>
+            </td>
+        </tr>
+    </tbody>
+
+{% endif %}
+
+{% endblock %}
+-->

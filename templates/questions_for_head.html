@@ -1,22 +1,31 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Главная
+Questions
 {% endblock %}
 
 {% block main %}
 
 
-<table class="table table-striped" style="width: auto; caption-side: top">
+<table class="table table-striped" style="width: 80%">
 <thead>
-    <tr>{{ positionFromList.0.1 }}</tr>
+    <tr>
+        <th colspan="3"><h4 style="margin-bottom: 20px;">Должность - {{ positionFromList.0.1 }}</h2></th>
+    </tr>
+    <tr>
+        <th>Компетенция</th>
+        <th>Описание компетенции</th>
+        <th>Ценность</th>
+    </tr>
 </thead>
 <tbody> <form action="/users" method="post" name="users">
     {% for comp in competence %}
-    <tr>     
-        
+    <tr>         
         <td>{{ comp }}</td>
-        <td></td>
+        <td>Тут текст с описанием компетенции. [INFO] PostgresSQL connection closed
+            127.0.0.1 - - [24/Aug/2022 13:52:33] "GET /users HTTP/1.1" 200 -
+            127.0.0.1 - - [24/Aug/2022 13:52:33] "GET /static/script.js HTTP/1.1" 200 -
+            </td>
         <td>
             <input type="hidden" name="position_pos" value="{{ positionFromList.0.1 }}" >
             <select name="comp_{{ loop.index }}" id="id_{{ loop.index }}" required onchange='check()'>
@@ -27,7 +36,7 @@
             </select>
         </td>
     </tr>{% endfor %}
-    <caption><button class="btn btn-primary" type="submit" id="button" onclick="return check()">Отправить</button></caption></form>
+    <caption><button class="btn btn-primary" type="submit" id="button" onclick="return check()">Нажмите здесь, чтобы перейти к следующей должности.</button></caption></form>
 </tbody>
 </table> 
 

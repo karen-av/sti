@@ -2,6 +2,7 @@ import string
 import secrets
 from flask import redirect, render_template, request, session
 from functools import wraps
+import re
 
 def createPassword():
     return (''.join(secrets.choice(string.ascii_letters + string.digits) for x in range(10)) )
@@ -53,7 +54,6 @@ def checkPassword(passw):
         if s.islower():
             d = d+1
         if  b > 0 and c > 0 and d > 0:
-            
             return False
     
     return True
@@ -73,6 +73,7 @@ def checkUsername(name):
     symbols = ['@', '$', '&','-', '_', '.'];
     for n in name:
         if not n.isalpha() and not n.isdigit() and not n in symbols:
+            print(n)
             return True
     return False
 
@@ -82,3 +83,24 @@ def checkUsernameMastContain(name):
             return False
     return True
 
+def checkEmail(name):
+    if len(name) < 3 or len(name) > 30:
+        return True
+
+    symbols = ['@', '$', '&','-', '_', '.'];
+    for n in name:
+        if not n.isalpha() and not n.isdigit() and not n in symbols:
+            return True
+    for n in name:
+        if n == '@':
+            return False
+    return True
+
+
+regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
+
+def isValid(email):
+    if re.fullmatch(regex, email):
+      return False
+    else:
+      return True

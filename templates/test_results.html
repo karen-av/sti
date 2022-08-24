@@ -6,24 +6,23 @@
 
 {% block main %}
 
+<div class="route">
+    <a href="/">Главная</a> - Результаты тестирования
+</div>
 
 <table class="table table-striped" style="table-layout: auto">
     <thead>
-       
-        
         <tr>
             <td>N</td>
-            <td>Почта</td> 
-            {% for i in headerList %}<td>{{ i }}</td> {% endfor %}
-            
+            <td>Имя</td> 
+            <td>Почта</td>
+            {% for i in headerList %}<td>{{ i }}</td> {% endfor %} 
         </tr>
-        
     </thead>
     <tbody>
         {% for i in testResults %}
         <tr>
             <td>{{ loop.index }}</td>
-            
             {% for n in i %}
             <td>{{ n }}</td> {% endfor %}
         </tr>{% endfor %}

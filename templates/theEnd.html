@@ -1,9 +1,23 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Главная
+    The End
 {% endblock %}
 
 {% block main %}
-    <h3>Спасибо! Вы ответили на все вопросы.</h3>
+    <h3 style="margin-bottom: 30px;" >Спасибо! Вы ответили на все вопросы.</h3>
+    <table class="table table-striped" >
+        <tbody>
+            <tr>
+                <td>
+                    <form action="/mail_heads" method="post" onsubmit="return show_alert('Отправить сообщение?')">
+                        <input type="hidden" value="mail_from_head" name ="flag">
+                        <label for="exampleFormControlTextarea1" class="form-label">Тут вы можете оставить свои пожаления, утонения или задать вопрос.</label>
+                        <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" name="messege_from_head"></textarea>
+                        <button class="btn btn-primary" type="submit">Отправить сообщение</button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+</table>
 {% endblock %}

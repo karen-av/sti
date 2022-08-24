@@ -5,20 +5,75 @@
 {% endblock %}
 
 {% block main %}
+
+<div class="route">
+    <a href="/">Главная</a> - Ранжирование компетенций по должностям
+</div>
+    <div class="filtr"  id="filtr">
+
+        <form action="/positions" method="post" name="sort">
+        <select id="reports_to" name="reports_to" >
+            <option disabled selected value="none" multiple>Руководитель</option>
+            {% for head in headList %}
+            <option>{{ head.0 }}</option>
+            {% endfor %}
+        </select>                  
+       <select id="ready_status" name="ready_status">
+            <option disabled selected value="none">Статус готовности</option>
+            {% for status in readyStatusList %}
+                <option>{{ status }}</option>
+                {% endfor %}
+        </select>
+        <button class="btn btn-primary" type="submit" id="sort_button">Применить фильт</button>
+    </form>
+</div>
+
+<!-- 
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th colspan="12">Руководители, которые не заполнили опросник</th>
+        </tr>
+        <tr>
+            <th>N</th>
+            <th>Рук</th>
+            <th>Долж</th>
+            {% for com in competence %}<th>{{ com }}</th>{% endfor%}
+        </tr>
+    </thead>
+    <tbody>
+       {% for pos in positionsNotDone %}  <tr>  
+            <td>{{ loop.index }}</td>
+            <td>{{ pos.2 }}</td>
+            <td>{{ pos.1 }}</td>
+            <td>{{ pos.3 }}</td>
+            <td>{{ pos.4 }}</td>
+            <td>{{ pos.5 }}</td>
+            <td>{{ pos.6 }}</td>
+            <td>{{ pos.7 }}</td>
+            <td>{{ pos.8 }}</td>
+            <td>{{ pos.9 }}</td>
+            <td>{{ pos.10 }}</td>
+            <td>{{ pos.11}}</td>
+        </tr>{% endfor %}
+    </tbody>
+</table>   
+<p style="margin-top: 25px;"></p> -->
     <table class="table table-striped">
         <thead>
+            
             <tr>
                 <th>N</th>
-                <th>Долж</th>
                 <th>Рук</th>
+                <th>Долж</th>
                 {% for com in competence %}<th>{{ com }}</th>{% endfor%}
             </tr>
         </thead>
         <tbody>
            {% for pos in positions %}  <tr>  
                 <td>{{ loop.index }}</td>
-                <td>{{ pos.1 }}</td>
                 <td>{{ pos.2 }}</td>
+                <td>{{ pos.1 }}</td>
                 <td>{{ pos.3 }}</td>
                 <td>{{ pos.4 }}</td>
                 <td>{{ pos.5 }}</td>
