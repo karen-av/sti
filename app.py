@@ -504,12 +504,16 @@ def edit():
                         cursor.execute("UPDATE users SET department = %(department)s, reports_to = %(reports_to)s, status = %(status)s, position = %(position)s, name = %(name)s, mail = %(mail)s, hash = %(hash)s  WHERE id = %(id)s", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'hash': hash, 'id': id})
                     else:
                         cursor.execute("UPDATE users SET department = %(department)s, reports_to = %(reports_to)s, status = %(status)s, position = %(position)s, name = %(name)s, mail = %(mail)s WHERE id = %(id)s", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'id': id})
+                    
                     # Если изменили должность и такой нет в базе, добавляем
                     # Проверяем существует ли должность в базе. Если нет, то добавляем
-                    cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s", {'position': position})
-                    pos = cursor.fetchall()
-                    if len(pos) == 0 and status != ADMIN and status != COACH:
-                        cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
+                    # Если указан руководитель
+                    if reports_to:
+                        # Проверяем существует ли должность в базе. Если нет, то добавляем
+                        cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s and reports_pos = %(reports_pos)s", {'position': position, 'reports_pos': reports_to})
+                        pos = cursor.fetchall()
+                        if len(pos) == 0 and status != ADMIN and status != COACH:
+                            cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
 
 
             except Exception as _ex:
@@ -524,6 +528,8 @@ def edit():
             flash('Изменения сохранены.')
             return redirect("/users")
 
+        else:
+            return redirect('/')
     else:
         return redirect("/")
 
@@ -604,11 +610,13 @@ def register():
                     return redirect('/users')
                 cursor.execute("INSERT INTO users (department, reports_to, status, position, name, mail, hash) VALUES(%(department)s, %(reports_to)s, %(status)s, %(position)s, %(name)s, %(mail)s, %(hash)s)", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'hash': hash})
                 
-                # Проверяем существует ли должность в базе. Если нет, то добавляем
-                cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s", {'position': position})
-                pos = cursor.fetchall()
-                if len(pos) == 0 and status != ADMIN and status != COACH:
-                    cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
+                # Если указан руководитель
+                if reports_to:
+                    # Проверяем существует ли должность в базе. Если нет, то добавляем
+                    cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s and reports_pos = %(reports_pos)s", {'position': position, 'reports_pos': reports_to})
+                    pos = cursor.fetchall()
+                    if len(pos) == 0 and status != ADMIN and status != COACH:
+                        cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
 
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
