@@ -340,7 +340,7 @@ def users():
                     positionFromList = cursor.fetchall()
                     # Если есть такая должность, то передаем ее для заполнения
                     if len(positionFromList) != 0:
-                        return render_template("for_head.html", positionFromList = positionFromList, competence = COMPETENCE)
+                        return render_template("questions_for_head.html", positionFromList = positionFromList, competence = COMPETENCE)
                     # Если нет, то прощаемся 
                     else:
                         return render_template('theEnd.html')
