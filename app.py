@@ -168,17 +168,17 @@ def users():
                 with connection.cursor() as cursor:
                     cursor.execute("SELECT * FROM users ORDER BY id;")
                     users = cursor.fetchall()
-                    cursor.execute("SELECT DISTINCT department FROM users;")
+                    cursor.execute("SELECT DISTINCT department FROM users ORDER BY department;")
                     usereDepartment = cursor.fetchall()
-                    cursor.execute("SELECT DISTINCT reports_to FROM users;")
+                    cursor.execute("SELECT DISTINCT reports_to FROM users ORDER BY reports_to;")
                     usereReports_to = cursor.fetchall()
-                    cursor.execute("SELECT DISTINCT status FROM users;")
+                    cursor.execute("SELECT DISTINCT status FROM users ORDER BY status;")
                     usereStatus_to = cursor.fetchall()            
-                    cursor.execute("SELECT DISTINCT position FROM users UNIC;")
+                    cursor.execute("SELECT DISTINCT position FROM users ORDER BY position;")
                     userePosition = cursor.fetchall()
-                    cursor.execute("SELECT DISTINCT name FROM users;")
+                    cursor.execute("SELECT DISTINCT name FROM users ORDER BY name;")
                     usereName = cursor.fetchall()
-                    cursor.execute("SELECT DISTINCT mail FROM users;")
+                    cursor.execute("SELECT DISTINCT mail FROM users ORDER BY mail;")
                     usereMail = cursor.fetchall()
             except Exception as _ex:
                 print("[INFO] Error while working with PostgresSQL", _ex)
@@ -704,6 +704,7 @@ def file():
                         us = cursor.fetchall()
                         # Если пользоватеть существует, то не записываем в базу. Добавляем в список
                         if len(us) != 0:
+                            print(f'head did not upload - {mail}')
                             countErrorHead = countErrorHead + 1
                            
                         # Если нет пользователя в базе, то записываем туда и добавляем в список
