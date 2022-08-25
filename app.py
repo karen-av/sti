@@ -21,7 +21,7 @@ app = Flask(__name__)
 
 app.config['DEBAG'] = True
 app.config['TESTING'] = False
-app.config['MAIL_SERVER'] = 'smtp.yandex.ru'
+app.config['MAIL_SERVER'] = 'Fsmtp.yandex.ru'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
@@ -670,9 +670,10 @@ def file():
                         # Ищем в базе email 
                         cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
                         us = cursor.fetchall()
-                        # Если сузествует, то не записываем в базу. Добавляем в список
+                        # Если существует, то не записываем в базу. Добавляем в список
                         if len(us) != 0:
                             countErrorManager = countErrorManager + 1
+                            print(f'не сохранен - {mail}')
                            #usersError = usersError + us
                         # Если нет пользователя в базе, то записываем туда и добавляем в список
                         else:
@@ -691,9 +692,9 @@ def file():
                             #usersUpload = usersUpload + usUpload
                             
                             # Проверяем должность в базе. Если существует, то пропускам
-                            cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s", {'position': position})
+                            cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s AND reports_pos = %(reports_pos)s", {'position': position, 'reports_pos': reports_to})
                             pos = cursor.fetchall()
-                            if len(pos) == 0 and status != ADMIN and status != COACH:
+                            if len(pos) == 0:
                                 cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
                     
                     # Проходип по таблице и записываем руководителей в базу
