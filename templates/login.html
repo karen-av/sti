@@ -1,10 +1,42 @@
 {% extends "layout.html" %}
 
+         
+       
 {% block title %}
     Log In
+    
 {% endblock %}
 
 {% block main %}
+<head>
+    <style> BODY { 
+        background: #fc0 url(static/fon.jpg) repeat-y;
+        } </style>
+</head>
+
+<div>
+    <table class="table table-striped" style="width: 70%;">
+        <tr>
+            <td>
+                <h3>Уважаемый руководитель!</h3>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Компания Borusan Cat и STI приглашают Вас принять участие в проекте по обучению сотрудников back-office, Ваших подчиненных. 
+                Анализ процесса обучения в компании выявил, что сотрудники back-office не имеют возможности системно развивать важные для себя компетенции, в отличии от сотрудников front-office. Генеральный директор, Антон Старун и HR департамент решили исправить эту несправедливость! 
+                Пройдите по ссылке….. , ознакомьтесь с проектом и примите в нем активное участие! 
+                Участие руководителя обязательно!
+                С уважением, … и коллектив тренеров STI
+        </td>
+            
+        </tr>
+    </table>
+        
+    </p>
+</div>
+<p style="width: 70%; margin-left: 15%; margin-right: 15%;">Чтобы приступить к созданию профелей должностей, пожалуйста, введите логин и пароль, которые который пришел на адрес вашей электронной почты.</p>
+
     <form action="/login" method="post">
         <div class="mb-3">
             <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="mail" name="mail" placeholder="Логин" type="text">
@@ -12,7 +44,7 @@
         <div class="mb-3">
             <input class="form-control mx-auto w-auto" id="hash" name="hash" placeholder="Пароль" type="password">
         </div>
-        <button class="btn btn-primary" type="submit">Log In</button>
+        <button class="btn btn-primary" type="submit">Нажмите, чтобы начать</button>
     </form>
 
     <p></p>

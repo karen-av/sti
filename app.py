@@ -21,7 +21,7 @@ app = Flask(__name__)
 
 app.config['DEBAG'] = True
 app.config['TESTING'] = False
-app.config['MAIL_SERVER'] = 'Fsmtp.yandex.ru'
+app.config['MAIL_SERVER'] = 'smtp.yandex.ru'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
