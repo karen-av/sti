@@ -42,10 +42,11 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 POSITIONS_LIST = ("Директор", "Юрист", "Повар", "Садовник", 'Слесарь', 'DEV', 'Тренер')
 STATUS_LIST = ('admin', 'coach', 'manager', 'head')
 UPLOAD_FOLDER = 'upload_files'
-ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'csv'}
+ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 ADMIN = 'admin'
 COACH = 'coach'
 HEAD = 'head'
+MANAGER = 'manager'
 COMPETENCE  = ('Организованноcть', 'Стремление к совершенству', 'Надежность', 'Приверженность', 'Командность', 'Ориентация на клиента', 'Эффективная коммуникация', 'Принятие решений', 'Управленческое мастерство')
 HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ', 'Дисциплинированность', 'Исполнительность', 'Ответственность', 'Решительность', 'ОРГАНИЗОВАННОСТЬ', 'Чёткое целеполагание', 'Адаптивность', 'Планирование', 'Стремление к порядку', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ', 'Стремление к достижениям', 'Стремление к развитию', 'Инновационность', 'ПРИВЕРЖЕННОСТЬ', 'Лояльность', 'Взаимовыручка', 'КОМАНДНОСТЬ', 'Готовность к компромиссу', 'Сотрудничество', 'Открытость', 'Открытость обратной связи', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ', 'Ориентация на потребности клиента', 'Партнёрство', 'ПРИНЯТИЕ РЕШЕНИЙ', 'Системное мышление', 'Бизнес-мышление', 'Перспективное мышление', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ', 'Чёткая коммуникация', 'Убеждение и влияние', 'Ведение переговоров', 'Кроссфункциональное взаимодействие', 'Неформальное лидерство', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО', 'Управление исполнением', 'Мотивация подчинённых', 'Организация работы', 'Управление изменениями', 'Развитие подчинённых', 'Управление командой')
 #HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ', 'Дисциплинированность', 'Исполнительность', 'Ответственность')
@@ -84,7 +85,6 @@ def index():
 def positions():
     readyStatusList = ['Все', 'Заполнено', 'Не заполнено']
     if request.method == 'GET' and (session["user_status"] == ADMIN or session["user_status"] == COACH):
-        print('[INFO] route: /positions. method: GET')
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
             connection.autocommit = True  
@@ -110,7 +110,6 @@ def positions():
         print('[INFO] route: /positions. method: POST')
         reports_to = request.form.get('reports_to')
         ready_status = request.form.get('ready_status')
-        print(f'reports_to - {reports_to}. ready_status - {ready_status}')
         if not reports_to and not ready_status:
             return redirect ('/positions')
         try:
@@ -131,7 +130,6 @@ def positions():
                         cursor.execute("SELECT * FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) ORDER BY reports_pos")
                         positions = cursor.fetchall()
                 elif  reports_to and ready_status:
-                    print("AAA")
                     if ready_status == readyStatusList[0]: # all
                         cursor.execute("SELECT * FROM positions WHERE reports_pos = %(reports_pos)s ORDER BY reports_pos", {'reports_pos': reports_to})
                         positions = cursor.fetchall()
@@ -202,7 +200,6 @@ def users():
                     headName = cursor.fetchone()
                     cursor.execute("SELECT * FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) AND reports_pos = %(name)s LIMIT 1", {'name': headName[0]})
                     positionFromList = cursor.fetchall()
-                    print(f' positionFromList - {positionFromList}')
                     if len(positionFromList) != 0:
                         return render_template("questions_for_head.html", positionFromList = positionFromList, competence = COMPETENCE)
                     else:
@@ -320,7 +317,6 @@ def users():
             comp_7 = request.form.get('comp_7')
             comp_8 = request.form.get('comp_8')
             comp_9 = request.form.get('comp_9')
-            print(f'comp_1 - {comp_1}')
 
             if not comp_1 or not comp_2 or not comp_3 or not comp_4 or not comp_5 or not comp_6 or not comp_7 or not comp_8 or not comp_9:
                 flash("Пожалуйста, укажите все значения")
@@ -445,7 +441,6 @@ def edit():
                 with connection.cursor() as cursor:
                     cursor.execute("SELECT id, department, reports_to, status, position, name, mail FROM users WHERE id = %(userId)s", {'userId': userId})
                     userData = cursor.fetchall()
-                    print(userData)
 
             except Exception as _ex:
                 print("[INFO] Error while working with PostgresSQL", _ex)
@@ -488,7 +483,6 @@ def edit():
                 flash('Изменения не сохранены. Укажите правильный формат почты')
                 return redirect('/users')
             if  hash and (status == ADMIN or status == COACH or status == HEAD):
-                print("AAA")
                 if checkPassword(hash) or checkPasswordBadSymbol(hash):
                     flash('Изменения не сохранены. Укажите правильный формат пароля')
                     return redirect('/users')
@@ -653,10 +647,12 @@ def file():
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
         # Счетскики загруженных пользователей и списи для выводаинформаци о загруженных и незагруженных пользхователях
-        countError = 0
-        countUpload = 0
-        usersError = []
-        usersUpload = []
+        countErrorManager = 0
+        countErrorHead = 0
+        countUploadManager = 0
+        countUploadHead = 0
+        #usersError = []
+        #usersUpload = []
         
         # если расширение файла excel, то разбираем файл посточно
         if filename.endswith((".xlsx", ".xls")):
@@ -667,38 +663,59 @@ def file():
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
                 connection.autocommit = True 
                 with connection.cursor() as cursor:
+                    # Проходип по таблице и записываем сотрудников в базу
                     for i in range(len(table)):
                         # Разбираем данные из считанных строк
-                        department = str(table.iloc[i,:][0])
-                        reports_to = str(table.iloc[i,:][1])
-                        status = str(table.iloc[i,:][2])
-                        position = str(table.iloc[i,:][3])
-                        name = str(table.iloc[i,:][4]).strip()
-                        mail = str(table.iloc[i,:][5]).lower().strip()
-                        hash = ''
-                        # если статус ... устанавливаем рандомный пароль
-                        if status == COACH or status == ADMIN or status == HEAD:
-                            hash = generate_password_hash(createPassword(), "pbkdf2:sha256")
-                        # проверить пользователя на сущесвование
+                        mail = str(table.iloc[i,:][3]).lower().strip()
+                        # Ищем в базе email 
                         cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
                         us = cursor.fetchall()
                         # Если сузествует, то не записываем в базу. Добавляем в список
                         if len(us) != 0:
-                            countError = countError + 1
-                            usersError = usersError + us
+                            countErrorManager = countErrorManager + 1
+                           #usersError = usersError + us
                         # Если нет пользователя в базе, то записываем туда и добавляем в список
                         else:
-                            cursor.execute("INSERT INTO users (department, reports_to, status, position, name, mail, hash) VALUES(%(department)s, %(reports_to)s, %(status)s, %(position)s, %(name)s, %(mail)s, %(hash)s)", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'hash': hash})
-                            countUpload = countUpload + 1
-                            cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
-                            usUpload = cursor.fetchall()
-                            usersUpload = usersUpload + usUpload
+                            name = str(table.iloc[i,:][2] + ' ' + table.iloc[i,:][1])
+                            position = str(table.iloc[i,:][4])
+                            division = str(table.iloc[i,:][5])
+                            department = str(table.iloc[i,:][6])
+                            branch = str(table.iloc[i,:][7])
+                            reports_to = str(table.iloc[i,:][8])
+                            status = MANAGER
+                            cursor.execute("INSERT INTO users ( name, mail, position, division, department, branch, reports_to, status) VALUES(%(name)s, %(mail)s, %(position)s, %(division)s, %(department)s, %(branch)s, %(reports_to)s, %(status)s)", {'name': name, 'mail': mail, 'position': position, 'division': division, 'department': department, 'branch': branch, 'reports_to': reports_to, 'status': status})
+                            countUploadManager = countUploadManager + 1
+
+                            #cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
+                            #usUpload = cursor.fetchall()
+                            #usersUpload = usersUpload + usUpload
+                            
                             # Проверяем должность в базе. Если существует, то пропускам
                             cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s", {'position': position})
                             pos = cursor.fetchall()
                             if len(pos) == 0 and status != ADMIN and status != COACH:
                                 cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
-
+                    
+                    # Проходип по таблице и записываем руководителей в базу
+                    for i in range(len(table)):            
+                        mail = str(table.iloc[i,:][9]).lower().strip()
+                        cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
+                        us = cursor.fetchall()
+                        # Если пользоватеть существует, то не записываем в базу. Добавляем в список
+                        if len(us) != 0:
+                            countErrorHead = countErrorHead + 1
+                           
+                        # Если нет пользователя в базе, то записываем туда и добавляем в список
+                        else:
+                            division = str(table.iloc[i,:][5])
+                            department = str(table.iloc[i,:][6])
+                            branch = str(table.iloc[i,:][7])
+                            name = str(table.iloc[i,:][8])
+                            status = HEAD
+                            hash = generate_password_hash(createPassword(), "pbkdf2:sha256")
+                            cursor.execute("INSERT INTO users ( name, mail, position, division, department, branch, status, hash) VALUES(%(name)s, %(mail)s, %(position)s, %(division)s, %(department)s, %(branch)s, %(status)s, %(hash)s)", {'name': name, 'mail': mail, 'position': position, 'division': division, 'department': department, 'branch': branch, 'status': status, 'hash': hash})
+                            countUploadHead = countUploadHead + 1
+                            
 
             except Exception as _ex:
                 print("[INFO] Error while working with PostgresSQL", _ex)
@@ -718,7 +735,6 @@ def file():
                     connection.autocommit = True  
                     
                     with connection.cursor() as cursor:
-                        print(userData)
                         for userD in userData:
                             department = userD[0]
                             reports_to = userD[1]
@@ -734,11 +750,11 @@ def file():
                             us = cursor.fetchall()
 
                             if len(us) != 0:
-                                countError = countError + 1
+                                countErrorManager = countErrorManager + 1
                                 usersError = usersError + us
                             else:
                                 cursor.execute("INSERT INTO users (department, reports_to, status, position, name, mail, hash) VALUES(%(department)s, %(reports_to)s, %(status)s, %(position)s, %(name)s, %(mail)s, %(hash)s)", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'hash': hash})
-                                countUpload = countUpload + 1
+                                countUploadManager = countUploadManager + 1
                                 cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
                                 usUpload = cursor.fetchall()
                                 usersUpload = usersUpload + usUpload
@@ -762,7 +778,7 @@ def file():
             flash('Тип загруженного файла не поддерживается.')
             return redirect('/')
         
-        flash(f"Загруженно {countUpload} пользователей. Не загружено {countError} пользователей.")
+        flash(f"Загруженно {countUploadManager} пользователей и {countUploadHead} руководителей.")
         return redirect ('/users')
         # не самый красивый вариант
         #return render_template('afterUpload.html', countError = countError, countUpload = countUpload, usersError = usersError, usersUpload = usersUpload)
@@ -1081,6 +1097,7 @@ def mail_heads():
 
 
 #CREATE TABLE users (id INTEGER PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY NOT NULL, department VARCHAR(50), reports_to VARCHAR(50), status VARCHAR(50), position VARCHAR(50), name VARCHAR(50), mail VARCHAR(50) UNIQUE, hash VARCHAR(50));
+#CREATE TABLE users (id INTEGER PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY NOT NULL, department VARCHAR(150), reports_to VARCHAR(150), status VARCHAR(150), position VARCHAR(150), name VARCHAR(150), mail VARCHAR(150) UNIQUE, hash VARCHAR(300), division VARCHAR(150), branch VARCHAR(150));
 #CREATE TABLE positions (ID INTEGER NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, position_pos VARCHAR(50), reports_pos VARCHAR(50), comp_1 INTEGER, comp_2 INTEGER, comp_3 INTEGER, comp_4 INTEGER, comp_5 INTEGER, comp_6 INTEGER, comp_7 INTEGER, comp_8 INTEGER, comp_9 INTEGER);
 #CREATE TABLE test_results (ID INTEGER NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, name_test VARCHAR(50), mail VARCHAR(50), reliability INTEGER,	discipline INTEGER,	executive INTEGER,	responsibility INTEGER,	resolved INTEGER,	organizational INTEGER,	software INTEGER,	adaptation INTEGER,	planning INTEGER,	page INTEGER,	strengthening INTEGER,	building_on_achievements INTEGER,	building_for_development INTEGER,	innovation INTEGER,	approved INTEGER,	loyalty INTEGER,	currency INTEGER,	country INTEGER,	preparedness_for_compromise INTEGER,	cooperation INTEGER,	openness INTEGER,	openness_of_feedback INTEGER,	clientoority INTEGER,	customer_needs_orientation INTEGER,	partnership INTEGER,	adoption_of_decisions INTEGER,	systemic_thinking INTEGER,	business INTEGER,	forward_thinking INTEGER,	effective_communication INTEGER,	clean_communication INTEGER,	impunity_and_influence INTEGER,	negotiations INTEGER,	cross_functional_interaction INTEGER,	informal_leadership INTEGER,	management INTEGER,	implementation_management INTEGER,	motivation_of_subordinates INTEGER,	organization_of_work INTEGER,	change_management INTEGER,	development_of_subordinates INTEGER, command_management INTEGER);
 #INSERT INTO test_results (mail , reliability , discipline , executive , responsibility , resolved , organizational , software , adaptation , planning , page , strengthening  , building_on_achievements  , building_for_development  , innovation  , approved  , loyalty  , currency  , country  , preparedness_for_compromise  , cooperation  , openness  , openness_of_feedback  , clientoority  , customer_needs_orientation  , partnership  , adoption_of_decisions  , systemic_thinking  , business  , forward_thinking  , effective_communication  , clean_communication  , impunity_and_influence  , negotiations  , cross_functional_interaction  , informal_leadership  , management  , implementation_management  , motivation_of_subordinates  , organization_of_work  , change_management  , development_of_subordinates  , command_management ) VALUES ('123@ed.er1' , 4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,3,3,3,34,4,4,4,44,4,4,4,4,4,44);
