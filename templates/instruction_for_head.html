@@ -19,6 +19,7 @@
         p {
         margin-top: 0px;
         margin-bottom: 0px;
+        text-align: left;
         }
 
         table {
@@ -216,24 +217,13 @@
     <b>Оценка прогресса развития компетенций сотрудников back-office.</b> STI будет проводить оценку развития компетенций на диагностику знаний в формате итогового онлайн теста, а оценку развития навыков через наблюдение за сотрудником непосредственного руководителя на месте с использованием чек-листов «Поведенческие индикаторы» по компетенциям (чек-листы будут предоставлены STI)
 </div>
 <div>
-    <p>Если у Вас остались вопросы, Вы можете связаться с нами через форму: </p>
+    <form action="/mail_heads" method="post" onsubmit="return show_alert('Отправить сообщение?')">
+        <input type="hidden" value="mail_from_head_start" name ="flag">
+        <label for="exampleFormControlTextarea1" class="form-label"><p>Если у Вас остались вопросы, Вы можете связаться с нами через форму.</p><p>Мы ответим в течение дня обращения или на следующий день.</p></label>
+        <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" name="messege_from_head"></textarea>
+        <button class="btn btn-primary" type="submit">Отправить сообщение</button>
+    </form>
     
-    <table class="table" >
-        <tbody>
-            <tr>
-                <td>
-                    <form action="/mail_heads" method="post" onsubmit="return show_alert('Отправить сообщение?')">
-                        <input type="hidden" value="mail_from_head_start" name ="flag">
-                        <label for="exampleFormControlTextarea1" class="form-label"></label>
-                        <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" name="messege_from_head"></textarea>
-                        <button class="btn btn-primary" type="submit">Отправить сообщение</button>
-                    </form>
-                </td>
-            </tr>
-        </tbody>
-</table>
-    
-    <p>Мы ответим в течение дня обращения или на следующий день.</p>
 </div>
     
     
