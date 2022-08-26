@@ -12,24 +12,23 @@
     margin-top: 20px
     }
     p {
-    margin-top: 0px;
-    margin-bottom: 0px;
-    text-align: left;
+        margin-top: 0px;
+        margin-bottom: 1%;
+        text-align: justify;
+        font-size: 150%;
     }
     </style>
 </body>
 <div style="width: 80%; margin: auto; text-align: left; margin-bottom: 30px;">
     <div style="margin-bottom: 30px;" >
-        <p>Благодарим Вас за активное участие! </p>
-        <p>О ситуации на следующих этапах проекта мы будем сообщать Вам с помощью информационных писем с темой: «Проект back-office. Динамика» с электронного адреса «backoffice@sti-partners.ru»</p> 
-        <p>Если в течение двух рабочих дней, Вы решите внести корректировки в профили должностей, обращайтесь к нам через форму:</p>
-        <p>По истечение двух дней работа будет считаться выполненной качественно и изменения приниматься не будут.</p>
+        <p><b>Благодарим Вас за активное участие! </b></p>
+        <p>Если в течение двух рабочих дней, Вы решите внести корректировки в профили должностей, обращайтесь к нам через форму ниже.</p>
     </div> 
     <p></p>
     
     <form action="/mail_heads" method="post" onsubmit="return show_alert('Отправить сообщение?')" >
         <input type="hidden" value="mail_from_head_end" name ="flag">
-        <label for="exampleFormControlTextarea1" class="form-label"><p>Если у Вас остались вопросы, Вы можете связаться с нами через форму обратной связи.</p> <p>Мы ответим в течение дня обращения или на следующий день.</p></label>
+        <label for="exampleFormControlTextarea1" class="form-label"><p></p></label>
         <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" name="messege_from_head"></textarea>
         <button class="btn btn-primary" type="submit">Отправить сообщение</button>
     </form>

@@ -8,19 +8,19 @@
 {% block main %}
 <head>
     <style> 
-        BODY { 
+       /* BODY { 
             background:url(static/fon.jpg);
             background-repeat: no-repeat;
             background-size: cover;
-        } 
+        } */
         .div_login{
-            text-align: left;
+            text-align: center;
             margin-top: 1%;
             margin-bottom: 0px;
             margin-left: 4%;
-            width: 40%;
+            width: 70%;
             float: left;
-            color: rgb(246, 83, 46);
+            color: rgb(14, 20, 130);
             /* background: rgba(32, 52, 87, 0.5);  */
             padding: 20px;
         }
@@ -37,15 +37,10 @@
 
 <div class="div_login">
    <h3 style="text-align: center;">Уважаемый руководитель!</h3>    
-    <p>Компания Borusan Cat и STI приглашают Вас принять участие в проекте по обучению сотрудников back-office, Ваших подчиненных. </p>
-    <p>Анализ процесса обучения в компании выявил, что сотрудники back-office не имеют возможности системно развивать важные для себя компетенции, в отличии от сотрудников front-office. Генеральный директор, Антон Старун и HR департамент решили исправить эту несправедливость! </p>
-    <p>Пройдите по ссылке….. , ознакомьтесь с проектом и примите в нем активное участие! </p>
-    <p>Участие руководителя обязательно!</p>
-    <p>С уважением, … и коллектив тренеров STI</p>   
-    <p>Чтобы приступить к созданию профелей должностей, пожалуйста, введите логин и пароль, которые который пришел на адрес вашей электронной почты.</p>
+      
+    <p>Добро пожаловать в проект «Развитие компетенций сотрудников back-office» компании Borusan Cat Казахстан! </p>
 </div>
 
-<div class="form_log">
     <form action="/login" method="post" >
         <div class="mb-3" style="margin-top:30px;">
             <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="mail" name="mail" placeholder="Логин" type="text">
@@ -55,7 +50,7 @@
         </div>
         <button class="btn btn-primary" type="submit">Нажмите, чтобы начать</button>
     </form>
-</div>
+
     
 
     

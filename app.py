@@ -199,10 +199,12 @@ def users():
                 with connection.cursor() as cursor:
                     cursor.execute("SELECT name FROM users WHERE mail = %(mail)s", {'mail': session["user_mail"]})
                     headName = cursor.fetchone()
+                    cursor.execute("SELECT * FROM positions WHERE  reports_pos = %(name)s", {'name': headName[0]})
+                    allPositionFromList = cursor.fetchall()
                     cursor.execute("SELECT * FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) AND reports_pos = %(name)s LIMIT 1", {'name': headName[0]})
                     positionFromList = cursor.fetchall()
                     if len(positionFromList) != 0:
-                        return render_template("questions_for_head.html", positionFromList = positionFromList, competence = COMPETENCE)
+                        return render_template("questions_for_head.html", allPositionFromList = allPositionFromList, positionFromList = positionFromList, competence = COMPETENCE)
                     else:
                         return render_template('theEnd.html')
             except Exception as _ex:
