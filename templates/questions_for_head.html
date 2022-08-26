@@ -167,4 +167,35 @@ Questions
 </tbody>
 </table> 
 
+
+<script>
+    function check() {
+        let id = new Array(10);
+        let opt = new Array(10);
+        for(let i = 1; i < 10; i++){
+            id[i] = 'id_' + i;    
+            opt[i] = document.getElementById(id[i]).value;
+        } 
+        let l = opt.length;
+        let c = 1;
+        while (c < l) {
+            for (let b = 1; b < l; b++){
+                if (opt[c] === opt[b] && b != c && opt[c] != 0 ){
+                    alert('Значение должно быть уникальным');
+                    document.getElementById(id[b]).style.border = "1px solid red";
+                    document.getElementById(id[c]).style.border = "1px solid red";
+                    return false;
+                    break;
+                }
+                else {
+                    document.getElementById(id[b]).style.border = "1px solid black";
+                    document.getElementById(id[c]).style.border = "1px solid black";
+                }
+            } 
+            c ++;
+        }   
+        return true;
+    }
+    </script>
+
     {% endblock %}
