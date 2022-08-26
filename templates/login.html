@@ -11,14 +11,15 @@
 <head>
     <style> BODY { 
         background: #fc0 url(static/fon.jpg) repeat-y;
+        background-size: cover;
         } </style>
 </head>
 
 <div>
-    <table class="table table-striped" style="width: 70%;">
+    <table class="table table-striped" style="width: 70%; background-color: rgb(34, 79, 125);  color: rgb(221, 214, 214);" >
         <tr>
             <td>
-                <h3>Уважаемый руководитель!</h3>
+                <h3 style="color: rgb(221, 214, 214)">Уважаемый руководитель!</h3>
             </td>
         </tr>
         <tr>
@@ -28,14 +29,19 @@
                 Пройдите по ссылке….. , ознакомьтесь с проектом и примите в нем активное участие! 
                 Участие руководителя обязательно!
                 С уважением, … и коллектив тренеров STI
-        </td>
-            
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <p style="width: 70%; margin-left: 15%; margin-right: 15%; color: rgb(221, 214, 214)"">Чтобы приступить к созданию профелей должностей, пожалуйста, введите логин и пароль, которые который пришел на адрес вашей электронной почты.</p>
+
+            </td>
         </tr>
     </table>
         
     </p>
 </div>
-<p style="width: 70%; margin-left: 15%; margin-right: 15%;">Чтобы приступить к созданию профелей должностей, пожалуйста, введите логин и пароль, которые который пришел на адрес вашей электронной почты.</p>
 
     <form action="/login" method="post">
         <div class="mb-3">

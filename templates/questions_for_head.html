@@ -5,8 +5,25 @@ Questions
 {% endblock %}
 
 {% block main %}
+<body>
+    <style>
+    div {
+    text-align: left;
+    margin-top: 20px
+    }
+    p {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    }
+    </style>
+</body>
 
 
+<div style="width: 80%; margin: auto; text-align: left; margin-bottom: 30px;">
+    <p>Итак, внимательно ознакомьтесь с описанием каждой компетенции. Посмотрите, по каким шкалам проводится оценка. Подумайте, насколько поведение, описанное в каждой компетенции, важно для достижения результатов работы в каждой должности сотрудников, которыми Вы руководите.</p>
+    <p>Выберите приоритеты по каждой компетенции, чтобы создать идеальный профиль для каждой должности сотрудников, которые работают под Вашим руководством.</p>
+    <p style="margin-top: 25px;">Распределите приоритеты от 1 до 9, где 1 – самый высокий приоритет (компетенция крайне важна для хорошей работы сотрудника на занимаемой должности, 9 – самый низкий приоритет (компетенция может быть развита плохо и это не влияет на качество работы сотрудника в данной должности) </p>
+</div>
 <table class="table table-striped" style="width: 80%">
 <thead>
     <tr>
@@ -19,266 +36,131 @@ Questions
     </tr>
 </thead>
 <tbody> <form action="/users" method="post" name="users">
-    {% for comp in competence %}
+    <input type="hidden" name="position_pos" value="{{ positionFromList.0.1 }}" >
     <tr>         
-        <td>{{ comp }}</td>
-        <td>Тут текст с описанием компетенции. [INFO] PostgresSQL connection closed
-            127.0.0.1 - - [24/Aug/2022 13:52:33] "GET /users HTTP/1.1" 200 -
-            127.0.0.1 - - [24/Aug/2022 13:52:33] "GET /static/script.js HTTP/1.1" 200 -
-            </td>
+        <td>{{ competence.0 }}</td>
+        <td>Организованность: Стремление ставить перед собой четкие цели и планировать работу. Умение быстро адаптироваться к изменениям на работе.
+            Шкалы оценки: Четкое целеполагание; Адаптивность; Планирование; Стремление к порядку</td>
         <td>
-            <input type="hidden" name="position_pos" value="{{ positionFromList.0.1 }}" >
-            <select name="comp_{{ loop.index }}" id="id_{{ loop.index }}" required onchange='check()'>
+            <select name="comp_1" id="id_1" required onchange='check()'>
             <option disabled selected></option>
             {% for i in range(1, 10) %}
             <option >{{ i }}</option>
             {% endfor %} 
             </select>
         </td>
-    </tr>{% endfor %}
+    </tr>
+    <tr>         
+        <td>{{ competence.1 }}</td>
+        <td>Стремление к совершенству: Ставит перед собой амбициозные цели. Обучается новому и совершенствует рабочие процессы. Шкалы оценки: Стремление к достижениям; Стремление к развитию; Инновационность</td>
+        <td>
+            <select name="comp_2" id="id_2" required onchange='check()'>
+            <option disabled selected></option>
+            {% for i in range(1, 10) %}
+            <option >{{ i }}</option>
+            {% endfor %} 
+            </select>
+        </td>
+    </tr>
+    <tr>         
+        <td>{{ competence.2 }}</td>
+        <td>Надежность: Берется за дополнительные задачи и интенсивно работает. Выполняет работу своевременно и несёт ответственность за результаты. Шкалы оценки: Дисциплинированность; Исполнительность; Ответственность; Решительность</td>
+        <td>
+            <select name="comp_3" id="id_3" required onchange='check()'>
+            <option disabled selected></option>
+            {% for i in range(1, 10) %}
+            <option >{{ i }}</option>
+            {% endfor %} 
+            </select>
+        </td>
+    </tr>
+    <tr>         
+        <td>{{ competence.3 }}</td>
+        <td>Приверженность: Следует целям и ценностям компании в своей работе. Делится своим опытом с коллегами и партнерами.
+            Шкалы оценки: Лояльность; Взаимовыручка
+            </td>
+        <td>
+            <select name="comp_4" id="id_4" required onchange='check()'>
+            <option disabled selected></option>
+            {% for i in range(1, 10) %}
+            <option >{{ i }}</option>
+            {% endfor %} 
+            </select>
+        </td>
+    </tr>
+    <tr>         
+        <td>Командность</td>
+        <td>Объединяет людей и открыто обсуждает рабочие проблемы.
+            Шкалы оценки: Готовность к компромиссу; Сотрудничество; Открытость; Открытость обратной связи            
+            </td>
+        <td>
+            <select name="comp_5" id="id_5" required onchange='check()'>
+            <option disabled selected></option>
+            {% for i in range(1, 10) %}
+            <option >{{ i }}</option>
+            {% endfor %} 
+            </select>
+        </td>
+    </tr>
+    <tr>         
+        <td>Ориентация на клиента</td>
+        <td>Выясняет потребности клиентов, в том числе внутренних (коллег) и учитывает их в своей работе. Выстраивает долгосрочные отношения.
+            Шкалы оценки: Ориентация на потребности клиента (в том числе внутреннего); Партнерство                       
+            </td>
+        <td>
+            <select name="comp_6" id="id_6" required onchange='check()'>
+            <option disabled selected></option>
+            {% for i in range(1, 10) %}
+            <option >{{ i }}</option>
+            {% endfor %} 
+            </select>
+        </td>
+    </tr>
+    <tr>         
+        <td>Эффективная коммуникация</td>
+        <td>Налаживает контакт с другими людьми и находит индивидуальный подход к собеседнику. Четко и уверенно отстаивает свою позицию.
+            Шкалы оценки: Четкая коммуникация; Убеждение и влияние; Ведение переговоров; Кроссфункциональное взаимодействие; Неформальное лидерство                                   
+            </td>
+        <td>
+            <select name="comp_7" id="id_7" required onchange='check()'>
+            <option disabled selected></option>
+            {% for i in range(1, 10) %}
+            <option >{{ i }}</option>
+            {% endfor %} 
+            </select>
+        </td>
+    </tr>
+    <tr>         
+        <td>Принятие решений</td>
+        <td>Интересуется тенденциями рынка и конкурентами в своей отрасли. Ставит стратегические цели и управляет рисками на основе анализа информации.
+            Шкалы оценки: Системное мышление; Бизнес-мышление; Перспективное мышление                                             
+            </td>
+        <td>
+            <select name="comp_8" id="id_8" required onchange='check()'>
+            <option disabled selected></option>
+            {% for i in range(1, 10) %}
+            <option >{{ i }}</option>
+            {% endfor %} 
+            </select>
+        </td>
+    </tr>
+    <tr>         
+        <td>Управленческое мастерство</td>
+        <td>Организовывает работу подчиненных (коллег) и поддерживает позитивный командный настрой. Развивает и поддерживает подчиненных (коллег).                                             
+            </td>
+        <td>
+            <select name="comp_9" id="id_9" required onchange='check()'>
+            <option disabled selected></option>
+            {% for i in range(1, 10) %}
+            <option >{{ i }}</option>
+            {% endfor %} 
+            </select>
+        </td>
+    </tr>
+    
+
     <caption><button class="btn btn-primary" type="submit" id="button" onclick="return check()">Нажмите здесь, чтобы перейти к следующей должности.</button></caption></form>
 </tbody>
 </table> 
 
-<!--
-<table class="table table-striped" style="width: auto; caption-side: top">
-
-    {{ positionFromList.0.1 }}</tr>
-</thead>
-<tbody> <form action="/users" method="post" name="users">
-    <tr>
-        <td>{{ competence.0 }} </td>
-        <td> 
-            <input class="form-check-input" type="radio" name="comp_1" id="idd_1" required>
-            <label class="form-check-label" for="inlineRadio1" value="1" >1</label>
-        </td> 
-        <td>
-            <input class="form-check-input" type="radio" name="comp_1"  id="idd_1" required>
-            <label class="form-check-label" for="inlineRadio1"  >2</label>
-        </td>
-        <td>
-            <input class="form-check-input" type="radio" name="comp_1"  id="idd_1" required>
-            <label class="form-check-label" for="inlineRadio1"  >3</label>
-        </td>
-        <td>
-            <input class="form-check-input" type="radio" name="comp_1"  id="idd_1" required>
-            <label class="form-check-label" for="inlineRadio1" value="4">4</label>
-        </td>
-        <td>
-            <input class="form-check-input" type="radio" name="comp_1"  id="idd_1" required>
-            <label class="form-check-label" for="inlineRadio1" value="5">5</label>
-        </td>
-        <td>
-            <input class="form-check-input" type="radio" name="comp_1"  id="idd_1" required>
-            <label class="form-check-label" for="inlineRadio1" value="6">6</label>
-        </td>
-        <td>
-            <input class="form-check-input" type="radio" name="comp_1"  id="idd_1" required>
-            <label class="form-check-label" for="inlineRadio1" value="7">7</label>
-        </td>
-        <td>
-            <input class="form-check-input" type="radio" name="comp_1"  id="idd_1" required>
-            <label class="form-check-label" for="inlineRadio1" value="8">8</label>
-        </td>
-        <td>
-            <input class="form-check-input" type="radio" name="comp_1"  id="idd_1" required>
-            <label class="form-check-label" for="inlineRadio1" value="9">9</label>
-        </td>
-    </tr> 
-    <tr>
-        <td>{{ competence.1 }} </td>
-        <td> 
-            <input class="form-check-input" type="radio" name="comp_2" id="idd_2" required>
-            <label class="form-check-label" for="inlineRadio1" >1</label>
-        </td> 
-        <td>
-            <input class="form-check-input" type="radio" name="comp_2"  id="idd_2" required>
-            <label class="form-check-label" for="inlineRadio1" >2</label>
-        </td>
-        <td>
-            <input class="form-check-input" type="radio" name="comp_2"  id="idd_2" required>
-            <label class="form-check-label" for="inlineRadio1" >3</label>
-        </td>
-        <td>
-            <input class="form-check-input" type="radio" name="comp_2"  id="idd_2" required>
-            <label class="form-check-label" for="inlineRadio1" value="4">4</label>
-        </td>
-        <td>
-            <input class="form-check-input" type="radio" name="comp_2"  id="idd_2" required>
-            <label class="form-check-label" for="inlineRadio1" value="5">5</label>
-        </td>
-        <td>
-            <input class="form-check-input" type="radio" name="comp_2"  id="idd_2" required>
-            <label class="form-check-label" for="inlineRadio1" value="6">6</label>
-        </td>
-        <td>
-            <input class="form-check-input" type="radio" name="comp_2"  id="idd_2" required>
-            <label class="form-check-label" for="inlineRadio1" value="7">7</label>
-        </td>
-        <td>
-            <input class="form-check-input" type="radio" name="comp_2"  id="idd_2" required>
-            <label class="form-check-label" for="inlineRadio1" value="8">8</label>
-        </td>
-        <td>
-            <input class="form-check-input" type="radio" name="comp_2"  id="idd_2" required>
-            <label class="form-check-label" for="inlineRadio1" value="9">9</label>
-        </td>
-    </tr> 
-   
-    <caption><button class="btn btn-primary" type="submit" id="button" onclick="return check()">Отправить</button></caption></form>
-</tbody>
-</table>
- -->
-<!--            {% for i in range(9) %}
-                <input class="form-check-input" type="radio" name="i_{{ loop.index }}" id="inlineRadio1_{{ loop.index }}" value="option1" required>
-                <label class="form-check-label" for="inlineRadio1">{{ loop.index }}</label>
-                {% endfor %} -->
-
-<!--
-
-
-    <table class="table table-striped">
-        <thead>
-            <tr> 
-                <th>Должность</th>
-                {% for comp in competence %}
-                <th>{{ comp }}</th>
-                {% endfor %} 
-            </tr> 
-        </thead>
-
-        <tbody>
-            <form action="/users" method="post" name="users">
-            <tr>                
-                <input type="hidden" name="position_pos" value="{{ positionFromList.0.1 }}">
-                <td>{{ positionFromList.0.1 }}</td>
-
-                <td><select name="comp_1" class="table table-striped" required>
-                    <option disabled selected value="none"></option>
-                    {% for i in range(1, 10) %}
-                    <option>{{ i }}</option>
-                    {% endfor %}
-                </select></td>
-
-                <td><select name="comp_2" class="table table-striped" required>
-                    <option disabled selected value="none"></option>
-                    {% for i in range(1, 10) %}
-                    <option>{{ i }}</option>
-                    {% endfor %}
-                </select></td>
-
-                <td> <select name="comp_3" class="table table-striped" required>
-                   <option disabled selected value="none"></option>
-                    {% for i in range(1, 10) %}
-                    <option>{{ i }}</option>
-                    {% endfor %}
-                    </select></td>
-
-                <td><select name="comp_4" class="table table-striped" required>
-                    <option disabled selected value="none"></option>
-                    {% for i in range(1, 10) %}
-                    <option>{{ i }}</option>
-                    {% endfor %}
-                </select></td>
-
-                <td><select name="comp_5" class="table table-striped" required>
-                    <option disabled selected value="none"></option>
-                    {% for i in range(1, 10) %}
-                    <option>{{ i }}</option>
-                    {% endfor %}
-                </select></td>
-                
-                <td><select name="comp_6" class="table table-striped" required>
-                    <option disabled selected value="none"></option>
-                    {% for i in range(1, 10) %}
-                    <option>{{ i }}</option>
-                    {% endfor %}
-                </select></td>
-                
-                <td><select name="comp_7" class="table table-striped" required>
-                    <option disabled selected value="none"></option>
-                    {% for i in range(1, 10) %}
-                    <option>{{ i }}</option>
-                    {% endfor %}
-                </select></td>
-
-                <td><select name="comp_8" class="table table-striped" required>
-                    <option disabled selected value="none"></option>
-                    {% for i in range(1, 10) %}
-                    <option>{{ i }}</option>
-                    {% endfor %}
-                </select></td>
-
-                <td>
-                    <select name="comp_9" class="table table-striped" required>
-                    <option disabled selected value="none"></option>
-                    {% for i in range(1, 10) %}
-                    <option>{{ i }}</option>
-                    {% endfor %}
-                </select></td>
-                <caption><button class="btn btn-primary" type="submit" id="button">Отправить</button></caption>
-               
-            </form>
-            </tr>
-        </tbody>
-    </table> -->
-
-<script>
-    function check() {
-        let id = new Array(10);
-        let opt = new Array(10);
-        for(let i = 1; i < 10; i++){
-            id[i] = 'id_' + i;    
-            opt[i] = document.getElementById(id[i]).value;
-        } 
-        let l = opt.length;
-        let c = 1;
-        while (c < l) {
-            for (let b = 1; b < l; b++){
-                if (opt[c] === opt[b] && b != c && opt[c] != 0 ){
-                    alert('Значение должно быть уникальным');
-                    document.getElementById(id[b]).style.border = "1px solid red";
-                    document.getElementById(id[c]).style.border = "1px solid red";
-                    return false;
-                    break;
-                }
-                else {
-                    document.getElementById(id[b]).style.border = "1px solid black";
-                    document.getElementById(id[c]).style.border = "1px solid black";
-                }
-            } 
-            c ++;
-        }   
-        return true;
-    }
-
-    /* function check1() {
-        let id = new Array(10);
-        let opt = new Array(10);
-        for(let i = 1; i < 10; i++){
-            id[i] = 'idd_' + i;    
-            opt[i] = document.getElementById(id[i]).value;
-            console.log(opt)
-        } 
-        let l = opt.length;
-        let c = 1;
-        while (c < l) {
-            for (let b = 1; b < l; b++){
-                if (opt[c] === opt[b] ){
-                    alert('Значение');
-                    document.getElementById(id[b]).style.border = "1px solid red";
-                    document.getElementById(id[c]).style.border = "1px solid red";
-                    return false;
-                    break;
-                }
-                else {
-                    document.getElementById(id[b]).style.border = "1px solid black";
-                    document.getElementById(id[c]).style.border = "1px solid black";
-                }
-            } 
-            c ++;
-        }   
-        return true;
-    } */
-</script>
     {% endblock %}

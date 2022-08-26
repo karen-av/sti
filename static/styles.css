@@ -24,6 +24,8 @@ table {
     /*убираем пустые промежутки между ячейками*/
     border: 1px solid grey;
     /*устанавливаем для таблицы внешнюю границу серого цвета толщиной 1px*/
+    margin:auto;
+   
     table-layout: fixed;
 }
 
@@ -97,4 +99,7 @@ form {
 a {
     color: grey
    }
+
+
+
 
