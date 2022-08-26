@@ -328,6 +328,10 @@ def users():
             if  int(comp_1) > 9 or int(comp_1) < 1 or int(comp_2) > 9 or int(comp_2) < 1 or int(comp_3) > 9 or int(comp_3) < 1 or int(comp_4) > 9 or int(comp_4) < 1 or int(comp_5) > 9 or int(comp_5) < 1 or int(comp_6) > 9 or int(comp_6) < 1 or int(comp_7) > 9 or int(comp_7) < 1 or int(comp_8) > 9 or int(comp_8) < 1 or int(comp_9) > 9 or int(comp_9) < 1:
                 flash("Пожалуйста, укажите все значения. Значения должны быть в диапазоне от 1 до 9.")
                 return redirect ("/users")
+            
+            #if int(comp_1) == int(comp_2) or int(comp_1)  == int(comp_3) or int(comp_1) == int(comp_4) or int(comp_1)  == int(comp_5) or int(comp_1)  == int(comp_6) or int(comp_1)  == int(comp_7) or int(comp_1)  == int(comp_8) or int(comp_1)  == int(comp_9) or int(comp_2)  == int(comp_3) or int(comp_2) == int(comp_4) or int(comp_2) == int(comp_5) or int(comp_2)  == int(comp_6) or int(comp_2)  == int(comp_7) or int(comp_2)  == int(comp_8) or int(comp_2)  == int(comp_9) or int(comp_3) == int(comp_4) or int(comp_3) == int(comp_5) or int(comp_3)  == int(comp_6) or int(comp_3)  == int(comp_7) or int(comp_3)  == int(comp_8) or int(comp_3)  == int(comp_9) or int(comp_4) == int(comp_5) or int(comp_4)  == int(comp_6) or int(comp_4)  == int(comp_7) or int(comp_4)  == int(comp_8) or int(comp_4)  == int(comp_9) or int(comp_5)  == int(comp_6) or int(comp_5)  == int(comp_7) or int(comp_5)  == int(comp_8) or int(comp_5)  == int(comp_9) or int(comp_6)  == int(comp_7) or int(comp_6)  == int(comp_8) or int(comp_6)  == int(comp_9) or int(comp_7)  == int(comp_8) or int(comp_7)  == int(comp_9) or int(comp_8)  == int(comp_9):
+              #  flash("Значения должны быть уникальными.")
+               # return redirect ("/users")
 
             try:
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
