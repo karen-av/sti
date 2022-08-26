@@ -10,15 +10,19 @@
 <div class="route">
     <a href="/">Главная</a> - Сообщения руководителям
 </div>
-<div class="filtr">
+<div class="box">
+    <div>
     <form action="/mail_heads" method="post" onclick="return show_alert('Отправить приглашение всем пользователям?')">
         <input type="hidden" value="all_invite" name ="flag"> 
         <button class="btn btn-primary" type="submit" >Отправить приглашение всем</button>
     </form>
+    </div>
+    <div>
     <form action="/mail_heads" method="post" onclick=" return show_alert('Отправить приглашение всем пользователям?')">
         <input type="hidden" value="has_not_invite" name ="flag">
         <button class="btn btn-primary" type="submit">Отправить приглашение тем пользователям, которые еще не поучали приглашение</button>
     </form>
+</div>
 </div>
 
     <table class="table table-striped" >

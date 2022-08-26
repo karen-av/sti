@@ -81,6 +81,7 @@ def index():
     else:
         return redirect("/login")
 
+
 @app.route("/positions", methods=['POST','GET'])
 @login_required
 def positions():
@@ -307,7 +308,7 @@ def users():
                     connection.close()
                     print("[INFO] PostgresSQL connection closed")
 
-            return render_template("users.html", users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
+            return render_template("users.html", users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, statusList = STATUS_LIST, positionList = POSITIONS_LIST, filtr_department = department, filtr_reports_to = reports_to, filtr_status = status, filtr_position = position)
         
         elif session["user_status"] == HEAD:
             position_pos = request.form.get('position_pos')

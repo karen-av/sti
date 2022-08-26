@@ -25,7 +25,6 @@ table {
     border: 1px solid grey;
     /*устанавливаем для таблицы внешнюю границу серого цвета толщиной 1px*/
     margin:auto;
-   
     table-layout: fixed;
 }
 
@@ -69,47 +68,29 @@ form {
     width: 100%;
 }
 
-
-#buttonFiltrShow , #buttonFiltrHid{
-    top:11%;
-    right:8%;
-    width: 150px;;
-    height:auto;
-    position: absolute;
-    z-index: 2;
-    margin: 2% 0;
+.filtr, .addUser{
+    text-align: center;
+    
+    margin-bottom: 2%;
 }
 
-#buttonAddShow , #buttonAddHid{
-    top:11%;
-    right:20%;
-    width: 230px;
-    height:auto;
-    position: absolute;
-    z-index: 2;
-    margin: 2% 0 ;
-}
-
-.filtr {
-    margin:40px;
+.box div { 
+    display:inline-block; 
+    margin-bottom: 2%;
+    margin-top: 2%;
 }
 
 .route{
     text-align: left;
     padding-left: 5%;
-    /* bottom: 85%;
-    position: absolute;
-    padding-bottom: 1px;
-    margin-bottom: 10px;   */
 }
 
 a {
     color: grey
    }
 
-.form-control{
-    width: 50%;
+input{
+width: 10%;
 }
-
 
 

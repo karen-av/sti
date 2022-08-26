@@ -10,112 +10,177 @@
     <a href="/">Главная</a> - Пользователи
 </div>
 
-<div class="filtr">
-<button class="btn btn-primary" id="buttonFiltrShow" type="button" onclick="funcFiltrShow()">Открыть фильтр</button>
-<button class="btn btn-primary" id="buttonFiltrHid" type="button" style="display:none" onclick="funcFiltrHid()" >Скрыть фильтр</button>
-
-<button class="btn btn-primary" id="buttonAddShow" type="button" style="display:block" onclick="funcAddShow()" >Добавить пользователя</button>
-<button class="btn btn-primary" id="buttonAddHid" type="button" style="display:none" onclick="funcAddHid()">Скрыть форму</button>
-</div>    
-
-<div class="filtr" style="display:none; width: 90%;" id="addUser">
+<div class="box">
+    <div>
+        {% if filtr_status or filtr_position or filtr_reports_to or filtr_department%}
+        <button class="btn btn-primary" id="buttonFiltrShow" type="button" style="display:none "onclick="funcFiltrShow()">Открыть фильтр</button>
+        <button class="btn btn-primary" id="buttonFiltrHid" type="button" style="display:block" onclick="funcFiltrHid()" >Скрыть фильтр</button>
+        {% else %}
+        <button class="btn btn-primary" id="buttonFiltrShow" type="button" onclick="funcFiltrShow()">Открыть фильтр</button>
+        <button class="btn btn-primary" id="buttonFiltrHid" type="button" style="display:none" onclick="funcFiltrHid()" >Скрыть фильтр</button>
+        {% endif %}
+    </div>
+    <div>
+        <button class="btn btn-primary" id="buttonAddShow" type="button" style="display:block" onclick="funcAddShow()" >Добавить пользователя</button>
+        <button class="btn btn-primary" id="buttonAddHid" type="button" style="display:none" onclick="funcAddHid()">Скрыть форму</button>
+       
+    </div>
+</div>
+  
+<div style="display:none;" id="addUser" class="addUser">
     <form action="/register" method="post" name="register" onsubmit="return show_alert('Добавить пользователя?')">
-        <input autocomplete="off" id="department" name="department"  placeholder="Подразделение" type="text"  maxlength="30">
-        <input autocomplete="off" id="reports_to" name="reports_to"  placeholder="Руководитель" type="text"  maxlength="30">
-        <input autocomplete="off" id="status" name="status" placeholder="Status" minlength="3" maxlength="30" required>
-        <input autocomplete="off" id="position" name="position" placeholder="Должность" minlength="3" maxlength="30" required>
-        <input autocomplete="off" id="name" name="name"  placeholder="ФИО" type="text" minlength="3" maxlength="30" required >
-        <input autocomplete="off" id="mail" name="mail"  placeholder="Почта" type="email" minlength="3" maxlength="30" required >
-        <input autocomplete="off" id="mail" name="password"  placeholder="Пароль" type="text" minlength="6" maxlength="30">
+        <input style="width: 13%" autocomplete="off" id="department" name="department"  placeholder="Подразделение" type="text"  maxlength="30">
+        <input style="width: 13%" autocomplete="off" id="reports_to" name="reports_to"  placeholder="Руководитель" type="text"  maxlength="30">
+        <input style="width: 7%" autocomplete="off" id="status" name="status" placeholder="Status" minlength="3" maxlength="30" required>
+        <input style="width: 10%" autocomplete="off" id="position" name="position" placeholder="Должность" minlength="3" maxlength="30" required>
+        <input style="width: 10%" autocomplete="off" id="name" name="name"  placeholder="ФИО" type="text" minlength="3" maxlength="30" required >
+        <input style="width: 10%" autocomplete="off" id="mail" name="mail"  placeholder="Почта" type="email" minlength="3" maxlength="30" required >
+        <input style="width: 10%" autocomplete="off" id="mail" name="password"  placeholder="Пароль" type="text" minlength="6" maxlength="30">
         <button class="btn btn-primary" type="submit" id="button">Добавить</button>
     </form>
 </div>
 
-<div class="filtr" style="display:none" id="filtr">
-        <form action="/users" method="post" name="sort">
-                    <select id="department" name="department" >
-                        <option disabled selected value="none" multiple>Подразделение</option>
-                        {% for dep in userDepartment %}
-                        <option>{{ dep.0 }}</option>
-                        {% endfor %}
-                    </select>
-              
-                    <select id="reports_to" name="reports_to">
-                        <option disabled selected value="none">Руководитель</option>
-                        {% for rep in usereReports_to %}
-                        <option>{{ rep.0 }}</option>
-                        {% endfor %}
-                    </select>
-                
-                    <select id="status" name="status">
-                        <option disabled selected value="none">Статус</option>
-                        {% for stat in usereStatus_to %}
-                        <option>{{ stat.0 }}</option>
-                        {% endfor %}
-                    </select>
-                
-                    <select id="position" name="position">
-                        <option disabled selected value="none">Должность</option>
-                        {% for pos in userePosition %}
-                        <option>{{ pos.0 }}</option>
-                        {% endfor %}
-                    </select>
-                    <button class="btn btn-primary" type="submit" id="sort_button">Применить фильтр</button>
-        </form>
-</div>
-    <table class="table table-striped" >
-        <thead >
-            <tr >
-                <th>N</th>
-                <th>Подразделение</th>
-                <th>Руководитель</th>
-                <th>Статус</th>
-                <th>Должность</th>
-                <th>ФИО</th>
-                <th>Почта</th>
-            </tr>
-        </thead>
-        <tbody> 
-            {% for user in users %}
-            <tr> 
-                <td>{{ loop.index }} </td>
-                <td>{{ user.1 }}</td>
-                <td>{{ user.2 }}</td>
-                <td>{{ user.3 }}</td>
-                <td>{{ user.4 }}</td>
-                <td>{{ user.5 }}</td>
-                <td>{{ user.6 }}</td>
-                <td>
-                    <form action="/edit" method="post">
-                        <input type="hidden" value="render" name ="flag">
-                        <input type="hidden" value="{{ user.0 }}" name ="user_id">
-                        <button class="btn btn-primary" type="submit">Редакт</button>
-                    </form>
-                </div>
-                </td>
-            </tr>
+{% if filtr_status or filtr_position or filtr_reports_to or filtr_department%}
+<div style="display:block;" id="filtr" class="filtr">
+{% else %}
+<div style="display:none;" id="filtr" class="filtr">
+{% endif %}
+    <form action="/users" method="post" name="sort">
+
+
+        <select id="department" name="department">
+            {% if filtr_department %}
+            <option  selected value="{{filtr_department}}">{{filtr_department}}</option>
+            {% for dep in userDepartment %}{% if filtr_department != dep.0 %}
+            <option> {{ dep.0 }}</option>
+            {% endif %} {% endfor %}
+            {% else %} 
+            <option disabled selected value="none">Руководитель</option>
+            {% for dep in userDepartment %}
+            <option> {{ dep.0 }}</option>
             {% endfor %}
-        </tbody>
-    </table>   
+            {% endif %}
+        </select>
+
+        <select id="reports_to" name="reports_to">
+            {% if filtr_reports_to %}
+            <option  selected value="{{filtr_reports_to}}">{{filtr_reports_to}}</option>
+            {% for rep in usereReports_to %}{% if filtr_reports_to != rep.0 %}
+            <option> {{ rep.0 }}</option>
+            {% endif %} {% endfor %}
+            {% else %} 
+            <option disabled selected value="none">Руководитель</option>
+            {% for rep in usereReports_to %}
+            <option> {{ rep.0 }}</option>
+            {% endfor %}
+            {% endif %}
+        </select>
+
+        <select id="status" name="status">
+            {% if filtr_status %}
+            <option  selected value="{{filtr_status}}">{{filtr_status}}</option>
+            {% for stat in usereStatus_to %}{% if filtr_status != stat.0 %}
+            <option> {{ stat.0 }}</option>
+            {% endif %} {% endfor %}
+            {% else %} 
+            <option disabled selected value="none">Статус</option>
+            {% for stat in usereStatus_to %}
+            <option> {{ stat.0 }}</option>
+            {% endfor %}
+            {% endif %}
+        </select>
+
+        <select id="position" name="position">
+            {% if filtr_position %}
+            <option  selected value="{{filtr_position}}">{{filtr_position}}</option>
+            {% for pos in userePosition %}{% if filtr_position != pos.0 %}
+            <option> {{ pos.0 }}</option>
+            {% endif %} {% endfor %}
+            {% else %} 
+            <option disabled selected value="none">Должность</option>
+            {% for pos in userePosition %}
+            <option> {{ pos.0 }}</option>
+            {% endfor %}
+            {% endif %}
+        </select>
+
+        <button class="btn btn-primary" type="submit" id="sort_button">Применить фильтр</button>
+    </form>
+    <form action="/users" method="post" name="sort"><button class="btn btn-primary" type="submit" id="sort_button">Сбросить фильтр</button></form>
+</div>
+
+<table class="table table-striped" >
+    <thead >
+        <tr >
+            <th>N</th>
+            <th>Подразделение</th>
+            <th>Руководитель</th>
+            <th>Статус</th>
+            <th>Должность</th>
+            <th>ФИО</th>
+            <th>Почта</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody> 
+        {% for user in users %}
+        <tr> 
+            <td>{{ loop.index }} </td>
+            <td>{{ user.1 }}</td>
+            <td>{{ user.2 }}</td>
+            <td>{{ user.3 }}</td>
+            <td>{{ user.4 }}</td>
+            <td>{{ user.5 }}</td>
+            <td>{{ user.6 }}</td>
+            <td>
+                <form action="/edit" method="post">
+                    <input type="hidden" value="render" name ="flag">
+                    <input type="hidden" value="{{ user.0 }}" name ="user_id">
+                    <button class="btn btn-primary" type="submit">Редакт</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>   
      
     <script>
         function funcFiltrShow() {
             document.getElementById("filtr").style.display = "block";
             document.getElementById("buttonFiltrShow").style.display = "none"
             document.getElementById("buttonFiltrHid").style.display = "block"
-            document.getElementById("buttonAddShow").style.display = "none"
+            //document.getElementById("buttonAddShow").style.display = "none"
         }
 
         function funcFiltrHid() {
             document.getElementById("filtr").style.display = "none";
             document.getElementById("buttonFiltrHid").style.display = "none"
             document.getElementById("buttonFiltrShow").style.display = "block"
-            document.getElementById("buttonAddShow").style.display = "block"
+            //document.getElementById("buttonAddShow").style.display = "block"
         }
+
+      /* function funcFiltrHidFiltr() {
+        document.getElementById("filtr").style.display = "none";
+        document.getElementById("buttonFiltrHid").style.display = "none"
+        document.getElementById("buttonFiltrShow").style.display = "block"
+        document.getElementById("buttonAddShow").style.display = "block"
+    }
+
+    function funcAddShowFiltr() {
+        document.getElementById("addUser").style.display = "block";
+        document.getElementById("buttonAddShow").style.display = "none"
+        document.getElementById("buttonAddHid").style.display = "block"
+    }
+
+    function funcAddHidFiltr(){
+        document.getElementById("addUser").style.display = "none";
+        document.getElementById("buttonAddHid").style.display = "none"
+        document.getElementById("buttonAddShow").style.display = "block"
+    } */
 
         function funcAddShow() {
             document.getElementById("addUser").style.display = "block";
-            document.getElementById("buttonFiltrShow").style.display = "none"
+            //document.getElementById("buttonFiltrShow").style.display = "none"
             document.getElementById("buttonAddHid").style.display = "block"
             document.getElementById("buttonAddShow").style.display = "none"
 
@@ -123,7 +188,7 @@
 
         function funcAddHid() {
             document.getElementById("addUser").style.display = "none";
-            document.getElementById("buttonFiltrShow").style.display = "block"
+            //document.getElementById("buttonFiltrShow").style.display = "block"
             document.getElementById("buttonAddShow").style.display = "block"
             document.getElementById("buttonAddHid").style.display = "none"
 

@@ -10,7 +10,7 @@
     <a href="/">Главная</a> - <a href="/users">Пользователи</a> - Редактировать
 </div>
 
-    <table class="table table-striped">
+    <table class="table table-striped" style="margin-top: 2%;">
         <thead>
             <tr> 
                 <th>Подразделение</th>
@@ -35,66 +35,24 @@
                 <td><input class="input edit" autocomplete="off" id="name" name="name"  value="{{ name }}" type="text"  minlength="3" maxlength="30" required></td>
                 <td><input class="input edit" autocomplete="off" id="mail" name="mail"  value="{{ mail }}" type="email"  minlength="3" maxlength="30" required ></td>
                 <td><input class="input edit"autocomplete="off" id="hash" name="hash" type="text"  minlength="6" maxlength="30"></td>
-            <caption>
-                <td colspan="4"></td>
-                <td colspan="3">
-                    <button class="btn btn-primary" type="submit" id="button">Сохранить</button>
-                    <button class="btn btn-primary"  type="reset" onclick="return show_alert('Отменить изменения?')">Сбросить</button>
+            </tr>
+        </tbody>
+    </table>
+                <div class="box">
+                    <div><button class="btn btn-primary" type="submit" id="button">Сохранить</button></div>
+                    <div><button class="btn btn-primary"  type="reset" onclick="return show_alert('Отменить изменения?')">Сбросить</button></div>
             </form>
-            <form action="/delete" method="post" name="delete" >
-                    <input type="hidden" value="{{ id }}" name ="id">
-                    <button class="btn btn-primary"  type="" id="" onclick="return show_alert('Удалить пользователя?')">Удалить</button></form>
-                    <a href='/users'><button class="btn btn-primary" type="button" onclick="return show_alert('Изменения не будут сохранены. Вы уверены, что хотите вернуться назад?')">Назад</button></a>
-                </td>
-            </caption> 
-            </tr> 
-    </tbody>
-         
+                    <div>
+                        <form action="/delete" method="post" name="delete" >
+                        <input type="hidden" value="{{ id }}" name ="id">
+                        <button class="btn btn-primary"  type="" id="" onclick="return show_alert('Удалить пользователя?')">Удалить</button>
+                        </form>
+                    </div>
+                    <dev><a href='/users'><button class="btn btn-primary" style="border-color: blue;" type="button" onclick="return show_alert('Изменения не будут сохранены. Вы уверены, что хотите вернуться назад?')">Назад</button></a></dev>
+                </div>
+
     
     <script>
-   /*
-
-        function validateForm() {
-                let name = document.forms["edit"]["name"].value;
-                let username = document.forms["edit"]["mail"].value;
-                
-
-
-                if (name.length < 3 || name.length > 30) {
-                    document.getElementById("name").style.border = "1px solid red";
-                    alert("Поле name содержит меньше 3-х или более 30 символов.");
-                    return false;
-                }
-                else {
-                    document.getElementById("name").style.border = "1px solid green";
-                }
-
-                if (mail.length < 3 || mail.length > 30) {
-                    document.getElementById("mail").style.border = "1px solid red";
-                    alert("Поле username содержит менее 3-ч или более 30 символов");
-                    return false;
-                }
-                else {
-                    document.getElementById("mail").style.border = "1px solid green";
-                }
-
-                if (hash.length < 6 || hash.length > 30) {
-                    document.getElementById("hash").style.border = "1px solid red";
-                    alert("Password is not available. Password mast be between 6 and 30 characters.");
-                    //document.getElementById("password").focus()
-                    return false;
-                }
-                else {
-                    document.getElementById("hash").style.border = "1px solid green";
-                    //document.getElementById("button").focus()
-                }
-               
-                
-                if(confirm("Изменить данные пользователя?")) {
-                    return true;
-                }
-                    return false;
-                }
-*/
+   
     </script>
 {% endblock %}
