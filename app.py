@@ -50,6 +50,7 @@ MANAGER = 'manager'
 SORTLIST = ("Подразделению", "Руководителю", "Статусу", "Должности", 'Имени', 'Почте')
 COMPETENCE  = ('Организованноcть', 'Стремление к совершенству', 'Надежность', 'Приверженность', 'Командность', 'Ориентация на клиента', 'Эффективная коммуникация', 'Принятие решений', 'Управленческое мастерство')
 HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ', 'Дисциплинированность', 'Исполнительность', 'Ответственность', 'Решительность', 'ОРГАНИЗОВАННОСТЬ', 'Чёткое целеполагание', 'Адаптивность', 'Планирование', 'Стремление к порядку', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ', 'Стремление к достижениям', 'Стремление к развитию', 'Инновационность', 'ПРИВЕРЖЕННОСТЬ', 'Лояльность', 'Взаимовыручка', 'КОМАНДНОСТЬ', 'Готовность к компромиссу', 'Сотрудничество', 'Открытость', 'Открытость обратной связи', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ', 'Ориентация на потребности клиента', 'Партнёрство', 'ПРИНЯТИЕ РЕШЕНИЙ', 'Системное мышление', 'Бизнес-мышление', 'Перспективное мышление', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ', 'Чёткая коммуникация', 'Убеждение и влияние', 'Ведение переговоров', 'Кроссфункциональное взаимодействие', 'Неформальное лидерство', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО', 'Управление исполнением', 'Мотивация подчинённых', 'Организация работы', 'Управление изменениями', 'Развитие подчинённых', 'Управление командой')
+HEADER_LIST_FROM_TEST_SMALL = ('НАДЁЖНОСТЬ', 'ОРГАНИЗОВАННОСТЬ', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ', 'ПРИВЕРЖЕННОСТЬ', 'КОМАНДНОСТЬ', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ', 'Партнёрство', 'ПРИНЯТИЕ РЕШЕНИЙ', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО')
 #HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ', 'Дисциплинированность', 'Исполнительность', 'Ответственность')
 #HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ 1', 'Дисциплинированность 2', 'Исполнительность 3', 'Ответственность 4', 'Решительность5', 'ОРГАНИЗОВАННОСТЬ6', 'Чёткое целеполагание7', 'Адаптивность8', 'Планирование9', 'Стремление к порядку10', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ11', 'Стремление к достижениям12', 'Стремление к развитию13', 'Инновационность14', 'ПРИВЕРЖЕННОСТЬ15', 'Лояльность16', 'Взаимовыручка17', 'КОМАНДНОСТЬ18', 'Готовность к компромиссу19', 'Сотрудничество20', 'Открытость21', 'Открытость обратной связи22', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ23', 'Ориентация на потребности клиента24', 'Партнёрство25', 'ПРИНЯТИЕ РЕШЕНИЙ26', 'Системное мышление27', 'Бизнес-мышление28', 'Перспективное мышление29', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ30', 'Чёткая коммуникация31', 'Убеждение и влияние32', 'Ведение переговоров33', 'Кроссфункциональное взаимодействие34', 'Неформальное лидерство35', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО36', 'Управление исполнением37', 'Мотивация подчинённых38', 'Организация работы39', 'Управление изменениями40', 'Развитие подчинённых41', 'Управление командой42')
 HEAD_COACH_EMAIL = 't.astralenko@sti-partners.ru'
@@ -857,25 +858,46 @@ def file():
 @login_required
 def test_results():
     if request.method == 'GET' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
-        # подключаемся к базе и передаем на страницу все результатьы тестов пользователей
-        try:
-            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
-            connection.autocommit = True
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT name_test, mail , reliability , discipline , executive , responsibility , resolved , organizational , software , adaptation , planning , page , strengthening  , building_on_achievements  , building_for_development  , innovation  , approved  , loyalty  , currency  , country  , preparedness_for_compromise  , cooperation  , openness  , openness_of_feedback  , clientoority  , customer_needs_orientation  , partnership  , adoption_of_decisions  , systemic_thinking  , business  , forward_thinking  , effective_communication  , clean_communication  , impunity_and_influence  , negotiations  , cross_functional_interaction  , informal_leadership  , management  , implementation_management  , motivation_of_subordinates  , organization_of_work  , change_management  , development_of_subordinates  , command_management FROM test_results;")
-                #cursor.execute("SELECT  test_results.mail, test_results.reliability ,	test_results.discipline ,	test_results.executive ,	test_results.responsibility ,	test_results.resolved ,	test_results.organizational ,	test_results.software ,	test_results.adaptation ,	test_results.planning ,	test_results.page ,	test_results.strengthening ,	test_results.building_on_achievements ,	test_results.building_for_development ,	test_results.innovation ,	test_results.approved ,	test_results.loyalty ,	test_results.currency ,	test_results.country ,	test_results.preparedness_for_compromise ,	test_results.cooperation ,	test_results.openness ,	test_results.openness_of_feedback ,	test_results.clientoority ,	test_results.customer_needs_orientation ,	test_results.partnership ,	test_results.adoption_of_decisions ,	test_results.systemic_thinking ,	test_results.business ,	test_results.forward_thinking ,	test_results.effective_communication ,	test_results.clean_communication ,	test_results.impunity_and_influence ,	test_results.negotiations ,	test_results.cross_functional_interaction ,	test_results.informal_leadership ,	test_results.management ,	test_results.implementation_management ,	test_results.motivation_of_subordinates ,	test_results.organization_of_work ,	test_results.change_management ,	test_results.development_of_subordinates ,	test_results.command_management , users.name AS user_name FROM test_results JOIN users ON test_results.mail = users.mail")
-                testResults = cursor.fetchall()
-                
-        except Exception as _ex:
-            print("[INFO] Erroe while working with PostgraseSQL", _ex)
-            flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
-            return redirect('/')
-        finally :
-            if connection:
-                connection.close()
-                print("[INFO] PostgraseSQL connection closed")   
+        return render_template('/test_results.html')
 
-        return render_template('/test_results.html', testResults = testResults, headerList = HEADER_LIST_FROM_TEST)
+    if request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+        listSize = request.form.get('listSize')
+        if listSize == 'all':
+            # подключаемся к базе и передаем на страницу все результатьы тестов пользователей
+            try:
+                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+                connection.autocommit = True
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT name_test, mail , reliability , discipline , executive , responsibility , resolved , organizational , software , adaptation , planning , page , strengthening  , building_on_achievements  , building_for_development  , innovation  , approved  , loyalty  , currency  , country  , preparedness_for_compromise  , cooperation  , openness  , openness_of_feedback  , clientoority  , customer_needs_orientation  , partnership  , adoption_of_decisions  , systemic_thinking  , business  , forward_thinking  , effective_communication  , clean_communication  , impunity_and_influence  , negotiations  , cross_functional_interaction  , informal_leadership  , management  , implementation_management  , motivation_of_subordinates  , organization_of_work  , change_management  , development_of_subordinates  , command_management FROM test_results;")
+                    #cursor.execute("SELECT  test_results.mail, test_results.reliability ,	test_results.discipline ,	test_results.executive ,	test_results.responsibility ,	test_results.resolved ,	test_results.organizational ,	test_results.software ,	test_results.adaptation ,	test_results.planning ,	test_results.page ,	test_results.strengthening ,	test_results.building_on_achievements ,	test_results.building_for_development ,	test_results.innovation ,	test_results.approved ,	test_results.loyalty ,	test_results.currency ,	test_results.country ,	test_results.preparedness_for_compromise ,	test_results.cooperation ,	test_results.openness ,	test_results.openness_of_feedback ,	test_results.clientoority ,	test_results.customer_needs_orientation ,	test_results.partnership ,	test_results.adoption_of_decisions ,	test_results.systemic_thinking ,	test_results.business ,	test_results.forward_thinking ,	test_results.effective_communication ,	test_results.clean_communication ,	test_results.impunity_and_influence ,	test_results.negotiations ,	test_results.cross_functional_interaction ,	test_results.informal_leadership ,	test_results.management ,	test_results.implementation_management ,	test_results.motivation_of_subordinates ,	test_results.organization_of_work ,	test_results.change_management ,	test_results.development_of_subordinates ,	test_results.command_management , users.name AS user_name FROM test_results JOIN users ON test_results.mail = users.mail")
+                    testResults = cursor.fetchall()
+            except Exception as _ex:
+                print("[INFO] Erroe while working with PostgraseSQL", _ex)
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                return redirect('/')
+            finally :
+                if connection:
+                    connection.close()
+                    print("[INFO] PostgraseSQL connection closed")   
+            return render_template('/test_results.html', testResults = testResults, headerList = HEADER_LIST_FROM_TEST)
+        
+        if listSize == 'small':
+            # подключаемся к базе и передаем на страницу все результатьы тестов пользователей
+            try:
+                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+                connection.autocommit = True
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT name_test, mail , reliability  , organizational ,  building_on_achievements , approved , country , clientoority , adoption_of_decisions , effective_communication ,  management , implementation_management FROM test_results;")
+                    testResults = cursor.fetchall()
+            except Exception as _ex:
+                print("[INFO] Erroe while working with PostgraseSQL", _ex)
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                return redirect('/')
+            finally :
+                if connection:
+                    connection.close()
+                    print("[INFO] PostgraseSQL connection closed")  
+            return render_template('/test_results.html', testResults = testResults, headerList = HEADER_LIST_FROM_TEST_SMALL)
 
     else:
         # МЕТЕД ПОСТ бУДЕТ РЕЗУЛЬТАТ ФЛЬТРА

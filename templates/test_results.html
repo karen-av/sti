@@ -10,6 +10,21 @@
     <a href="/">Главная</a> - Результаты тестирования
 </div>
 
+{% if testResults %}
+<div class="box">
+    <div>
+        <form action='/test_results' method="post" name="listSize">
+            <input type="hidden" value="small" name="listSize">
+            <button class="btn btn-primary" type="submit">Сокращенный список</button>
+        </form>
+    </div>
+    <div>
+        <form action='/test_results' method="post" name="listSize">
+            <input type="hidden" value="all" name="listSize">
+            <button class="btn btn-primary" type="submit">Полный список</button>
+        </form>
+    </div>
+</div>
 <table class="table table-striped" style="table-layout: auto">
     <thead>
         <tr>
@@ -26,10 +41,24 @@
             {% for n in i %}
             <td>{{ n }}</td> {% endfor %}
         </tr>{% endfor %}
-         
     </tbody>
 </table>
-
+{%else%}
+<div class="box">
+    <div>
+        <form action='/test_results' method="post" name="listSize">
+            <input type="hidden" value="small" name="listSize">
+            <button class="btn btn-primary" type="submit">Сокращенный список</button>
+        </form>
+    </div>
+    <div>
+        <form action='/test_results' method="post" name="listSize">
+            <input type="hidden" value="all" name="listSize">
+            <button class="btn btn-primary" type="submit">Полный список</button>
+        </form>
+    </div>
+</div>
+{%endif%}
 
 
 {% endblock%}
