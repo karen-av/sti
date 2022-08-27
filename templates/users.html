@@ -30,7 +30,7 @@
 <div style="display:none;" id="addUser" class="addUser">
     <form action="/register" method="post" name="register" onsubmit="return show_alert('Добавить пользователя?')">
         <input style="width: 13%" autocomplete="off" id="department" name="department"  placeholder="Подразделение" type="text"  maxlength="30">
-        <input style="width: 13%" autocomplete="off" id="reports_to" name="reports_to"  placeholder="Руководитель" type="text"  maxlength="30">
+        <input style="width: 13%" autocomplete="off" id="reports_to" name="reports_to"  placeholder="Email руководителя" type="text"  maxlength="30">
         <input style="width: 7%" autocomplete="off" id="status" name="status" placeholder="Status" minlength="3" maxlength="30" required>
         <input style="width: 10%" autocomplete="off" id="position" name="position" placeholder="Должность" minlength="3" maxlength="30" required>
         <input style="width: 10%" autocomplete="off" id="name" name="name"  placeholder="ФИО" type="text" minlength="3" maxlength="30" required >
@@ -69,7 +69,7 @@
             <option> {{ rep.0 }}</option>
             {% endif %} {% endfor %}
             {% else %} 
-            <option disabled selected value="none">Руководитель</option>
+            <option disabled selected value="none">Email руководителя</option>
             {% for rep in usereReports_to %}
             <option> {{ rep.0 }}</option>
             {% endfor %}
@@ -114,7 +114,7 @@
         <tr >
             <th>N</th>
             <th>Подразделение</th>
-            <th>Руководитель</th>
+            <th>Email руководителя</th>
             <th>Статус</th>
             <th>Должность</th>
             <th>ФИО</th>
