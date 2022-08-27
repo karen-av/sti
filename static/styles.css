@@ -77,12 +77,12 @@ form {
 .box div { 
     display:inline-block; 
     margin-bottom: 2%;
-    margin-top: 2%;
 }
 
 .route{
     text-align: left;
     padding-left: 5%;
+    margin-bottom: 3%;
 }
 
 a {

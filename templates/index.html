@@ -5,8 +5,15 @@
 {% endblock %}
 
 {% block main %}
+<head>
+    <style>
+        button {width: 300px;}
+        
+    </style>
+</head>
    
-
+<div style="width: 100%;">
+   
 <form action="/users" method="get">
     <button class="btn btn-primary">Пользователи</button>
 </form>
@@ -34,5 +41,7 @@
 <form action="/mail_heads" method="get">
     <button class="btn btn-primary">Отправить сообщение руководителям</button>
 </form>
+
+</div>
    
 {% endblock %}

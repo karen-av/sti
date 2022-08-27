@@ -9,22 +9,38 @@
 <div class="route">
     <a href="/">Главная</a> - Ранжирование компетенций по должностям
 </div>
-    <div class="filtr"  id="filtr">
-
-        <form action="/positions" method="post" name="sort">
+<div class="filtr"  id="filtr">
+    <form action="/positions" method="post" name="sort">
         <select id="reports_to" name="reports_to" >
-            <option disabled selected value="none" multiple>Руководитель</option>
-            {% for head in headList %}
-            <option>{{ head.0 }}</option>
-            {% endfor %}
+            {%if reports_to_query%}
+            <option  selected value="{{reports_to_query}}" >{{reports_to_query}}</option>
+            {%else%}
+            <option disabled selected value="none" >Руководитель</option>
+            {%endif%}
+            {%for head in headList%}
+            {%if reports_to_query != head.0%}
+            <option>{{head.0}}</option>
+            {%endif%}
+            {%endfor%}
         </select>                  
        <select id="ready_status" name="ready_status">
+            {%if ready_status_query%}
+            <option  selected value="{{ready_status_query}}">{{ready_status_query}}</option>
+            {%else%}
             <option disabled selected value="none">Статус готовности</option>
-            {% for status in readyStatusList %}
-                <option>{{ status }}</option>
-                {% endfor %}
+            {%endif%}
+            {%for status in readyStatusList%}
+            {%if ready_status_query != status%}
+            <option>{{ status }}</option>
+            {%endif%}
+            {%endfor%}
         </select>
         <button class="btn btn-primary" type="submit" id="sort_button">Применить фильтр</button>
+    </form>
+    <form action="/positions" method="get"><button class="btn btn-primary" type="submit" id="sort_button">Сбросить фильтр</button></form>
+    <form action="/positions" method="post" name="search">
+        <input type="email" name="search" placeholder="поиск" required>
+        <button class="btn btn-primary" type="submit" >Искать</button>
     </form>
 </div>
 
@@ -60,8 +76,7 @@
 </table>   
 <p style="margin-top: 25px;"></p> -->
     <table class="table table-striped">
-        <thead>
-            
+        <thead>     
             <tr>
                 <th>N</th>
                 <th>Рук</th>

@@ -113,12 +113,21 @@ def positions():
         print('[INFO] route: /positions. method: POST')
         reports_to = request.form.get('reports_to')
         ready_status = request.form.get('ready_status')
-        if not reports_to and not ready_status:
+        search = request.form.get('search')
+        print(search)
+    
+        if not reports_to and not ready_status and not search:
             return redirect ('/positions')
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
             connection.autocommit = True  
             with connection.cursor() as cursor:
+                if search:
+                    cursor.execute("SELECT * FROM positions WHERE reports_pos LIKE %(reports_pos)s ORDER BY reports_pos", {'reports_pos': search})
+                    positions = cursor.fetchall()
+                    print(positions)
+                    return render_template('positions.html', positions = positions, competence = COMPETENCE)
+
                 if reports_to and not ready_status:
                     cursor.execute("SELECT * FROM positions  WHERE reports_pos = %(reports_pos)s ORDER BY reports_pos", {'reports_pos': reports_to})
                     positions = cursor.fetchall()
@@ -154,7 +163,7 @@ def positions():
                 connection.close()
                 print("[INFO] PostgresSQL connection closed")
 
-        return render_template('positions.html', positions = positions, headList = headList, readyStatusList = readyStatusList, competence = COMPETENCE)
+        return render_template('positions.html', reports_to_query = reports_to, ready_status_query = ready_status, positions = positions, headList = headList, readyStatusList = readyStatusList, competence = COMPETENCE)
     
     else:
         return redirect("/")

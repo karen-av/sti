@@ -25,12 +25,6 @@
         <button class="btn btn-primary" id="buttonAddHid" type="button" style="display:none" onclick="funcAddHid()">Скрыть форму</button>
     </div>
     <div>
-        <form action="/users" method="post" name="search">
-        <div><input style="width: auto" autocomplete="off" id="query" name="query"  placeholder="Email" type="email"  maxlength="30" required></div>
-        <div><button class="btn btn-primary" id="buttonAddHid" type="submit" style="display:block">Поиск</button></div>
-        </form> 
-    </div>
-    <div>
         <div>
             <form action="/users" method="post" name="filtr_sort" id='filtr_sort' onchange="document.getElementById('filtr_sort').submit()">
             <select name="filtr_sort" >
@@ -46,6 +40,12 @@
                 {% endfor %}
             </select>
         </div>
+        </form> 
+    </div>
+    <div>
+        <form action="/users" method="post" name="search">
+        <div><input style="width: auto" autocomplete="off" id="query" name="query"  placeholder="поиск" type="email"  maxlength="30" required></div>
+        <div><button class="btn btn-primary" id="buttonAddHid" type="submit" style="display:block">Поиск</button></div>
         </form> 
     </div>
     <div><form action="/users" method="get" ><button class="btn btn-primary" type="submit" >Показать всех</button></form></div>
