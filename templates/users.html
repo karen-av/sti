@@ -30,6 +30,25 @@
         <div><button class="btn btn-primary" id="buttonAddHid" type="submit" style="display:block">Поиск</button></div>
         </form> 
     </div>
+    <div>
+        <div>
+            <form action="/users" method="post" name="filtr_sort">
+            <select name="filtr_sort" >
+                {% if  filtr_sort_position %}
+                <option  selected value="{{ filtr_sort_position }}" >{{filtr_sort_position}}</option>
+                {% else %}
+                <option disabled selected value="none" >Упорядочить по</option>
+                {% endif %}
+                {% for header in headers_list %}
+                {% if header != filtr_sort_position %}
+                <option value="{{ header }}">{{ header }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+            <div><button class="btn btn-primary" id="buttonAddHid" type="submit" style="display:block">Применить</button></div>
+        </form> 
+    </div>
     <div><form action="/users" method="get" ><button class="btn btn-primary" type="submit" >Показать всех</button></form></div>
 </div>
   
@@ -52,8 +71,6 @@
 <div style="display:none;" id="filtr" class="filtr">
 {% endif %}
     <form action="/users" method="post" name="sort">
-
-
         <select id="department" name="department">
             {% if filtr_department %}
             <option  selected value="{{filtr_department}}">{{filtr_department}}</option>

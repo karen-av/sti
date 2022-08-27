@@ -47,6 +47,7 @@ ADMIN = 'admin'
 COACH = 'coach'
 HEAD = 'head'
 MANAGER = 'manager'
+SORTLIST = ("Подразделению", "Руководителю", "Статусу", "Должности", 'Имени', 'Почте')
 COMPETENCE  = ('Организованноcть', 'Стремление к совершенству', 'Надежность', 'Приверженность', 'Командность', 'Ориентация на клиента', 'Эффективная коммуникация', 'Принятие решений', 'Управленческое мастерство')
 HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ', 'Дисциплинированность', 'Исполнительность', 'Ответственность', 'Решительность', 'ОРГАНИЗОВАННОСТЬ', 'Чёткое целеполагание', 'Адаптивность', 'Планирование', 'Стремление к порядку', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ', 'Стремление к достижениям', 'Стремление к развитию', 'Инновационность', 'ПРИВЕРЖЕННОСТЬ', 'Лояльность', 'Взаимовыручка', 'КОМАНДНОСТЬ', 'Готовность к компромиссу', 'Сотрудничество', 'Открытость', 'Открытость обратной связи', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ', 'Ориентация на потребности клиента', 'Партнёрство', 'ПРИНЯТИЕ РЕШЕНИЙ', 'Системное мышление', 'Бизнес-мышление', 'Перспективное мышление', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ', 'Чёткая коммуникация', 'Убеждение и влияние', 'Ведение переговоров', 'Кроссфункциональное взаимодействие', 'Неформальное лидерство', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО', 'Управление исполнением', 'Мотивация подчинённых', 'Организация работы', 'Управление изменениями', 'Развитие подчинённых', 'Управление командой')
 #HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ', 'Дисциплинированность', 'Исполнительность', 'Ответственность')
@@ -191,7 +192,7 @@ def users():
                     connection.close()
                     print("[INFO] PostgresSQL connection closed")
 
-            return render_template("users.html", users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, usereName =usereName, usereMail = usereMail, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
+            return render_template("users.html",headers_list = SORTLIST, users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, usereName =usereName, usereMail = usereMail, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
 
         elif session["user_status"] == HEAD:
             try:
@@ -242,6 +243,45 @@ def users():
                     status = request.form.get("status")
                     position  = request.form.get("position")
                     query = request.form.get("query")
+                    filtr_sort  = request.form.get("filtr_sort")
+
+                    if filtr_sort:
+                        if filtr_sort == 'Подразделению':
+                            cursor.execute("SELECT * FROM users ORDER BY department")
+                            users = cursor.fetchall()
+                            filtr_sort = 'Подразделению'
+
+                        elif filtr_sort == 'Руководителю':
+                            cursor.execute("SELECT * FROM users ORDER BY reports_to")
+                            users = cursor.fetchall()
+                            filtr_sort = 'Руководителю'
+
+                        elif filtr_sort == 'Статусу':
+                            cursor.execute("SELECT * FROM users ORDER BY status")
+                            users = cursor.fetchall()
+                            filtr_sort = 'Статусу'
+
+                        elif filtr_sort == 'Должности':
+                            cursor.execute("SELECT * FROM users ORDER BY position")
+                            users = cursor.fetchall()
+                            filtr_sort = 'Должности'
+
+                        elif filtr_sort == 'Имени':
+                            cursor.execute("SELECT * FROM users ORDER BY name")
+                            users = cursor.fetchall()
+                            filtr_sort = 'Имени'
+
+                        elif filtr_sort == 'Почте':
+                            cursor.execute("SELECT * FROM users ORDER BY mail")
+                            users = cursor.fetchall()
+                            filtr_sort = 'Почте'
+                            
+                        print(filtr_sort)
+                        return render_template("users.html", headers_list = SORTLIST, filtr_sort_position = filtr_sort, users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
+                       
+
+
+
 
                     if query:
                         cursor.execute("SELECT * FROM users WHERE mail = %(mail)s ORDER BY id", {'mail': query})
@@ -315,7 +355,7 @@ def users():
                     connection.close()
                     print("[INFO] PostgresSQL connection closed")
 
-            return render_template("users.html", users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, statusList = STATUS_LIST, positionList = POSITIONS_LIST, filtr_department = department, filtr_reports_to = reports_to, filtr_status = status, filtr_position = position)
+            return render_template("users.html", headers_list = SORTLIST, users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, statusList = STATUS_LIST, positionList = POSITIONS_LIST, filtr_department = department, filtr_reports_to = reports_to, filtr_status = status, filtr_position = position)
         
         elif session["user_status"] == HEAD:
             # Получение введенных данных
