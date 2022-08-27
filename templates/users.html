@@ -32,7 +32,7 @@
     </div>
     <div>
         <div>
-            <form action="/users" method="post" name="filtr_sort">
+            <form action="/users" method="post" name="filtr_sort" id='filtr_sort' onchange="document.getElementById('filtr_sort').submit()">
             <select name="filtr_sort" >
                 {% if  filtr_sort_position %}
                 <option  selected value="{{ filtr_sort_position }}" >{{filtr_sort_position}}</option>
@@ -46,7 +46,6 @@
                 {% endfor %}
             </select>
         </div>
-            <div><button class="btn btn-primary" id="buttonAddHid" type="submit" style="display:block">Применить</button></div>
         </form> 
     </div>
     <div><form action="/users" method="get" ><button class="btn btn-primary" type="submit" >Показать всех</button></form></div>
