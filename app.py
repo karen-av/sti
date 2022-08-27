@@ -198,11 +198,11 @@ def users():
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
                 connection.autocommit = True  
                 with connection.cursor() as cursor:
-                    cursor.execute("SELECT name FROM users WHERE mail = %(mail)s", {'mail': session["user_mail"]})
-                    headName = cursor.fetchone()
-                    cursor.execute("SELECT * FROM positions WHERE  reports_pos = %(name)s", {'name': headName[0]})
+                    cursor.execute("SELECT mail FROM users WHERE mail = %(mail)s", {'mail': session["user_mail"]})
+                    headMail = cursor.fetchone()
+                    cursor.execute("SELECT * FROM positions WHERE  reports_pos = %(mail)s", {'mail': headMail[0]})
                     allPositionFromList = cursor.fetchall()
-                    cursor.execute("SELECT * FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) AND reports_pos = %(name)s LIMIT 1", {'name': headName[0]})
+                    cursor.execute("SELECT * FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) AND reports_pos = %(mail)s LIMIT 1", {'mail': headMail[0]})
                     positionFromList = cursor.fetchall()
                     if len(positionFromList) != 0:
                         return render_template("questions_for_head.html", allPositionFromList = allPositionFromList, positionFromList = positionFromList, competence = COMPETENCE)
@@ -329,10 +329,9 @@ def users():
             if  int(comp_1) > 9 or int(comp_1) < 1 or int(comp_2) > 9 or int(comp_2) < 1 or int(comp_3) > 9 or int(comp_3) < 1 or int(comp_4) > 9 or int(comp_4) < 1 or int(comp_5) > 9 or int(comp_5) < 1 or int(comp_6) > 9 or int(comp_6) < 1 or int(comp_7) > 9 or int(comp_7) < 1 or int(comp_8) > 9 or int(comp_8) < 1 or int(comp_9) > 9 or int(comp_9) < 1:
                 flash("Пожалуйста, укажите все значения. Значения должны быть в диапазоне от 1 до 9.")
                 return redirect ("/users")
-            
-            #if int(comp_1) == int(comp_2) or int(comp_1)  == int(comp_3) or int(comp_1) == int(comp_4) or int(comp_1)  == int(comp_5) or int(comp_1)  == int(comp_6) or int(comp_1)  == int(comp_7) or int(comp_1)  == int(comp_8) or int(comp_1)  == int(comp_9) or int(comp_2)  == int(comp_3) or int(comp_2) == int(comp_4) or int(comp_2) == int(comp_5) or int(comp_2)  == int(comp_6) or int(comp_2)  == int(comp_7) or int(comp_2)  == int(comp_8) or int(comp_2)  == int(comp_9) or int(comp_3) == int(comp_4) or int(comp_3) == int(comp_5) or int(comp_3)  == int(comp_6) or int(comp_3)  == int(comp_7) or int(comp_3)  == int(comp_8) or int(comp_3)  == int(comp_9) or int(comp_4) == int(comp_5) or int(comp_4)  == int(comp_6) or int(comp_4)  == int(comp_7) or int(comp_4)  == int(comp_8) or int(comp_4)  == int(comp_9) or int(comp_5)  == int(comp_6) or int(comp_5)  == int(comp_7) or int(comp_5)  == int(comp_8) or int(comp_5)  == int(comp_9) or int(comp_6)  == int(comp_7) or int(comp_6)  == int(comp_8) or int(comp_6)  == int(comp_9) or int(comp_7)  == int(comp_8) or int(comp_7)  == int(comp_9) or int(comp_8)  == int(comp_9):
-              #  flash("Значения должны быть уникальными.")
-               # return redirect ("/users")
+            if int(comp_1) == int(comp_2) or int(comp_1) == int(comp_3) or int(comp_1) == int(comp_4) or int(comp_1)  == int(comp_5) or int(comp_1)  == int(comp_6) or int(comp_1)  == int(comp_7) or int(comp_1)  == int(comp_8) or int(comp_1)  == int(comp_9) or int(comp_2)  == int(comp_3) or int(comp_2) == int(comp_4) or int(comp_2) == int(comp_5) or int(comp_2) == int(comp_6) or int(comp_2)  == int(comp_7) or int(comp_2)  == int(comp_8) or int(comp_2)  == int(comp_9) or int(comp_3) == int(comp_4) or int(comp_3) == int(comp_5) or int(comp_3)  == int(comp_6) or int(comp_3) == int(comp_7) or int(comp_3) == int(comp_8) or int(comp_3) == int(comp_9) or int(comp_4) == int(comp_5) or int(comp_4)  == int(comp_6) or int(comp_4)  == int(comp_7) or int(comp_4)  == int(comp_8) or int(comp_4)  == int(comp_9) or int(comp_5)  == int(comp_6) or int(comp_5)  == int(comp_7) or int(comp_5)  == int(comp_8) or int(comp_5)  == int(comp_9) or int(comp_6) == int(comp_7) or int(comp_6)  == int(comp_8) or int(comp_6)  == int(comp_9) or int(comp_7)  == int(comp_8) or int(comp_7)  == int(comp_9) or int(comp_8)  == int(comp_9):
+                flash("Значения должны быть уникальными.")
+                return redirect ("/users")
 
             try:
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
@@ -341,14 +340,16 @@ def users():
                     # Вносим полученные данные
                     cursor.execute("UPDATE positions SET comp_1 = %(comp_1)s, comp_2 = %(comp_2)s, comp_3 = %(comp_3)s, comp_4 = %(comp_4)s, comp_5 = %(comp_5)s, comp_6 = %(comp_6)s, comp_7 = %(comp_7)s, comp_8 = %(comp_8)s, comp_9 = %(comp_9)s WHERE position_pos = %(position_pos)s", {'comp_1': comp_1, 'comp_2':comp_2, 'comp_3': comp_3, 'comp_4': comp_4, 'comp_5': comp_5, 'comp_6': comp_6, 'comp_7': comp_7, 'comp_8':comp_8, 'comp_9': comp_9, 'position_pos': position_pos})
                     # Находим имя руководителя
-                    cursor.execute("SELECT name FROM users WHERE mail = %(mail)s", {'mail': session["user_mail"]})
-                    headName = cursor.fetchone()
+                    cursor.execute("SELECT mail FROM users WHERE mail = %(mail)s", {'mail': session["user_mail"]})
+                    headMail = cursor.fetchone()
+                    cursor.execute("SELECT * FROM positions WHERE  reports_pos = %(mail)s", {'mail': headMail[0]})
+                    allPositionFromList = cursor.fetchall()
                     # Находим неранжированную должность
-                    cursor.execute("SELECT * FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) AND reports_pos = %(name)s LIMIT 1", {'name': headName[0]})
+                    cursor.execute("SELECT * FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) AND reports_pos = %(mail)s LIMIT 1", {'mail': headMail[0]})
                     positionFromList = cursor.fetchall()
                     # Если есть такая должность, то передаем ее для заполнения
                     if len(positionFromList) != 0:
-                        return render_template("questions_for_head.html", positionFromList = positionFromList, competence = COMPETENCE)
+                        return render_template("questions_for_head.html", allPositionFromList = allPositionFromList, positionFromList = positionFromList, competence = COMPETENCE)
                     # Если нет, то прощаемся 
                     else:
                         return render_template('theEnd.html')
@@ -698,7 +699,7 @@ def file():
                             division = str(table.iloc[i,:][5])
                             department = str(table.iloc[i,:][6])
                             branch = str(table.iloc[i,:][7])
-                            reports_to = str(table.iloc[i,:][8])
+                            reports_to = str(table.iloc[i,:][9]).lower().strip()
                             status = MANAGER
                             hash = generate_password_hash(createPassword(), "pbkdf2:sha256")
                             cursor.execute("INSERT INTO users ( name, mail, position, division, department, branch, reports_to, status, hash) VALUES(%(name)s, %(mail)s, %(position)s, %(division)s, %(department)s, %(branch)s, %(reports_to)s, %(status)s, %(hash)s)", {'name': name, 'mail': mail, 'position': position, 'division': division, 'department': department, 'branch': branch, 'reports_to': reports_to, 'status': status, 'hash': hash})
@@ -730,9 +731,11 @@ def file():
                             department = str(table.iloc[i,:][6])
                             branch = str(table.iloc[i,:][7])
                             name = str(table.iloc[i,:][8])
+                            reports_to = '-'
+                            position = '-'
                             status = HEAD
                             hash = generate_password_hash(createPassword(), "pbkdf2:sha256")
-                            cursor.execute("INSERT INTO users ( name, mail, position, division, department, branch, status, hash) VALUES(%(name)s, %(mail)s, %(position)s, %(division)s, %(department)s, %(branch)s, %(status)s, %(hash)s)", {'name': name, 'mail': mail, 'position': position, 'division': division, 'department': department, 'branch': branch, 'status': status, 'hash': hash})
+                            cursor.execute("INSERT INTO users ( name, mail, position, division, department, branch, status, hash, reports_to) VALUES(%(name)s, %(mail)s, %(position)s, %(division)s, %(department)s, %(branch)s, %(status)s, %(hash)s, %(reports_to)s)", {'name': name, 'mail': mail, 'position': position, 'division': division, 'department': department, 'branch': branch, 'status': status, 'hash': hash, 'reports_to':reports_to})
                             countUploadHead = countUploadHead + 1
                             
 
