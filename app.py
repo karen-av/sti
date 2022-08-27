@@ -241,6 +241,12 @@ def users():
                     reports_to = request.form.get("reports_to")
                     status = request.form.get("status")
                     position  = request.form.get("position")
+                    query = request.form.get("query")
+
+                    if query:
+                        cursor.execute("SELECT * FROM users WHERE mail = %(mail)s ORDER BY id", {'mail': query})
+                        users = cursor.fetchall()
+                        return render_template("users.html", users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
     
                     if not department and not reports_to and not status and not position:
                         cursor.execute("SELECT * FROM users ORDER BY id;")
