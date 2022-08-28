@@ -125,13 +125,6 @@
                 <td>{{ user.4 }}</td>
                 <td>{{ user.5 }}</td>
                 <td>{{ user.6 }}</td>
-                <td><form action="/s" method="post" onclick="return show_alert('Отправить приглашение пользователю?')">
-                    <input type="hidden" value="single" name ="flag">
-                    <input type="hidden" value="{{ user.5 }}" name ="user_mail">
-                    <input type="hidden" value="{{ user.4 }}" name ="user_name">
-                    <button class="btn btn-primary" type="submit">Редактировать?</button>
-                </form>
-            </td>
         </tr>
         {% endfor %}
         </tbody>
