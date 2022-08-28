@@ -6,23 +6,57 @@
 
 {% block main %}
 
-{% if x == 0 %}
+{% if notSendList is not defined %}
 <div class="route">
     <a href="/">Главная</a> - Сообщения руководителям
 </div>
-<div class="box">
-    <div>
-    <form action="/mail_heads" method="post" onclick="return show_alert('Отправить приглашение всем пользователям?')">
-        <input type="hidden" value="all_invite" name ="flag"> 
-        <button class="btn btn-primary" type="submit" >Отправить приглашение всем</button>
-    </form>
+    <div class="box">
+        <div>
+        <form action="/mail_heads" method="post" onclick="return show_alert('Отправить приглашение всем пользователям?')">
+            <input type="hidden" value="all_invite" name ="flag"> 
+            <button class="btn btn-primary" type="submit" >Отправить приглашение всем</button>
+        </form>
+        </div>
+        <div>
+        <form action="/mail_heads" method="post" onclick=" return show_alert('Отправить приглашение всем пользователям?')">
+            <input type="hidden" value="has_not_invite" name ="flag">
+            <button class="btn btn-primary" type="submit">Отправить приглашение тем пользователям, которые еще не поучали приглашение</button>
+        </form>
     </div>
-    <div>
-    <form action="/mail_heads" method="post" onclick=" return show_alert('Отправить приглашение всем пользователям?')">
-        <input type="hidden" value="has_not_invite" name ="flag">
-        <button class="btn btn-primary" type="submit">Отправить приглашение тем пользователям, которые еще не поучали приглашение</button>
-    </form>
 </div>
+<div class="filtr"  id="filtr">
+    <form action="/mail_heads" method="post" >
+        <select id="reports_to" name="reports_to" >
+            {%if reports_to_query%}
+            <option  selected value="{{reports_to_query}}" >{{reports_to_query}}</option>
+            {%else%}
+            <option disabled selected value="none" >Руководитель</option>
+            {%endif%}
+            {%for head in headList%}
+            {%if reports_to_query != head.0%}
+            <option>{{head.0}}</option>
+            {%endif%}
+            {%endfor%}
+        </select>                  
+       <select id="ready_status" name="ready_status">
+            {%if ready_status_query%}
+            <option  selected value="{{ready_status_query}}">{{ready_status_query}}</option>
+            {%else%}
+            <option disabled selected value="none">Статус готовности</option>
+            {%endif%}
+            {%for status in readyStatusList%}
+            {%if ready_status_query != status%}
+            <option>{{ status }}</option>
+            {%endif%}
+            {%endfor%}
+        </select>
+        <button class="btn btn-primary" type="submit" id="sort_button">Применить фильтр</button>
+    </form>
+    <form action="/mail_heads" method="post" name="search">
+        <input type="email" name="search" placeholder="почта для поиска" required>
+        <button class="btn btn-primary" type="submit">Поиск</button>
+    </form>
+    <form action="/mail_heads" method="get"><button class="btn btn-primary" type="submit" id="sort_button">Сбросить фильтр</button></form>
 </div>
 
     <table class="table table-striped" >

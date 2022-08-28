@@ -53,8 +53,8 @@ HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ', 'Дисциплинирован
 HEADER_LIST_FROM_TEST_SMALL = ('НАДЁЖНОСТЬ', 'ОРГАНИЗОВАННОСТЬ', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ', 'ПРИВЕРЖЕННОСТЬ', 'КОМАНДНОСТЬ', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ', 'ПРИНЯТИЕ РЕШЕНИЙ', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО')
 #HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ', 'Дисциплинированность', 'Исполнительность', 'Ответственность')
 #HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ 1', 'Дисциплинированность 2', 'Исполнительность 3', 'Ответственность 4', 'Решительность5', 'ОРГАНИЗОВАННОСТЬ6', 'Чёткое целеполагание7', 'Адаптивность8', 'Планирование9', 'Стремление к порядку10', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ11', 'Стремление к достижениям12', 'Стремление к развитию13', 'Инновационность14', 'ПРИВЕРЖЕННОСТЬ15', 'Лояльность16', 'Взаимовыручка17', 'КОМАНДНОСТЬ18', 'Готовность к компромиссу19', 'Сотрудничество20', 'Открытость21', 'Открытость обратной связи22', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ23', 'Ориентация на потребности клиента24', 'Партнёрство25', 'ПРИНЯТИЕ РЕШЕНИЙ26', 'Системное мышление27', 'Бизнес-мышление28', 'Перспективное мышление29', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ30', 'Чёткая коммуникация31', 'Убеждение и влияние32', 'Ведение переговоров33', 'Кроссфункциональное взаимодействие34', 'Неформальное лидерство35', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО36', 'Управление исполнением37', 'Мотивация подчинённых38', 'Организация работы39', 'Управление изменениями40', 'Развитие подчинённых41', 'Управление командой42')
-HEAD_COACH_EMAIL = 't.astralenko@sti-partners.ru'
-#HEAD_COACH_EMAIL = 'hd.spk27@gmail.com'
+#HEAD_COACH_EMAIL = 't.astralenko@sti-partners.ru'
+HEAD_COACH_EMAIL = 'hd.spk27@gmail.com'
 
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
@@ -431,6 +431,9 @@ def users():
 
         else:
             return redirect("/")
+
+    else:
+        return redirect('/')
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -1035,14 +1038,18 @@ def mail_heads():
     notSendList = []
     counterSend = 0
     counterNotSend = 0
-    x = 0
-    if request.method == 'GET':
+    readyStatusList = ['Все', 'Отправлено', 'Не отправлено']
+    flag  = request.form.get('flag')
+
+    if request.method == 'GET' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True
             with connection.cursor() as cursor:
                 cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status':HEAD})
                 users = cursor.fetchall()
+                cursor.execute("SELECT DISTINCT mail FROM users WHERE status = %(status)s ORDER BY mail", {'status': HEAD})
+                headList = cursor.fetchall()
         except Exception as _ex:
             print(f'[INFO] Error while working PostgresSQL', _ex)
             flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
@@ -1052,10 +1059,58 @@ def mail_heads():
                 connection.close()
                 print(f"[INFO] PostgresSQL nonnection closed")
 
-        return render_template('mail.html', users = users, notSendList = notSendList, x = x)
+        return render_template('mail.html', users = users, headList = headList, readyStatusList = readyStatusList)
 
-    elif request.method == 'POST':
-        flag  = request.form.get('flag')
+    elif request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+        reports_to = request.form.get('reports_to')
+        ready_status = request.form.get('ready_status')
+        search = request.form.get('search')
+        if reports_to or ready_status or search:
+            try:
+                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+                connection.autocommit = True
+                with connection.cursor() as cursor:
+                    
+                    cursor.execute("SELECT DISTINCT mail FROM users WHERE status = %(status)s ORDER BY mail", {'status': HEAD})
+                    headList = cursor.fetchall()
+
+                    if reports_to and not ready_status:
+                        cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s  and mail = %(reports_to)s ORDER BY id", {'status':HEAD, 'reports_to': reports_to})
+                        users = cursor.fetchall()
+                    elif ready_status and not reports_to:
+                        if ready_status == 'Отправлено':
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date NOT LIKE '-' ORDER BY id", {'status':HEAD})
+                            users = cursor.fetchall()
+                        elif ready_status == 'Не отправлено':
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date = '-' ORDER BY id", {'status':HEAD})
+                            users = cursor.fetchall()
+                        else:
+                            return redirect('/mail_heads')
+                    elif ready_status and reports_to:
+                        if ready_status == 'Отправлено':
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date NOT LIKE '-' AND mail = %(reports_to)s ORDER BY id", {'status':HEAD, 'reports_to':reports_to})
+                            users = cursor.fetchall()
+                        elif ready_status == 'Не отправлено':
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date = '-' AND mail = %(reports_to)s ORDER BY id", {'status':HEAD, 'reports_to':reports_to})
+                            users = cursor.fetchall()
+                        else:
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s and mail = %(reports_to)s ORDER BY id", {'status':HEAD, 'reports_to': reports_to})
+                            users = cursor.fetchall()
+                    elif search:
+                        cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s and mail = %(search)s ORDER BY id", {'status':HEAD, 'search': search})
+                        users = cursor.fetchall()
+        
+            except Exception as _ex:
+                print(f'[INFO] Error while working PostgresSQL', _ex)
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                return redirect('/mail_heads')            
+            finally:
+                if connection:
+                    connection.close()
+                    print("[INFO] PostgresSQL nonnection closed")
+
+            return render_template('mail.html', users = users, headList = headList, readyStatusList = readyStatusList, reports_to_query = reports_to, ready_status_query = ready_status)        
+                
         # if single send mode
         if flag == 'single':
             user_name = request.form.get('user_name')
@@ -1116,7 +1171,6 @@ def mail_heads():
                             cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
                             print(f'[INFO] Message has bin sent via mail sender.')
                         except Exception as _ex:
-                            x = 1
                             notSendList.append(singleUser)
                             counterNotSend = counterNotSend + 1 
                             print(f'[INFO] Error while working mail sender:', _ex)
@@ -1138,7 +1192,7 @@ def mail_heads():
                     print(f"[INFO] PostgresSQL nonnection closed")
 
             flash(f'Приглашение отправлено {counterSend}. Не удалось отправить {counterNotSend} сообщений.')
-            return render_template('mail.html', users = users, notSendList = notSendList, x = x)
+            return render_template('mail.html', users = users, notSendList = notSendList)
 
         elif flag == 'has_not_invite':
             today = today = datetime.date.today()
@@ -1161,7 +1215,6 @@ def mail_heads():
                             cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
                             print(f'[INFO] Message has bin sent via mail sender.')
                         except Exception as _ex:
-                            x = 1
                             notSendList.append(singleUser)
                             counterNotSend = counterNotSend + 1 
                             print(f'[INFO] Error while working mail sender:', _ex)
@@ -1182,9 +1235,10 @@ def mail_heads():
                     print(f"[INFO] PostgresSQL nonnection closed")
 
             flash(f'Приглашение отправлено {counterSend}. Не удалось отправить {counterNotSend} сообщений.')
-            return render_template('mail.html', users = users, notSendList = notSendList, x = x)
+            return render_template('mail.html', users = users, notSendList = notSendList)
 
-        elif flag == 'mail_from_head_end':
+    elif request.method == 'POST' and session['user_status'] == HEAD:
+        if flag == 'mail_from_head_end':
             message_from_head = request.form.get('messege_from_head')
             if message_from_head:  
                 try:
