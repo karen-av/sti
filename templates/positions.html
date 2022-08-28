@@ -9,6 +9,52 @@
 <div class="route">
     <a href="/">Главная</a> - Ранжирование компетенций по должностям
 </div>
+
+{% if position_edit %}
+
+<table class="table table-striped">
+    <thead>     
+        <tr>
+            <th>N</th>
+            <th>Рук</th>
+            <th>Долж</th>
+            {% for com in competence %}<th>{{ com }}</th>{% endfor%}
+            <td></td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pos in position_edit %} 
+        <tr> 
+        <form action="/positions" method="post">
+            <td>{{ loop.index }}</td>
+            <td>{{ pos.2 }}</td>
+            <td>{{ pos.1 }}</td>
+            <td><input class="input edit" autocomplete="off" id='id_1' name="comp_1"  value="{{ pos.3 }}" type="number" min="1" max="9" required onchange='check()'></td>
+            <td><input class="input edit" autocomplete="off" id='id_2' name="comp_2"  value="{{ pos.4 }}" placeholder="{{ pos.4 }}" type="number" min="1" max="9" required onchange='check()'></td>
+            <td><input class="input edit" autocomplete="off" id='id_3' name="comp_3"  value="{{ pos.5 }}" placeholder="{{ pos.5 }}" type="number" min="1" max="9" required onchange='check()'></td>
+            <td><input class="input edit" autocomplete="off" id='id_4' name="comp_4"  value="{{ pos.6 }}" placeholder="{{ pos.6 }}" type="number" min="1" max="9" required onchange='check()'></td>
+            <td><input class="input edit" autocomplete="off" id='id_5' name="comp_5"  value="{{ pos.7 }}" placeholder="{{ pos.7 }}" type="number" min="1" max="9" required onchange='check()'></td>
+            <td><input class="input edit" autocomplete="off" id='id_6' name="comp_6"  value="{{ pos.8 }}" placeholder="{{ pos.8 }}" type="number" min="1" max="9" required onchange='check()'></td>
+            <td><input class="input edit" autocomplete="off" id='id_7' name="comp_7"  value="{{ pos.9 }}" placeholder="{{ pos.9 }}" type="number" min="1" max="9" required onchange='check()'></td>
+            <td><input class="input edit" autocomplete="off" id='id_8' name="comp_8"  value="{{ pos.10 }}" placeholder="{{ pos.10 }}" type="number" min="1" max="9" required onchange='check()'></td>
+            <td><input class="input edit" autocomplete="off" id='id_9' name="comp_9"  value="{{ pos.11 }}" placeholder="{{ pos.11 }}" type="number" min="1" max="9" required onchange='check()'></td>
+            <td>
+                <input type="hidden" name="edit_save" value="edit_save">
+                <input type="hidden" name="position_edit" value="{{ pos.1 }}">
+                <input type="hidden" name="reports_to_edit" value="{{ pos.2 }}">
+            </td>
+        </tr>{% endfor %}
+    </tbody>
+</table>   
+<div class="box">
+    <div><button class="btn btn-primary" type="submit" id="button" onclick="return save()">Сохранить</button></div>
+    <div><button class="btn btn-primary"  type="reset" onclick="return show_alert('Отменить изменения?')">Сбросить</button></div>
+</form>
+    
+    <dev><a href='/positions'><button class="btn btn-primary" style="border-color: blue;" type="button" onclick="return show_alert('Изменения не будут сохранены. Вы уверены, что хотите вернуться назад?')">Назад</button></a></dev>
+</div>
+
+{% else %}
 <div class="filtr"  id="filtr">
     <form action="/positions" method="post" name="sort">
         <select id="reports_to" name="reports_to" >
@@ -44,37 +90,7 @@
     <form action="/positions" method="get"><button class="btn btn-primary" type="submit" id="sort_button">Сбросить фильтр</button></form>
 </div>
 
-<!-- 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th colspan="12">Руководители, которые не заполнили опросник</th>
-        </tr>
-        <tr>
-            <th>N</th>
-            <th>Рук</th>
-            <th>Долж</th>
-            {% for com in competence %}<th>{{ com }}</th>{% endfor%}
-        </tr>
-    </thead>
-    <tbody>
-       {% for pos in positionsNotDone %}  <tr>  
-            <td>{{ loop.index }}</td>
-            <td>{{ pos.2 }}</td>
-            <td>{{ pos.1 }}</td>
-            <td>{{ pos.3 }}</td>
-            <td>{{ pos.4 }}</td>
-            <td>{{ pos.5 }}</td>
-            <td>{{ pos.6 }}</td>
-            <td>{{ pos.7 }}</td>
-            <td>{{ pos.8 }}</td>
-            <td>{{ pos.9 }}</td>
-            <td>{{ pos.10 }}</td>
-            <td>{{ pos.11}}</td>
-        </tr>{% endfor %}
-    </tbody>
-</table>   
-<p style="margin-top: 25px;"></p> -->
+
     <table class="table table-striped">
         <thead>     
             <tr>
@@ -82,25 +98,73 @@
                 <th>Рук</th>
                 <th>Долж</th>
                 {% for com in competence %}<th>{{ com }}</th>{% endfor%}
+                <td></td>
             </tr>
         </thead>
         <tbody>
-           {% for pos in positions %}  <tr>  
+            {% for pos in positions %} 
+            <tr>  
                 <td>{{ loop.index }}</td>
                 <td>{{ pos.2 }}</td>
                 <td>{{ pos.1 }}</td>
-                <td>{{ pos.3 }}</td>
-                <td>{{ pos.4 }}</td>
-                <td>{{ pos.5 }}</td>
-                <td>{{ pos.6 }}</td>
-                <td>{{ pos.7 }}</td>
-                <td>{{ pos.8 }}</td>
-                <td>{{ pos.9 }}</td>
-                <td>{{ pos.10 }}</td>
-                <td>{{ pos.11}}</td>
+                <td>{% if pos.3 != None %} {{ pos.3 }} {% else %} {{ '-' }} {% endif %}</td>
+                <td>{% if pos.4 != None %} {{ pos.4 }} {% else %} {{ '-' }} {% endif %}</td>
+                <td>{% if pos.5 != None %} {{ pos.5 }} {% else %} {{ '-' }} {% endif %}</td>
+                <td>{% if pos.6 != None %} {{ pos.6 }} {% else %} {{ '-' }} {% endif %}</td>
+                <td>{% if pos.7 != None %} {{ pos.7 }} {% else %} {{ '-' }} {% endif %}</td>
+                <td>{% if pos.8 != None %} {{ pos.8 }} {% else %} {{ '-' }} {% endif %}</td>
+                <td>{% if pos.9 != None %} {{ pos.9 }} {% else %} {{ '-' }} {% endif %}</td>
+                <td>{% if pos.10 != None %} {{ pos.10 }} {% else %} {{ '-' }} {% endif %}</td>
+                <td>{% if pos.11 != None %} {{ pos.11 }} {% else %} {{ '-' }} {% endif %}</td>
+                <td>
+                    <form action="/positions" method="post">
+                        <input type="hidden" name="edit" value="edit">
+                        <input type="hidden" name="position_edit" value="{{pos.1}}">
+                        <input type="hidden" name="reports_to_edit" value="{{pos.2}}">
+                        <button type="submit" class="btn btn-primary">Редакт</button>
+                    </form>
+                </td>
             </tr>{% endfor %}
         </tbody>
     </table>   
+    {% endif %}
           
-    
+    <script>
+        function save(){
+        if (check() == true ){
+            show_alert('Отменить изменения?')
+        }
+        else {
+        return false;
+        }
+        }
+
+        function check() {
+            let id = new Array(10);
+            let opt = new Array(10);
+            for(let i = 1; i < 10; i++){
+                id[i] = 'id_' + i;    
+                opt[i] = document.getElementById(id[i]).value;
+            } 
+            let l = opt.length;
+            let c = 1;
+            while (c < l) {
+                for (let b = 1; b < l; b++){
+                    if (opt[c] === opt[b] && b != c && opt[c] != 0 ){
+                        
+                        document.getElementById(id[b]).style.border = "1px solid red";
+                        document.getElementById(id[c]).style.border = "1px solid red";
+                        return false;
+                        break;
+                    }
+                    else {
+                        document.getElementById(id[b]).style.border = "1px solid black";
+                        document.getElementById(id[c]).style.border = "1px solid black";
+                    }
+                } 
+                c ++;
+            }   
+            return true;
+        }
+        </script>
 {% endblock %}

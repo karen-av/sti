@@ -32,7 +32,7 @@ table {
     /*table-layout: fixed;*/
     table-layout: auto;
     border-collapse: collapse;
-    width: 90%;
+    width: 95%;
     margin:auto; 
     text-align:center"
 }
@@ -89,8 +89,8 @@ a {
     color: grey
    }
 
-input{
-width: 10%;
+input {
+    width: 10%;
 }
 
 

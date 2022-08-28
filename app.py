@@ -1,4 +1,6 @@
 
+from ctypes.wintypes import INT
+import re
 from flask import Flask, redirect, render_template, request, session, flash
 from flask_mail import Mail, Message
 from flask_session import Session
@@ -115,18 +117,40 @@ def positions():
         reports_to = request.form.get('reports_to')
         ready_status = request.form.get('ready_status')
         search = request.form.get('search')
-        print(search)
+        position_edit = request.form.get('position_edit')
+        reports_to_edit = request.form.get('reports_to_edit')
+        edit = request.form.get('edit')
+        edit_save = request.form.get('edit_save')
     
-        if not reports_to and not ready_status and not search:
+        if not reports_to and not ready_status and not search and not edit and not edit_save:
             return redirect ('/positions')
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
             connection.autocommit = True  
             with connection.cursor() as cursor:
+                if edit_save:
+                    reports_to = request.form.get('reports_to_edit')
+                    position_edit = request.form.get('position_edit')
+                    comp_1 = request.form.get('comp_1')
+                    comp_2 = request.form.get('comp_2')
+                    comp_3 = request.form.get('comp_3')
+                    comp_4 = request.form.get('comp_4')
+                    comp_5 = request.form.get('comp_5')
+                    comp_6 = request.form.get('comp_6')
+                    comp_7 = request.form.get('comp_7')
+                    comp_8 = request.form.get('comp_8')
+                    comp_9 = request.form.get('comp_9')
+                    print(f'reprts_to - {reports_to}; position_edit - {position_edit}')
+                    cursor.execute("UPDATE positions SET comp_1 = %(comp_1)s, comp_2 = %(comp_2)s, comp_3 = %(comp_3)s, comp_4 = %(comp_4)s, comp_5 = %(comp_5)s, comp_6 = %(comp_6)s, comp_7 = %(comp_7)s, comp_8 = %(comp_8)s, comp_9 = %(comp_9)s WHERE position_pos = %(position_pos)s and reports_pos = %(mail)s", {'comp_1': comp_1, 'comp_2':comp_2, 'comp_3': comp_3, 'comp_4': comp_4, 'comp_5': comp_5, 'comp_6': comp_6, 'comp_7': comp_7, 'comp_8':comp_8, 'comp_9': comp_9, 'position_pos': position_edit, 'mail': reports_to })
+                    flash("Изменения сохранены.")
+                    return redirect('/positions')
+                if edit:
+                    cursor.execute("SELECT * FROM positions WHERE position_pos = %(position_edit)s AND reports_pos = %(reports_to_edit)s", {'position_edit': position_edit, 'reports_to_edit': reports_to_edit})
+                    position_edit = cursor.fetchall()
+                    return render_template('positions.html', position_edit = position_edit, competence = COMPETENCE)
                 if search:
                     cursor.execute("SELECT * FROM positions WHERE reports_pos LIKE %(reports_pos)s ORDER BY reports_pos", {'reports_pos': search})
                     positions = cursor.fetchall()
-                    print(positions)
                     return render_template('positions.html', positions = positions, competence = COMPETENCE)
 
                 if reports_to and not ready_status:
