@@ -7,7 +7,7 @@
 {% block main %}
 
 <div class="route">
-    <a href="/">Главная</a> - Пользователи
+    <a href="/">Главная</a> - Все участники
 </div>
 
 <div class="box">
@@ -70,7 +70,7 @@
 <div style="display:none;" id="filtr" class="filtr">
 {% endif %}
     <form action="/users" method="post" name="sort">
-        
+
         <select id="department" name="department">
             {% if filtr_department %}
             <option  selected value="{{filtr_department}}">{{filtr_department}}</option>
