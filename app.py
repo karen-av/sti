@@ -1,4 +1,5 @@
 
+
 from flask import Flask, redirect, render_template, request, session, flash
 from flask_mail import Mail, Message
 from flask_session import Session
@@ -1387,11 +1388,77 @@ def reset_password():
     else:
         return redirect('/')
 
-@app.route('/summary', methods = ['POST'])
+@app.route('/summary', methods = ['GET', 'POST'])
 @login_required
 def summary():
-    if request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+    if request.method == 'GET' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+        allManagers = []
+        try:
+            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+            connection.autocommit = True  
+            with connection.cursor() as cursor:
+                # Данные все пользователей
+                cursor.execute("SELECT id, name, mail, department, position, reports_to, status FROM users")
+                usersData = cursor.fetchall()
+                #print(usersData)
+
+                for userData in usersData:
+                    #print(f'userData = {userData[6]}')
+                    if userData[6] == 'manager':
+                        # Важнейшие компетенции
+                        cursor.execute("SELECT comp_1, comp_2, comp_3, comp_4, comp_5,comp_6, comp_7, comp_8, comp_9 FROM positions WHERE reports_pos = %(reports_to)s AND position_pos = %(position)s", {'reports_to': userData[5], 'position': userData[4]})
+                        topCompetence = cursor.fetchall()
+                        #print(f'topCompetence - {topCompetence}' )
+                        
+                        # Результаты тестирования
+                        cursor.execute("SELECT reliability, organizational, strengthening, approved, country, clientoority, adoption_of_decisions, effective_communication, management FROM test_results WHERE mail = %(userMail)s", {'userMail': userData[2]})
+                        testResults = cursor.fetchall() 
+                        #print(f'testResults - {testResults}')
+
+                        
+                        if len(testResults) == 0:
+                            testResults.append((0,0,0,0,0,0,0,0,0))
+                        
+                        # общий словарь
+                        summaryDict = {}
+                        for i in range(9):
+                            summaryDict[f'comp_{i+1}'] = (HEADER_LIST_FROM_TEST_SMALL[i], topCompetence[0][i], testResults[0][i])
+                        
+                        # Словарь для сортировки по важности
+                        topCompetenceDict = {}
+                        i = 1
+                        for comp in topCompetence[0]:
+                            topCompetenceDict[f'comp_{i}'] = comp
+                            i = i + 1
+
+                        # Сортировка по важности и запись ключа в новый список
+                        newCompRang = []
+                        notTestResults = 'Результаты'
+                        for comp in topCompetenceDict:
+                            if topCompetenceDict[comp] == None:
+                                notTestResults = 'Нет результатов тестирования'
+                            else:
+                                x = min(topCompetenceDict, key=topCompetenceDict.get)
+                                newCompRang.append(x)
+                                topCompetenceDict[x] = 10
+                        manager = (userData[1], userData[2], summaryDict['comp_1'][0], summaryDict['comp_2'][0], summaryDict['comp_3'][0], summaryDict['comp_4'][0])
+                        allManagers.append(manager)
+                        print(f'userData - {userData};\n\nsummaryDict - {summaryDict};\n\nnewCompRang - {newCompRang}\n\n\n {allManagers}')
+                   
+
+        except Exception as _ex:
+            print("[INFO] Error while working with PostgresSQL", _ex)
+            flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+            return redirect('/')
+        finally:
+            if connection:
+                connection.close()
+                print("[INFO] PostgresSQL connection closed")
+        return render_template('/summary_table_all_managers.html',  allManagers = allManagers)
+
+    elif request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
         userMail = request.form.get('userMail')
+        fromAllTAble = request.form.get('fromAllTable')
         print(f'userMail - {userMail}')
 
         try:
@@ -1448,9 +1515,10 @@ def summary():
             if connection:
                 connection.close()
                 print("[INFO] PostgresSQL connection closed")
-        return render_template('/summary_table.html',  userData = userData, summaryDict = summaryDict, newCompRang = newCompRang, notTestResults = notTestResults)
+        return render_template('/summary_table.html',  userData = userData, summaryDict = summaryDict, newCompRang = newCompRang, notTestResults = notTestResults, fromAllTAble = fromAllTAble)
 
-
+    else:
+        return redirect('/')
 
 #CREATE TABLE users (id INTEGER PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY NOT NULL, department VARCHAR(50), reports_to VARCHAR(50), status VARCHAR(50), position VARCHAR(50), name VARCHAR(50), mail VARCHAR(50) UNIQUE, hash VARCHAR(50));
 #CREATE TABLE users (id INTEGER PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY NOT NULL, department VARCHAR(150), reports_to VARCHAR(150), status VARCHAR(150), position VARCHAR(150), name VARCHAR(150), mail VARCHAR(150) UNIQUE, hash VARCHAR(300), mail_date VARCHAR(50), division VARCHAR(150), branch VARCHAR(150));

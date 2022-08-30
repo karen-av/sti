@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Apology
+{% endblock %}
+
+{% block main %}
+
+
+<div class="route">
+    <a href="/">Главная</a> - <a href="/users">Итоговый список</a> - Сводная
+</div>
+
+
+<table class="table table-striped" style="margin-top: 2%;">
+    <thead>
+        <tr> 
+            <th>Сотрудник</th>
+            <th>Почта</th>
+            <th>Курс 1</th>
+            <th>Курс 2</th>
+            <th>Курс 3</th>
+            <th>Курс 4</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for manager in allManagers %}
+        <tr>
+            {% for row in manager %}
+            <td>{{ row }}</td>
+            {%endfor%}
+            <td>
+                <form action="/summary" method="post">
+                    <input type="hidden" value="{{manager.1}}" name="userMail">
+                    <input type="hidden" value="fromAllTable" name="fromAllTable">
+                    <button class="btn btn-primary" type="submit">Подробнее</button>
+                </form> 
+            </td>
+            
+        </tr> {%endfor%}
+    </tbody>
+        
+</table>
+
+
+
+
+
+{% endblock %}

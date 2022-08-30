@@ -12,9 +12,19 @@
     <button class="btn btn-primary" type="submit">Вернуться к сводной таблице</button>
 </form> 
 {%else%}
+
+{% if fromAllTAble == None %}
 <div class="route">
     <a href="/">Главная</a> - <a href="/users">Все участники</a> - Сводная
 </div>
+{%else%}
+<div class="route">
+    <a href="/">Главная</a> - <a href="/summary">Итоговая список</a> - Сводная
+</div>
+{%endif%}
+
+
+
 <div style="text-align: left; margin-left: 3%;">
     <p>Имя - {{ userData.0.1 }}<br>Почта - {{ userData.0.2 }}<br>Подразделение - {{ userData.0.3 }}<br>Должность - {{ userData.0.4 }}<br>Руководитель - {{ userData.0.5 }}<br>Дата информирования о курсах - {{ userData.0.6 }}</p>
 </div>
@@ -27,7 +37,7 @@
         <tr> 
             <th>Компетенция</th>
             <th>Приоритет<br>Идеальный профиль</th>
-            <th>Результат сотрудника И.Иванов</th>
+            <th>Результат сотрудника</th>
         </tr>
     </thead>
     <tbody>
@@ -50,7 +60,6 @@
             <td>{{ summaryDict[rang][1] }}</td>
             <td>{{ summaryDict[rang][2] }}</td>
         <tr>
-
         {% endif %}
         {%endfor%}
 </table>
@@ -72,6 +81,14 @@
             </div>
             <div><button class="btn btn-primary" id="buttonAddHid" type="submit" style="display:block">Посмотреть результаты дельта Аи</button></div>
        </form> 
+    </div>
+    <div>
+        {% if fromAllTAble == None %}
+        <a href="/users"><button class="btn btn-primary">Назад</button> </a>
+        {%else%}
+        <a href="/summary"><button class="btn btn-primary">Назад</button> </a>
+        {%endif%}
+        
     </div>
 </div>
 
