@@ -32,12 +32,27 @@
     </thead>
     <tbody>
         {% for rang in newCompRang %}
-        <tr>
+        {% if (summaryDict[rang][1] <= 3 and summaryDict[rang][2] >= 71) or (summaryDict[rang][1] <= 6 and summaryDict[rang][1] >= 4 and summaryDict[rang][2] >= 30) and loop.index < 5 %}
+        <tr class="green">
             <td>{{ summaryDict[rang][0] }}</td>
             <td>{{ summaryDict[rang][1] }}</td>
             <td>{{ summaryDict[rang][2] }}</td>
         <tr>
-            {%endfor%}
+        {% elif (summaryDict[rang][1] <= 3 and summaryDict[rang][2] <= 70) or (summaryDict[rang][1] <= 6 and summaryDict[rang][1] >= 4 and summaryDict[rang][2] < 30) and loop.index < 5%}
+        <tr class="red">
+            <td >{{ summaryDict[rang][0] }}</td>
+            <td>{{ summaryDict[rang][1] }}</td>
+            <td>{{ summaryDict[rang][2] }}</td>
+        <tr>
+        {% else %}
+        <tr>
+            <td >{{ summaryDict[rang][0] }}</td>
+            <td>{{ summaryDict[rang][1] }}</td>
+            <td>{{ summaryDict[rang][2] }}</td>
+        <tr>
+
+        {% endif %}
+        {%endfor%}
 </table>
 <div class="box">
     <div>

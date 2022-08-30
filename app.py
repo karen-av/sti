@@ -1393,6 +1393,7 @@ def summary():
     if request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
         userMail = request.form.get('userMail')
         print(f'userMail - {userMail}')
+
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True  
@@ -1400,10 +1401,6 @@ def summary():
                 # Данные пользователя
                 cursor.execute("SELECT id, name, mail, department, position, reports_to, mail_date FROM users WHERE mail = %(mail)s ", {'mail': userMail})
                 userData = cursor.fetchall()
-
-                # Сводные данные
-                #cursor.execute("SELECT  positions.comp_1, positions.comp_2, positions.comp_3, positions.comp_4, positions.comp_5, positions.comp_6, positions.comp_7, positions.comp_8, positions.comp_9, test_results.reliability, test_results.organizational, test_results.strengthening, test_results.approved, test_results.country, test_results.clientoority, test_results.adoption_of_decisions, test_results.effective_communication, test_results.management FROM positions INNER JOIN test_results  ON positions.reports_pos = %(reports_to)s and positions.position_pos = %(position)s and test_results.mail = %(userMail)s", {'reports_to': userInfo[0][5], 'position': userInfo[0][4], 'userMail': userMail})
-                #userData = cursor.fetchall()
 
                 # Важнейшие компетенции
                 cursor.execute("SELECT comp_1, comp_2, comp_3, comp_4, comp_5,comp_6, comp_7, comp_8, comp_9 FROM positions WHERE reports_pos = %(reports_to)s AND position_pos = %(position)s", {'reports_to': userData[0][5], 'position': userData[0][4]})
@@ -1413,17 +1410,13 @@ def summary():
                 cursor.execute("SELECT reliability, organizational, strengthening, approved, country, clientoority, adoption_of_decisions, effective_communication, management FROM test_results WHERE mail = %(userMail)s", {'userMail': userMail})
                 testResults = cursor.fetchall() 
                 
-                
                 if len(testResults) == 0:
                     testResults.append((0,0,0,0,0,0,0,0,0))
-
-                print(f'topCompetence - {topCompetence}\ntestResults- {testResults}\nlen- {len(testResults)}')
                 
                 # общий словарь
                 summaryDict = {}
                 for i in range(9):
                     summaryDict[f'comp_{i+1}'] = (HEADER_LIST_FROM_TEST_SMALL[i], topCompetence[0][i], testResults[0][i])
-                
                 
                 # Словарь для сортировки по важности
                 topCompetenceDict = {}
@@ -1431,24 +1424,20 @@ def summary():
                 for comp in topCompetence[0]:
                     topCompetenceDict[f'comp_{i}'] = comp
                     i = i + 1
-                    
-                print(f"topCompetenceDict -{topCompetenceDict} ")
 
                 # Сортировка по важности и запись ключа в новый список
                 newCompRang = []
                 notTestResults = 'Результаты'
                 for comp in topCompetenceDict:
                     print(topCompetenceDict[comp])
-                    if topCompetenceDict[comp] != None:
+                    if topCompetenceDict[comp] == None:
+                        notTestResults = 'Нет результатов тестирования'
+                    else:
                         x = min(topCompetenceDict, key=topCompetenceDict.get)
                         newCompRang.append(x)
                         topCompetenceDict[x] = 10
-                    else:
-                        notTestResults = 'Нет результатов тестирования'
 
-                print("BBB")
                 # Create table whith course and insert into data
-                
                 print(f'summaryDict {summaryDict};\nnewCompRang - {newCompRang}')
 
         except Exception as _ex:
