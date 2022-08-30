@@ -148,9 +148,13 @@ def positions():
                         return render_template('summary_table.html', user_mail = user_mail[0][0])
                     return redirect('/positions')
                 if edit:
+                    user_name = request.form.get("user_name")
                     cursor.execute("SELECT * FROM positions WHERE position_pos = %(position_edit)s AND reports_pos = %(reports_to_edit)s", {'position_edit': position_edit, 'reports_to_edit': reports_to_edit})
                     position_edit = cursor.fetchall()
-                    return render_template('positions.html', position_edit = position_edit, competence = COMPETENCE, editValue = edit)
+                    if user_name:
+                        return render_template('positions.html', position_edit = position_edit, competence = COMPETENCE, editValue = edit, user_name = user_name)
+                    else:
+                        return render_template('positions.html', position_edit = position_edit, competence = COMPETENCE, editValue = edit)
 
                 
 

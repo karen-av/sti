@@ -16,13 +16,7 @@
     <a href="/">Главная</a> - <a href="/users">Пользователи</a> - Сводная
 </div>
 <div style="text-align: left; margin-left: 3%;">
-
-    <p>Имя - {{ userData.0.1 }}</p>
-    <p>Почта - {{ userData.0.2 }}</p>
-    <p>Подразделение - {{ userData.0.3 }}</p>
-    <p>Должность - {{ userData.0.4 }}</p>
-    <p>Руководитель - {{ userData.0.5 }}</p>
-    <p>Дата информирования о курсах - {{ userData.0.6 }}</p>
+    <p>Имя - {{ userData.0.1 }}<br>Почта - {{ userData.0.2 }}<br>Подразделение - {{ userData.0.3 }}<br>Должность - {{ userData.0.4 }}<br>Руководитель - {{ userData.0.5 }}<br>Дата информирования о курсах - {{ userData.0.6 }}</p>
 </div>
 
 <table class="table table-striped" style="margin-top: 2%;">
@@ -49,6 +43,7 @@
     <div>
         <form action="/positions" method="post">
             <input type="hidden" name="edit" value="editFromUsers">
+            <input type="hidden" name="user_name" value="{{ userData.0.2 }}">
             <input type="hidden" name="position_edit" value="{{userData.0.4}}">
             <input type="hidden" name="reports_to_edit" value="{{userData.0.5 }}">
             <button type="submit" class="btn btn-primary">Редактировать результаты ранжирования</button>

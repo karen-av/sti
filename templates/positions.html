@@ -53,10 +53,14 @@
     <div><button class="btn btn-primary" type="submit" id="button" onclick="return save()">Сохранить</button></div>
     <div><button class="btn btn-primary"  type="reset" onclick="return show_alert('Отменить изменения?')">Сбросить</button></div>
 </form>
-    
-    <dev><a href='/positions'><button class="btn btn-primary" style="border-color: blue;" type="button" onclick="return show_alert('Изменения не будут сохранены. Вы уверены, что хотите вернуться назад?')">Назад</button></a></dev>
+{%if not user_name %}<dev><a href='/positions'><button class="btn btn-primary" style="border-color: blue;" type="button" onclick="return show_alert('Изменения не будут сохранены. Вы уверены, что хотите вернуться назад?')">Назад</button></a></dev>{%endif%}
    <div>
-    
+    {%if user_name %}
+    <form action="/summary" method="post">
+    <input type="hidden" value="{{ user_name }}" name="userMail">
+    <button class="btn btn-primary" type="submit">Вернуться к сводной таблице</button>
+    </form> 
+    {%endif%}
    </div> 
 </div>
 
