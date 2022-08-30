@@ -32,10 +32,10 @@ table {
     /*table-layout: fixed;*/
     table-layout: auto;
     border-collapse: collapse;
-    width: 95%;
+    width: 99%;
     margin:auto; 
     margin-bottom: 1%;
-    text-align:center"
+    text-align:center;
 }
 
 .table-bordered{

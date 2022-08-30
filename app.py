@@ -1496,13 +1496,18 @@ def summary():
                 newCompRang = []
                 notTestResults = 'Результаты'
                 for comp in topCompetenceDict:
-                    print(topCompetenceDict[comp])
+                    
                     if topCompetenceDict[comp] == None:
-                        notTestResults = 'Нет результатов тестирования'
+                        x = comp
+                        newCompRang.append(x)
+                        topCompetenceDict[x] = 10
+
                     else:
                         x = min(topCompetenceDict, key=topCompetenceDict.get)
                         newCompRang.append(x)
                         topCompetenceDict[x] = 10
+                print(topCompetenceDict)
+
 
                 # Create table whith course and insert into data
                 print(f'summaryDict {summaryDict};\nnewCompRang - {newCompRang}')
