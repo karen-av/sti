@@ -70,6 +70,7 @@
 <div style="display:none;" id="filtr" class="filtr">
 {% endif %}
     <form action="/users" method="post" name="sort">
+        
         <select id="department" name="department">
             {% if filtr_department %}
             <option  selected value="{{filtr_department}}">{{filtr_department}}</option>
@@ -77,7 +78,7 @@
             <option> {{ dep.0 }}</option>
             {% endif %} {% endfor %}
             {% else %} 
-            <option disabled selected value="none">Руководитель</option>
+            <option disabled selected value="none">Подразделение</option>
             {% for dep in userDepartment %}
             <option> {{ dep.0 }}</option>
             {% endfor %}
@@ -147,12 +148,23 @@
     <tbody> 
         {% for user in users %}
         <tr> 
-            <td>{{ loop.index }} </td>
+            <td>{{ loop.index }}</td>
             <td>{{ user.1 }}</td>
             <td>{{ user.2 }}</td>
             <td>{{ user.3 }}</td>
             <td>{{ user.4 }}</td>
-            <td>{{ user.5 }}</td>
+          
+                <td>
+                    {% if user.3 in 'manager' %}
+                    <form action="/summary" method="post">
+                        <input type="hidden" value="{{ user.6 }}" name="userMail">
+                        <button class="btn btn-primary" type="submit">{{ user.5 }}</button>
+                    </form> 
+                    {%  else %}
+                    {{ user.5 }}
+                    {% endif %}
+                
+                </td>
             <td>{{ user.6 }}</td>
             <td>
                 <form action="/edit" method="post">

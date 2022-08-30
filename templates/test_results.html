@@ -10,7 +10,6 @@
     <a href="/">Главная</a> - Результаты тестирования
 </div>
 
-{% if testResults %}
 <div class="box">
     <div>
         <form action='/test_results' method="post" name="listSize">
@@ -23,6 +22,12 @@
             <input type="hidden" value="all" name="listSize">
             <button class="btn btn-primary" type="submit">Полный список</button>
         </form>
+    </div>
+    <div>
+        <form action='/test_results' method="post" name="search">
+            <div><input style="width: auto" autocomplete="off" id="search" name="search"  placeholder="почта для поиска" type="email"  maxlength="30" required></div>
+            <div><button class="btn btn-primary" id="buttonAddHid" type="submit" style="display:block">Поиск</button></div>
+        </form> 
     </div>
 </div>
 <table class="table table-striped" style="table-layout: auto">
@@ -43,22 +48,13 @@
         </tr>{% endfor %}
     </tbody>
 </table>
-{%else%}
-<div class="box">
-    <div>
-        <form action='/test_results' method="post" name="listSize">
-            <input type="hidden" value="small" name="listSize">
-            <button class="btn btn-primary" type="submit">Сокращенный список</button>
-        </form>
-    </div>
-    <div>
-        <form action='/test_results' method="post" name="listSize">
-            <input type="hidden" value="all" name="listSize">
-            <button class="btn btn-primary" type="submit">Полный список</button>
-        </form>
-    </div>
-</div>
+{%if from_summary %}
+<form action="/summary" method="post">
+    <input type="hidden" value="{{ from_summary }}" name="userMail">
+    <button class="btn btn-primary" type="submit">Вернуться к сводной таблице</button>
+</form> 
 {%endif%}
+
 
 
 {% endblock%}

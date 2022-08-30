@@ -41,6 +41,7 @@
             <td><input class="input edit" autocomplete="off" id='id_8' name="comp_8"  value="{{ pos.10 }}" placeholder="{{ pos.10 }}" type="number" min="1" max="9" required onchange='check()'></td>
             <td><input class="input edit" autocomplete="off" id='id_9' name="comp_9"  value="{{ pos.11 }}" placeholder="{{ pos.11 }}" type="number" min="1" max="9" required onchange='check()'></td>
             <td>
+                <input type="hidden" name="edit" value="{{editValue}}">
                 <input type="hidden" name="edit_save" value="edit_save">
                 <input type="hidden" name="position_edit" value="{{ pos.1 }}">
                 <input type="hidden" name="reports_to_edit" value="{{ pos.2 }}">
@@ -54,7 +55,11 @@
 </form>
     
     <dev><a href='/positions'><button class="btn btn-primary" style="border-color: blue;" type="button" onclick="return show_alert('Изменения не будут сохранены. Вы уверены, что хотите вернуться назад?')">Назад</button></a></dev>
+   <div>
+    
+   </div> 
 </div>
+
 
 {% else %}
 <div class="route">
