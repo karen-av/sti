@@ -1529,7 +1529,7 @@ def summary():
             connection.autocommit = True  
             with connection.cursor() as cursor:
                 # Данные пользователя
-                cursor.execute("SELECT id, name, mail, department, position, reports_to, mail_date FROM users WHERE mail = %(mail)s ", {'mail': userMail})
+                cursor.execute("SELECT id, name, mail, department, position, reports_to, mail_date, accept_rules FROM users WHERE mail = %(mail)s ", {'mail': userMail})
                 userData = cursor.fetchall()
 
                 # Важнейшие компетенции

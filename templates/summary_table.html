@@ -19,14 +19,16 @@
 </div>
 {%else%}
 <div class="route">
-    <a href="/">Главная</a> - <a href="/summary">Итоговая список</a> - Сводная
+    <a href="/">Главная</a> - <a href="/summary">Итоговый список</a> - Сводная
 </div>
 {%endif%}
 
 
 
 <div style="text-align: left; margin-left: 3%;">
-    <p>Имя - {{ userData.0.1 }}<br>Почта - {{ userData.0.2 }}<br>Подразделение - {{ userData.0.3 }}<br>Должность - {{ userData.0.4 }}<br>Руководитель - {{ userData.0.5 }}<br>Дата информирования о курсах - {{ userData.0.6 }}</p>
+    <p>Имя - {{ userData.0.1 }}<br>Почта - {{ userData.0.2 }}<br>Подразделение - {{ userData.0.3 }}<br>
+    Должность - {{ userData.0.4 }}<br>Руководитель - {{ userData.0.5 }}<br>
+    Дата информирования о курсах - {% if userData.0.6 is none %} - {% else %}{{ userData.0.6 }}{% endif %}<br>Дата принятия условий - {% if userData.0.7 is none %} - {% else %}{{ userData.0.7 }}{% endif %}</p>
 </div>
 
 <table class="table table-striped" style="margin-top: 2%;">
