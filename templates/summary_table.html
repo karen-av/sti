@@ -81,12 +81,10 @@
         </form>
     </div>
     <div>
-        <form action='/test_results' method="post" name="search">
-            <div>
-                <input  name="search" type="hidden" value="{{ userData.0.2 }}">
-                <input name="fromSummary" type="hidden" value="{{ userData.0.2 }}">
-            </div>
-            <div><button class="btn btn-primary" id="buttonAddHid" type="submit" style="display:block">Посмотреть результаты дельта Аи</button></div>
+        <form action='/test_results' method="post" name="search">    
+            <input  name="search" type="hidden" value="{{ userData.0.2 }}">
+            <input name="fromSummary" type="hidden" value="{{ userData.0.2 }}">
+            <button class="btn btn-primary" type="submit" >Посмотреть результаты дельта Аи</button>
        </form> 
     </div>
     <div>
@@ -95,8 +93,8 @@
         {%else%}
         <a href="/summary"><button class="btn btn-primary">Назад</button> </a>
         {%endif%}
-        
     </div>
+    <div></div>
 </div>
 
 {%endif%}
