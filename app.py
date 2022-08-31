@@ -1085,13 +1085,18 @@ def file_test():
 @app.route('/mail_heads', methods = ['GET', 'POST'])
 @login_required
 def mail_heads():
+    # создаем списки и счетчики отправленных и неотправленных сообщений
     notSendList = []
     counterSend = 0
     counterNotSend = 0
+    # Статусы для фильтра 
     readyStatusList = ['Все', 'Отправлено', 'Не отправлено']
+    # Флаг для выбора пути. Одно письмо, всем или токо тем, кто еще не получал приглашение
     flag  = request.form.get('flag')
 
+    
     if request.method == 'GET' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+        # Выбираем все пользователей со статусом HEAD  и все почты для поиска
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True
@@ -1108,13 +1113,15 @@ def mail_heads():
             if connection:
                 connection.close()
                 print(f"[INFO] PostgresSQL nonnection closed")
-
+        
         return render_template('mail.html', users = users, headList = headList, readyStatusList = readyStatusList)
 
     elif request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
         reports_to = request.form.get('reports_to')
         ready_status = request.form.get('ready_status')
         search = request.form.get('search')
+
+        # Данные для фитра и поиска
         if reports_to or ready_status or search:
             try:
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
@@ -1288,6 +1295,7 @@ def mail_heads():
             return render_template('mail.html', users = users, notSendList = notSendList)
 
     elif request.method == 'POST' and session['user_status'] == HEAD:
+        # сообщение от пользователя в конце опросника
         if flag == 'mail_from_head_end':
             message_from_head = request.form.get('messege_from_head')
             if message_from_head:  
@@ -1308,7 +1316,8 @@ def mail_heads():
             else:
                 flash(f"Вы попытались отправить пустое сообщение.\nПожалуйста, введите текст сообщение и повторите попытку.")
                 return render_template('theEnd.html')
-        
+
+        # сообщение от пользователя в начале опросника
         elif flag == 'mail_from_head_start':
             message_from_head = request.form.get('messege_from_head')
             if message_from_head:  
@@ -1337,7 +1346,7 @@ def mail_heads():
 def reset_password():
     if request.method == 'GET':
         return render_template('/reset_password.html')
-    
+
     elif request.method == 'POST':
         user_name = request.form.get('username')
         if user_name:
@@ -1415,7 +1424,7 @@ def summary():
                         testResults = cursor.fetchall() 
                         #print(f'testResults - {testResults}')
 
-                        
+                        # Если нет результатов тестирования
                         if len(testResults) == 0:
                             testResults.append((0,0,0,0,0,0,0,0,0))
                         
@@ -1434,16 +1443,40 @@ def summary():
                         # Сортировка по важности и запись ключа в новый список
                         newCompRang = []
                         notTestResults = 'Результаты'
+
+                        # Если есть неранжированные компетенции, то ранжируем их цифрой 10
                         for comp in topCompetenceDict:
                             if topCompetenceDict[comp] == None:
-                                notTestResults = 'Нет результатов тестирования'
+                                topCompetenceDict[comp] = 0
+
+                        # Добавляем в список компетенции по возростанию 
+                        for comp in topCompetenceDict:
+                            x = min(topCompetenceDict, key=topCompetenceDict.get)
+                            newCompRang.append(x)
+                            topCompetenceDict[x] = 10
+
+                        # Список по конкретному пользователю
+                        manager = [userData[1], userData[2]]
+                        # Сравнить первые 5 компетенций их с результатами тестов
+                        for i in range(5):
+                            # Сравнить ранж с результатом теста
+                            if summaryDict[newCompRang[i]][1] == None:
+                                manager.append('-')
+                            elif summaryDict[newCompRang[i]][1] <= 3 and summaryDict[newCompRang[i]][1] >= 1 and summaryDict[newCompRang[i]][2] <= 70:
+                                manager.append(summaryDict[newCompRang[i]][0])
+                            elif summaryDict[newCompRang[i]][1] <= 6 and summaryDict[newCompRang[i]][1] >= 4 and summaryDict[newCompRang[i]][2] <= 30:
+                                manager.append(summaryDict[newCompRang[i]][0])
                             else:
-                                x = min(topCompetenceDict, key=topCompetenceDict.get)
-                                newCompRang.append(x)
-                                topCompetenceDict[x] = 10
-                        manager = (userData[1], userData[2], summaryDict['comp_1'][0], summaryDict['comp_2'][0], summaryDict['comp_3'][0], summaryDict['comp_4'][0])
+                                manager.append('-')
+                            
+                                
+
+                      
+                        # Список списоков
                         allManagers.append(manager)
-                        print(f'userData - {userData};\n\nsummaryDict - {summaryDict};\n\nnewCompRang - {newCompRang}\n\n\n {allManagers}')
+                        
+                        
+                        #print(f'userData - {userData};\n\nsummaryDict - {summaryDict};\n\nnewCompRang - {newCompRang}\n\n\n {allManagers}')
                    
 
         except Exception as _ex:
@@ -1454,13 +1487,17 @@ def summary():
             if connection:
                 connection.close()
                 print("[INFO] PostgresSQL connection closed")
+
+        # Передаем данные для создания страницы        
         return render_template('/summary_table_all_managers.html',  allManagers = allManagers)
 
     elif request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+        # почта запрашиваемого пользователя
         userMail = request.form.get('userMail')
+        # Если запрос пришел из общей сводной таблицы
         fromAllTAble = request.form.get('fromAllTable')
-        print(f'userMail - {userMail}')
 
+        # Подключение к базе данных
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True  
@@ -1477,6 +1514,7 @@ def summary():
                 cursor.execute("SELECT reliability, organizational, strengthening, approved, country, clientoority, adoption_of_decisions, effective_communication, management FROM test_results WHERE mail = %(userMail)s", {'userMail': userMail})
                 testResults = cursor.fetchall() 
                 
+                # Если нет результатов тестирования
                 if len(testResults) == 0:
                     testResults.append((0,0,0,0,0,0,0,0,0))
                 
@@ -1495,18 +1533,17 @@ def summary():
                 # Сортировка по важности и запись ключа в новый список
                 newCompRang = []
                 notTestResults = 'Результаты'
-                for comp in topCompetenceDict:
-                    
-                    if topCompetenceDict[comp] == None:
-                        x = comp
-                        newCompRang.append(x)
-                        topCompetenceDict[x] = 10
 
-                    else:
-                        x = min(topCompetenceDict, key=topCompetenceDict.get)
-                        newCompRang.append(x)
-                        topCompetenceDict[x] = 10
-                print(topCompetenceDict)
+                # Если есть неранжированные компетенции, то ранжируем их цифрой 10
+                for comp in topCompetenceDict:
+                    if topCompetenceDict[comp] == None:
+                        topCompetenceDict[comp] = 0
+
+                # Добавляем в список компетенции по возростанию 
+                for comp in topCompetenceDict:
+                    x = min(topCompetenceDict, key=topCompetenceDict.get)
+                    newCompRang.append(x)
+                    topCompetenceDict[x] = 10
 
 
                 # Create table whith course and insert into data
@@ -1520,6 +1557,7 @@ def summary():
             if connection:
                 connection.close()
                 print("[INFO] PostgresSQL connection closed")
+        # Создаем страницу       
         return render_template('/summary_table.html',  userData = userData, summaryDict = summaryDict, newCompRang = newCompRang, notTestResults = notTestResults, fromAllTAble = fromAllTAble)
 
     else:

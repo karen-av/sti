@@ -42,11 +42,10 @@
     </thead>
     <tbody>
     {% for rang in newCompRang %}{{loop.index}}
-        {% if summaryDict[rang][1] 
-            is none %}
+        {% if summaryDict[rang][1] is none %}
         <tr>
             <td>{{ summaryDict[rang][0] }}</td>
-            <td>{{ summaryDict[rang][1] }}</td>
+            <td>0</td>
             <td>{{ summaryDict[rang][2] }}</td>
         <tr>
         {% elif  (summaryDict[rang][1] <= 3 and summaryDict[rang][2] >= 71) or (summaryDict[rang][1] <= 6 and summaryDict[rang][1] >= 4 and summaryDict[rang][2] >= 30) and loop.index <= 5 %}
