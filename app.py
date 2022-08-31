@@ -82,6 +82,8 @@ def index():
         return render_template('index.html')
     elif session["user_status"] == HEAD:
         return render_template("/instruction_for_head.html")
+    elif session["user_status"] == MANAGER:
+        return render_template("/instruction_for_manager.html")
     else:
         return redirect("/login")
 
@@ -264,9 +266,23 @@ def users():
                     connection.close()
                     print("[INFO] PostgresSQL connection closed")
         
-        else:
-            return redirect("/")
-
+        elif session['user_status'] == MANAGER:
+            print(session['user_status'])
+            today = datetime.date.today()
+            try:
+                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+                connection.autocommit = True  
+                with connection.cursor() as cursor:
+                    cursor.execute("UPDATE users SET acept_rules = %(today)s WHERE mail = %(mail)s", {'mail': session['user_mail'], 'today': today})
+            except Exception as _ex:
+                print("[INFO] Error while working with PostgresSQL", _ex)
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                return redirect('/')
+            finally:
+                if connection:
+                    connection.close()
+                    print("[INFO] PostgresSQL connection closed")
+            return render_template("/instruction_for_manager.html", today=today)
 
     elif request.method == "POST":
         if session["user_status"] == ADMIN or session["user_status"] == COACH:
@@ -440,8 +456,6 @@ def users():
                     connection.close()
                     print("[INFO] PostgresSQL connection closed")
 
-        else:
-            return redirect("/")
 
     else:
         return redirect('/')
@@ -1258,7 +1272,7 @@ def mail_heads():
                 connection.autocommit = True
                 with connection.cursor() as cursor:
                     # default value mail_date is -
-                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s and mail_date = '-'", {'status':HEAD})
+                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s and mail_date IS NULL", {'status':HEAD})
                     users = cursor.fetchall()
                     for singleUser in users:
                         try:
@@ -1342,6 +1356,7 @@ def mail_heads():
     else:
         return redirect('/')
 
+
 @app.route('/reset_password', methods = ['GET', 'POST'])
 def reset_password():
     if request.method == 'GET':
@@ -1396,6 +1411,7 @@ def reset_password():
 
     else:
         return redirect('/')
+
 
 @app.route('/summary', methods = ['GET', 'POST'])
 @login_required
@@ -1563,8 +1579,247 @@ def summary():
     else:
         return redirect('/')
 
+
+@app.route('/mail_manager', methods = ['GET', 'POST'])
+@login_required
+def mail_manager():
+    # создаем списки и счетчики отправленных и неотправленных сообщений
+    notSendList = []
+    counterSend = 0
+    counterNotSend = 0
+    # Статусы для фильтра 
+    readyStatusList = ['Все', 'Отправлено', 'Не отправлено']
+    # Флаг для выбора пути. Одно письмо, всем или токо тем, кто еще не получал приглашение
+    flag  = request.form.get('flag')
+
+    if request.method == 'GET' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+        # Выбираем все пользователей со статусоv MANAGER  и все почты для поиска
+        try:
+            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+            connection.autocommit = True
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status': MANAGER})
+                users = cursor.fetchall()
+                cursor.execute("SELECT DISTINCT mail FROM users WHERE status = %(status)s ORDER BY mail", {'status': MANAGER})
+                headList = cursor.fetchall()
+        except Exception as _ex:
+            print(f'[INFO] Error while working PostgresSQL', _ex)
+            flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+            return redirect('/')
+        finally:
+            if connection:
+                connection.close()
+                print(f"[INFO] PostgresSQL nonnection closed")
+        
+        return render_template('mail_manager.html', users = users, headList = headList, readyStatusList = readyStatusList)
+
+    elif request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+        reports_to = request.form.get('reports_to')
+        ready_status = request.form.get('ready_status')
+        search = request.form.get('search')
+
+        # Данные для фитра и поиска
+        if reports_to or ready_status or search:
+            try:
+                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+                connection.autocommit = True
+                with connection.cursor() as cursor:
+                    
+                    cursor.execute("SELECT mail FROM users WHERE status = %(status)s ORDER BY mail", {'status': MANAGER})
+                    headList = cursor.fetchall()
+
+                    if reports_to and not ready_status:
+                        cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s  and mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to': reports_to})
+                        users = cursor.fetchall()
+                    elif ready_status and not reports_to:
+                        if ready_status == 'Отправлено':
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date NOT LIKE '-' ORDER BY id", {'status':MANAGER})
+                            users = cursor.fetchall()
+                        elif ready_status == 'Не отправлено':
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date = '-' ORDER BY id", {'status':MANAGER})
+                            users = cursor.fetchall()
+                        else:
+                            return redirect('/mail_manager')
+                    elif ready_status and reports_to:
+                        if ready_status == 'Отправлено':
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date NOT LIKE '-' AND mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to':reports_to})
+                            users = cursor.fetchall()
+                        elif ready_status == 'Не отправлено':
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date = '-' AND mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to':reports_to})
+                            users = cursor.fetchall()
+                        else:
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s and mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to': reports_to})
+                            users = cursor.fetchall()
+                    elif search:
+                        cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s and mail = %(search)s ORDER BY id", {'status':MANAGER, 'search': search})
+                        users = cursor.fetchall()
+        
+            except Exception as _ex:
+                print(f'[INFO] Error while working PostgresSQL', _ex)
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                return redirect('/mail_manager')            
+            finally:
+                if connection:
+                    connection.close()
+                    print("[INFO] PostgresSQL nonnection closed")
+
+            return render_template('mail_manager.html', users = users, headList = headList, readyStatusList = readyStatusList, reports_to_query = reports_to, ready_status_query = ready_status)        
+               
+         # if single send mode
+        if flag == 'single':
+            user_name = request.form.get('user_name')
+            user_mail = request.form.get('user_mail')
+            try:
+                # create date, password and message
+                today = datetime.date.today()
+                user_password = createPassword()
+                hash = generate_password_hash(user_password, "pbkdf2:sha256")
+                msg = Message('From STI-Partners', recipients=[user_mail])
+                
+                msg.body = render_template("to_manager_email.txt", user_name = user_name, user_mail = user_mail, user_password = user_password)
+                msg.html = render_template("to_manager_email.html", user_name = user_name, user_mail = user_mail, user_password = user_password)
+                mail.send(msg)
+    
+                # update database
+                try:
+                    connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+                    connection.autocommit = True
+                    with connection.cursor() as cursor:
+                        cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':user_mail})
+                except Exception as _ex:
+                    print(f'[INFO] Error while working PostgresSQL', _ex)
+                    flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                    return redirect('/')
+                    
+                finally:
+                    if connection:
+                        connection.close()
+                        print("[INFO] PostgresSQL nonnection closed")
+                flash(f'Приглашение отправлено')
+                print(f'[INFO] Message has bin sent via mail sender.')
+                return redirect('/mail_manager')
+
+            except Exception as _ex:
+                flash("Сообщение не отправлено. Проверьте коректно ли указана электронная почта.")
+                print(f'[INFO] Error while working mail sender', _ex)
+                return redirect('/mail_manager')
+
+        elif flag == 'all_invite':
+            today = today = datetime.date.today()
+            try: 
+                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+                connection.autocommit = True
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status':MANAGER})
+                    users = cursor.fetchall()
+                    for singleUser in users:
+                        try:
+                            user_password = createPassword()
+                            hash  = generate_password_hash(user_password, "pbkdf2:sha256")
+                            msg = Message("From STI-Partners", recipients=[singleUser[5]])
+                            msg.body = render_template("to_manager_email.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
+                            msg.html = render_template('to_manager_email.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
+                            mail.send(msg)
+                            counterSend = counterSend + 1
+                            cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
+                            print(f'[INFO] Message has bin sent via mail sender.')
+                        except Exception as _ex:
+                            notSendList.append(singleUser)
+                            counterNotSend = counterNotSend + 1 
+                            print(f'[INFO] Error while working mail sender:', _ex)
+                        
+                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status':MANAGER})
+                    users = cursor.fetchall()
+                            
+            except Exception as _ex:
+                print(f'[INFO] Error while working PostgresSQL', _ex)
+                x = 1
+                notSendList.append(singleUser)
+                counterNotSend = counterNotSend + 1
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                return redirect('/')
+                 
+            finally:
+                if connection:
+                    connection.close()
+                    print(f"[INFO] PostgresSQL nonnection closed")
+
+            flash(f'Приглашение отправлено {counterSend}. Не удалось отправить {counterNotSend} сообщений.')
+            return render_template('mail_manager.html', users = users, notSendList = notSendList)
+
+        elif flag == 'has_not_invite':
+            today = today = datetime.date.today()
+            try: 
+                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+                connection.autocommit = True
+                with connection.cursor() as cursor:
+                    # default value mail_date is -
+                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s and mail_date IS NULL", {'status':MANAGER})
+                    users = cursor.fetchall()
+                    for singleUser in users:
+                        try:
+                            user_password = createPassword()
+                            hash  = generate_password_hash(user_password, "pbkdf2:sha256")
+                            msg = Message("From STI-Partners", recipients=[singleUser[5]])
+                            msg.body = render_template("to_manager_email.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
+                            msg.html = render_template('to_manager_email.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
+                            mail.send(msg)
+                            counterSend = counterSend + 1
+                            cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
+                            print(f'[INFO] Message has bin sent via mail sender.')
+                        except Exception as _ex:
+                            notSendList.append(singleUser)
+                            counterNotSend = counterNotSend + 1 
+                            print(f'[INFO] Error while working mail sender:', _ex)
+
+                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status':MANAGER})
+                    users = cursor.fetchall()
+
+            except Exception as _ex:
+                print(f'[INFO] Error while working PostgresSQL:', _ex)
+                x = 1
+                notSendList.append(singleUser)
+                counterNotSend = counterNotSend + 1 
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                return redirect('/')
+            finally:
+                if connection:
+                    connection.close()
+                    print(f"[INFO] PostgresSQL nonnection closed")
+
+            flash(f'Приглашение отправлено {counterSend}. Не удалось отправить {counterNotSend} сообщений.')
+            return render_template('mail_manager.html', users = users, notSendList = notSendList)
+
+    elif request.method == 'POST' and session['user_status'] == MANAGER:
+        # сообщение от пользователя в конце опросника
+        # сообщение от пользователя в начале опросника
+        if flag == 'mail_from_manager_start':
+            message_from_manager = request.form.get('messege_from_manager')
+            if message_from_manager:  
+                try:
+                    head_mail = session['user_mail']
+                    head_name = session['user_name']
+                    msg = Message("From Burusan's project", recipients=[HEAD_COACH_EMAIL])
+                    msg.body = render_template("from_manager_email.txt", head_name = head_name, head_mail = head_mail, message_from_head = message_from_manager)
+                    msg.html = render_template('from_manager_email.html', head_name = head_name, head_mail = head_mail, message_from_head = message_from_manager)
+                    mail.send(msg)
+                    print(f'[INFO] Message has bin sent via mail sender.')
+                    flash(f"Сообщение отправлено. Спасибо!")
+                    return redirect('/')
+                except Exception as _ex:
+                    print(f'[INFO] Error while working mail sender:', _ex)
+                    flash(f"В процессе отправки сообщения произошла ошибка.\nПожалуйста, обновите страницу и повторите попытку.")
+                    return redirect('/')
+            else:
+                flash(f"Вы попытались отправить пустое сообщение. Пожалуйста, введите текст сообщение и повторите попытку.")
+                return redirect('/')
+                
+    else:
+        return redirect('/')
+
+
 #CREATE TABLE users (id INTEGER PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY NOT NULL, department VARCHAR(50), reports_to VARCHAR(50), status VARCHAR(50), position VARCHAR(50), name VARCHAR(50), mail VARCHAR(50) UNIQUE, hash VARCHAR(50));
-#CREATE TABLE users (id INTEGER PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY NOT NULL, department VARCHAR(150), reports_to VARCHAR(150), status VARCHAR(150), position VARCHAR(150), name VARCHAR(150), mail VARCHAR(150) UNIQUE, hash VARCHAR(300), mail_date VARCHAR(50), division VARCHAR(150), branch VARCHAR(150));
+#CREATE TABLE users (id INTEGER PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY NOT NULL, department VARCHAR(150), reports_to VARCHAR(150), status VARCHAR(150), position VARCHAR(150), name VARCHAR(150), mail VARCHAR(150) UNIQUE, hash VARCHAR(300), mail_date VARCHAR(50), division VARCHAR(150), branch VARCHAR(150), acept_rules VARCHAR(50));
 #CREATE TABLE positions (ID INTEGER NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, position_pos VARCHAR(50), reports_pos VARCHAR(50), comp_1 INTEGER, comp_2 INTEGER, comp_3 INTEGER, comp_4 INTEGER, comp_5 INTEGER, comp_6 INTEGER, comp_7 INTEGER, comp_8 INTEGER, comp_9 INTEGER);
 #CREATE TABLE test_results (ID INTEGER NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, name_test VARCHAR(50), mail VARCHAR(50), reliability INTEGER,	discipline INTEGER,	executive INTEGER,	responsibility INTEGER,	resolved INTEGER,	organizational INTEGER,	software INTEGER,	adaptation INTEGER,	planning INTEGER,	page INTEGER,	strengthening INTEGER,	building_on_achievements INTEGER,	building_for_development INTEGER,	innovation INTEGER,	approved INTEGER,	loyalty INTEGER,	currency INTEGER,	country INTEGER,	preparedness_for_compromise INTEGER,	cooperation INTEGER,	openness INTEGER,	openness_of_feedback INTEGER,	clientoority INTEGER,	customer_needs_orientation INTEGER,	partnership INTEGER,	adoption_of_decisions INTEGER,	systemic_thinking INTEGER,	business INTEGER,	forward_thinking INTEGER,	effective_communication INTEGER,	clean_communication INTEGER,	impunity_and_influence INTEGER,	negotiations INTEGER,	cross_functional_interaction INTEGER,	informal_leadership INTEGER,	management INTEGER,	implementation_management INTEGER,	motivation_of_subordinates INTEGER,	organization_of_work INTEGER,	change_management INTEGER,	development_of_subordinates INTEGER, command_management INTEGER);
 #INSERT INTO test_results (mail , reliability , discipline , executive , responsibility , resolved , organizational , software , adaptation , planning , page , strengthening  , building_on_achievements  , building_for_development  , innovation  , approved  , loyalty  , currency  , country  , preparedness_for_compromise  , cooperation  , openness  , openness_of_feedback  , clientoority  , customer_needs_orientation  , partnership  , adoption_of_decisions  , systemic_thinking  , business  , forward_thinking  , effective_communication  , clean_communication  , impunity_and_influence  , negotiations  , cross_functional_interaction  , informal_leadership  , management  , implementation_management  , motivation_of_subordinates  , organization_of_work  , change_management  , development_of_subordinates  , command_management ) VALUES ('123@ed.er1' , 4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,3,3,3,34,4,4,4,44,4,4,4,4,4,44);

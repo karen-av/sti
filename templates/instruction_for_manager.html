@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Instruction
+{% endblock %}
+
+{% block main %}
+
+<head>
+    <style>
+        div {
+        text-align: left;
+        margin-top: 20px;
+        
+        }
+
+        .red {
+        color: red;
+        }
+        
+        p {
+        margin-top: 0px;
+        margin-bottom: 1%;
+        text-align: justify;
+        font-size: 150%;
+        }
+
+        .no_mar_bot {
+            margin-bottom: 0;
+        }
+
+        table {
+        text-align: center;
+        font-size: 150%
+        }
+        .instr{
+        margin-top: 20px;
+        margin-bottom: 20px;
+        }
+    </style>
+</head>
+{% if today %}
+
+Спасибо!
+
+{% else %}
+<div style="width: 95%; margin: auto;">
+<p>Для успешного функционирования проекта по обучению сотрудников back-office, партнером Borusan Cat Казахстан в области оценки и развития персонала, компанией STI, была разработана специальная продолжительная программа, которая включает в себя следующие этапы:</p>
+
+
+<div>
+    <p><b>Оценка прогресса развития компетенций сотрудников back-office.</b> Оценку знаний сотрудников будет проводить STI в формате итогового онлайн теста.
+        Оценку навыков будет проводить руководитель через наблюдение за сотрудником с использованием чек-листов «Поведенческие индикаторы» по компетенциям (чек-листы будут предоставлены STI)</p>
+</div>
+<div>
+    <form action="/mail_manager" method="post" onsubmit="return show_alert('Отправить сообщение?')">
+        <input type="hidden" value="mail_from_manager_start" name ="flag">
+        <label for="exampleFormControlTextarea1" class="form-label"><p>Если у Вас остались вопросы, Вы можете связаться с нами через форму ниже.<br>Мы ответим в течение дня обращения или на следующий день.</p></label>
+        <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" name="messege_from_manager"></textarea>
+        <button class="btn btn-primary" type="submit" >Отправить сообщение</button>
+    </form>
+</div>
+
+<p style="margin-top: 40px;"><a href="/users"><button class="btn btn-primary" type="submit" id="button" style="width: 100%;">Прочитали и согласны продлжить? Надмите тут.</button></a></p>
+</div>
+{% endif %}
+
+{% endblock %}
