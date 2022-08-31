@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Информирование
+{% endblock %}
+
+{% block main %}
+<div class="route">
+    <a href="/">Главная</a> - Результат информирование сотрудников
+</div>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>N</th>
+            <th>Подразделение</th>
+            <th>Email руководителя</th>
+            <th>Статус</th>
+            <th>Должность</th>
+            <th>ФИО</th>
+            <th>Почта</th>
+            <th>Дата принятия условий</th>
+        </tr>
+    </thead>
+    {% for user in users %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            {% for u in user %}
+            <td>{% if u is none%} - {%else%} {{ u }} {%endif%}</td>
+            {% endfor %}
+        </tr>
+    {%endfor%}
+    <tbody>
+
+    </tbody>
+</table>
+
+{%endblock%}
