@@ -1468,7 +1468,6 @@ def summary():
 
                         # Сортировка по важности и запись ключа в новый список
                         newCompRang = []
-                        notTestResults = 'Результаты'
 
                         # Если есть неранжированные компетенции, то ранжируем их цифрой 10
                         for comp in topCompetenceDict:
@@ -1558,7 +1557,6 @@ def summary():
 
                 # Сортировка по важности и запись ключа в новый список
                 newCompRang = []
-                notTestResults = 'Результаты'
 
                 # Если есть неранжированные компетенции, то ранжируем их цифрой 10
                 for comp in topCompetenceDict:
@@ -1584,7 +1582,7 @@ def summary():
                 connection.close()
                 print("[INFO] PostgresSQL connection closed")
         # Создаем страницу       
-        return render_template('/summary_table.html',  userData = userData, summaryDict = summaryDict, newCompRang = newCompRang, notTestResults = notTestResults, fromAllTAble = fromAllTAble)
+        return render_template('/summary_table.html',  userData = userData, summaryDict = summaryDict, newCompRang = newCompRang, fromAllTAble = fromAllTAble)
 
     else:
         return redirect('/')
