@@ -919,6 +919,7 @@ def file():
 @login_required
 def test_results():
     if request.method == 'GET' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+        listSize = 'small'
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True
@@ -933,7 +934,7 @@ def test_results():
             if connection:
                 connection.close()
                 print("[INFO] PostgraseSQL connection closed")  
-        return render_template('/test_results.html', testResults = testResults, headerList = HEADER_LIST_FROM_TEST_SMALL)
+        return render_template('/test_results.html', testResults = testResults, headerList = HEADER_LIST_FROM_TEST_SMALL, listSize = listSize)
     
 
     if request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
@@ -957,7 +958,7 @@ def test_results():
                 if connection:
                     connection.close()
                     print("[INFO] PostgraseSQL connection closed")   
-            return render_template('/test_results.html', testResults = testResults, headerList = HEADER_LIST_FROM_TEST)
+            return render_template('/test_results.html', testResults = testResults, headerList = HEADER_LIST_FROM_TEST, listSize = listSize)
         
         elif listSize == 'small':
             # подключаемся к базе и передаем на страницу все результатьы тестов пользователей
@@ -975,10 +976,9 @@ def test_results():
                 if connection:
                     connection.close()
                     print("[INFO] PostgraseSQL connection closed")  
-            return render_template('/test_results.html', testResults = testResults, headerList = HEADER_LIST_FROM_TEST_SMALL)
+            return render_template('/test_results.html', testResults = testResults, headerList = HEADER_LIST_FROM_TEST_SMALL, listSize = listSize)
 
         elif user_mail:
-            print(user_mail)
             # подключаемся к базе и передаем на страницу все результатьы тестов пользователей
             try:
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)

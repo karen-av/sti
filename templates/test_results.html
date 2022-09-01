@@ -6,6 +6,26 @@
 
 {% block main %}
 
+<head>
+{% if listSize %}
+    {% if listSize == 'small' %} 
+       <style>
+        #small{
+        text-decoration: underline;
+        }
+        </style> 
+    {% elif listSize == 'all' %}
+    <style>
+        #all{
+        text-decoration: underline;
+        }
+    </style> 
+    {%endif%}
+{%endif%}
+</head>
+
+
+
 <div class="route">
     <a href="/">Главная</a> - Результаты тестирования
 </div>
@@ -14,13 +34,13 @@
     <div>
         <form action='/test_results' method="post" name="listSize">
             <input type="hidden" value="small" name="listSize">
-            <button class="btn btn-primary" type="submit">Сокращенный список</button>
+            <button class="btn btn-primary" type="submit" id="small">Сокращенный список</button>
         </form>
     </div>
     <div>
         <form action='/test_results' method="post" name="listSize">
             <input type="hidden" value="all" name="listSize">
-            <button class="btn btn-primary" type="submit">Полный список</button>
+            <button class="btn btn-primary" type="submit" id="all">Полный список</button>
         </form>
     </div>
     <div>
