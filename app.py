@@ -439,6 +439,7 @@ def users():
             comp_7 = request.form.get('comp_7')
             comp_8 = request.form.get('comp_8')
             comp_9 = request.form.get('comp_9')
+            print(f'comp: {comp_1}')
 
             # Проверка введенных данных
             if not comp_1 or not comp_2 or not comp_3 or not comp_4 or not comp_5 or not comp_6 or not comp_7 or not comp_8 or not comp_9:

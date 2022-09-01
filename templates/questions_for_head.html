@@ -46,24 +46,23 @@ Questions
         <td>{{ comp.0 }}</td>
         <td>{{ comp.1 }}</td>
         <td>
-            <select name="comp_{{ loop.index}}" id="id_{{loop.index}}" required onchange='too_function()'>
-            <option disabled selected></option>
-            <option id="op_1{{ comp.0 }}" value="1">1</option>
-            <option id="op_2{{ comp.0 }}" value="2">2</option>
-            <option id="op_3{{ comp.0 }}" value="3">3</option>
-            <option id="op_4{{ comp.0 }}" value="4">4</option>
-            <option id="op_5{{ comp.0 }}" value="5">5</option>
-            <option id="op_6{{ comp.0 }}" value="6">6</option>
-            <option id="op_7{{ comp.0 }}" value="7">7</option>
-            <option id="op_8{{ comp.0 }}" value="8">8</option>
-            <option id="op_9{{ comp.0 }}" value="9">9</option>
+            <select name="comp_{{ loop.index}}" id="id_{{loop.index}}" required onchange='hyd()'>
+            <option selected></option>
+            <option id="op_1{{ comp.0 }}">1</option>
+            <option id="op_2{{ comp.0 }}">2</option>
+            <option id="op_3{{ comp.0 }}">3</option>
+            <option id="op_4{{ comp.0 }}">4</option>
+            <option id="op_5{{ comp.0 }}">5</option>
+            <option id="op_6{{ comp.0 }}">6</option>
+            <option id="op_7{{ comp.0 }}">7</option>
+            <option id="op_8{{ comp.0 }}">8</option>
+            <option id="op_9{{ comp.0 }}">9</option>
             </select>
         </td> 
     </tr>{%endfor%}
 
     <caption>
-        <button class="btn btn-primary"  type="" onclick="return reset_selector('Отменить изменения?')">Изменить значения</button>
-        <button class="btn btn-primary" type="submit" id="button" onclick="return check()">Нажмите здесь, чтобы перейти к следующей должности</button>
+        <button class="btn btn-primary" type="submit" id="button" onclick="return show_alert('Сохранить введеные значения?')">Нажмите здесь, чтобы перейти к следующей должности</button>
     </caption>
 
 </form>
@@ -73,14 +72,51 @@ Questions
 
 <script>
 
-    function too_function (){
-        hyd();
-        check()
+    function  hyd(){
+        let id = Array(10);
+        let name = Array('Надежность', 'Организованноcть', 'Стремление к совершенству', 'Приверженность', 'Командность', 'Ориентация на клиента', 'Принятие решений', 'Эффективная коммуникация', 'Управленческое мастерство')
+        let opt = Array(10);
+        let option = Array (1, 2, 3, 4, 5, 6, 7, 8, 9)
+        for(let i = 1; i < 10; i++){    
+            id[i] = 'id_' + i;    
+            opt[i] = document.getElementById(id[i]).value;   
+        }
+        let l = opt.length;
+        let c = 1;
+
+        while (c < l) {
+            for (let b = 1; b < l; b++){        
+                for (let n = 0; n < 9; n++){
+                    let x = 'op_' + b + name[n];
+                    document.getElementById(x).style.display = "block"
+                    document.getElementById(x).disabled = false
+                }
+            } 
+            c ++;
+        }
+
+        let arr_to_display = opt.filter(e => !~option.indexOf(e));
+        let arr_to_display2 = option.filter(e => !~opt.indexOf(e));
+        let len = arr_to_display.length
+        for (let i = 0; i < len; i++){
+            let arr_dis = arr_to_display[i]
+            if (arr_dis != '') {
+                for (let n = 0; n < 9; n++){
+                    if (i != n){
+                    let x = 'op_' + arr_dis + name[n];
+                    document.getElementById(x).style.display = "none"
+                    document.getElementById(x).disabled = true 
+                    }
+                }
+            }
+        }
     }
     
+    /*
     function  hyd(){
         let id = new Array(10);
-        let name = new Array('Надежность', 'Организованноcть', 'Стремление к совершенству',  'Приверженность', 'Командность', 'Ориентация на клиента', 'Принятие решений', 'Эффективная коммуникация',  'Управленческое мастерство')
+        //let name = {1: 'Надежность', 2: 'Организованноcть', 3: 'Стремление к совершенству',  4: 'Приверженность', 5: 'Командность', 6: 'Ориентация на клиента', 7: 'Принятие решений', 8: 'Эффективная коммуникация', 9: 'Управленческое мастерство'}
+        let name = new Array('Надежность', 'Организованноcть', 'Стремление к совершенству', 'Приверженность', 'Командность', 'Ориентация на клиента', 'Принятие решений', 'Эффективная коммуникация', 'Управленческое мастерство')
         let o_id = new Array(10);
         let arr = new Array(0,1,2,3,4,5,6,7,8,9,10)
         let opt = new Array(10);
@@ -95,18 +131,21 @@ Questions
                 if (opt[c] == arr[b]){
                     console.log(opt[c], arr[b])
                     for (let n = 0; n < 9; n++){
+                        if (c != n+1){
                         let x = 'op_' + b + name[n];
+                        console.log(x)
                         //document.getElementById(x).style.display = "none"
-                        document.getElementById(x).disabled = true
+                        document.getElementById(x).disabled = true 
+                        }
                     }
                 }  
             } 
             c ++;
         }
         return true;
-    }
+    } */
 
-    function reset_selector()
+   /* function reset_selector()
     {
         let id = new Array(10);
         let name = new Array('Надежность', 'Организованноcть', 'Стремление к совершенству',  'Приверженность', 'Командность', 'Ориентация на клиента', 'Принятие решений', 'Эффективная коммуникация',  'Управленческое мастерство')
@@ -123,17 +162,15 @@ Questions
             for (let b = 1; b < l; b++){        
                 for (let n = 0; n < 9; n++){
                     let x = 'op_' + b + name[n];
-                    //document.getElementById(x).style.display = "none"
+                    document.getElementById(x).style.display = "block"
                     document.getElementById(x).disabled = false
                 }
             } 
             c ++;
-        }  
-        return false;
-    }
+        }
+    } */
 
-
-    function check() {
+  /*  function check() {
         let id = new Array(10);
         let opt = new Array(10);
         for(let i = 1; i < 10; i++){
@@ -157,9 +194,9 @@ Questions
                 }
             } 
             c ++;
-        }   
+        }
         return true;
-    }
+    } */
 
     </script>
 

@@ -61,7 +61,7 @@ function checkUsernameMastContain(word) {
 
 function show_alert(text) {
     if(confirm(text)) {
-        this.form.sybmit();
+        return true;
     }
     return false;
 }
