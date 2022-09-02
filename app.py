@@ -80,19 +80,6 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
-@app.route('/captcha', methods=["GET", "POST"])
-def captcha():
-    form = ContactForm()
-    msg = ""
-    if request.method =='POST':
-        if form.validate_on_submit():
-            msg = 'Успех'
-            # Записать в БД
-        else:
-            msg = "Ошибка валидации"
-            # Обработать ошибку
-    return render_template('captcha.html', form = form, msg = msg)
-
 
 @app.route('/')
 @login_required
@@ -494,24 +481,29 @@ def users():
 def login():
     """Log user in"""
 
-    # Forget any user_id
-    session.clear()
-
+    form = ContactForm()
+    msg = ""
+    
     # User reached route via POST (as by submitting a form via POST)
-    if request.method == "POST":
+    if request.method == "POST":    
 
+        if form.validate_on_submit() is False:
+            msg = "Ошибка валидации"
+            flash("Вы робот?")
+            return render_template('/login.html', form = form, msg = msg )
+
+        # Forget any user_id
+        session.clear()
         # Ensure username was submitted
         if not request.form.get("mail"):
             flash('Вы не указали логин')
-            return render_template('/login.html' )
+            return render_template('/login.html', form = form, msg = msg )
            
-
         # Ensure password was submitted
         elif not request.form.get("hash") or len(request.form.get("hash")) < 3:
             flash('Вы указали неверный пароль')
-            return render_template('/login.html' )
+            return render_template('/login.html', form = form, msg = msg)
             
-
         # Query database for username
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
@@ -533,7 +525,7 @@ def login():
         
         if len(rows) != 1 or not check_password_hash(rows[0][7], request.form.get("hash")):
             flash('Вы указали неверный логин или пароль')
-            return render_template('/login.html' )
+            return render_template('/login.html', form = form, msg = msg )
             #return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
@@ -542,13 +534,12 @@ def login():
         session["user_status"] = rows[0][3]
         session["user_mail"] = rows[0][6]
 
-
         # Redirect user to home page
         return redirect('/' )
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
-        return render_template("login.html")
+        return render_template("login.html", form = form, msg = msg)
 
 
 @app.route("/logout")
