@@ -496,7 +496,7 @@ def login():
         session.clear()
         # Ensure username was submitted
         if not request.form.get("mail"):
-            flash('Вы не указали логин')
+            #flash('Вы не указали логин')
             return render_template('/login.html', form = form, msg = msg )
            
         # Ensure password was submitted
