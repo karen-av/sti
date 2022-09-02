@@ -21,8 +21,9 @@ app = Flask(__name__)
 
 app.config['SECRET_KEY'] = "12345"
 
-app.config['RECAPTCHA_PUBLIC_KEY'] = "6LdoXckhAAAAAIGpoFflYCx7x36jGdtWxn_tSsSd"
-app.config['RECAPTCHA_PRIVATE_KEY'] = "6LdoXckhAAAAAAXQzdITUL7fts2g6GdHAyVKawaE"
+app.config['RECAPTCHA_PUBLIC_KEY'] = "6LcNd8khAAAAAOn_IY_vOVqktHdZPZKmn1c7Ibgi"
+app.config['RECAPTCHA_PRIVATE_KEY'] = "6LcNd8khAAAAAJWAGPyVfjL0LxplCOsnkPUrXDAU"
+app.config['RECAPTCHA_DISABLE'] = True #  будет капча или нет
 
 app.config['DEBAG'] = True
 app.config['TESTING'] = False
