@@ -103,3 +103,10 @@ background-color: rgb(221, 60, 60);
 table .green {
     background-color: rgb(124, 202, 126);
 }
+
+.login_text{
+    color: rgb(14, 20, 130);
+    margin-bottom: 5%;
+    margin-top: 10px;
+    font-size: 25px;
+}
