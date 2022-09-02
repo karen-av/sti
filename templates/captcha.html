@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Log In
+    
+{% endblock %}
+
+{% block main %}
+
+
+
+
+    {% if msg %}
+    Результат: {{ msg }}
+    {% endif %}
+
+    
+        <div>
+            <form action="/captcha" method="post">
+            <p>{{ form.csrf_token}} fff</p>
+            <p>{{ form.text_lable }} ddd</p>
+            <p>{{ form.text(size=20) }} bbb</p>
+            <p>{{ form.recaptcha }} vcv</p>
+            
+            <input type="submit" value="Отправить">
+            </form>
+        </div>
+
+    {%endblock%}

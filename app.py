@@ -1,5 +1,6 @@
 
 
+from crypt import methods
 from flask import Flask, redirect, render_template, request, session, flash
 from flask_mail import Mail, Message
 from flask_session import Session
@@ -13,12 +14,17 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import csv
 import pandas as pd
 import datetime
+from forms import ContactForm
 #from flask_sqlalchemy import SQLAlchemy
 
 
 # Configure application
 app = Flask(__name__)
 
+app.config['SECRET_KEY'] = "12345"
+
+app.config['RECAPTCHA_PUBLIC_KEY'] = "6LdoXckhAAAAAIGpoFflYCx7x36jGdtWxn_tSsSd"
+app.config['RECAPTCHA_PRIVATE_KEY'] = "6LdoXckhAAAAAAXQzdITUL7fts2g6GdHAyVKawaE"
 
 app.config['DEBAG'] = True
 app.config['TESTING'] = False
@@ -74,6 +80,19 @@ def after_request(response):
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
+
+@app.route('/captcha', methods=["GET", "POST"])
+def captcha():
+    form = ContactForm()
+    msg = ""
+    if request.method =='POST':
+        if form.validate_on_submit():
+            msg = 'Успех'
+            # Записать в БД
+        else:
+            msg = "Ошибка валидации"
+            # Обработать ошибку
+    return render_template('captcha.html', form = form, msg = msg)
 
 
 @app.route('/')
