@@ -1379,10 +1379,17 @@ def mail_heads():
 
 @app.route('/reset_password', methods = ['GET', 'POST'])
 def reset_password():
+    form = ContactForm()
+    msg_cap = ""
     if request.method == 'GET':
-        return render_template('/reset_password.html')
+        return render_template('/reset_password.html', form = form, msg = msg_cap)
 
     elif request.method == 'POST':
+        if form.validate_on_submit() is False:
+            msg_cap = "Ошибка валидации"
+            flash("Вы робот?")
+            return render_template('/reset_password.html', form = form, msg = msg_cap )
+
         user_name = request.form.get('username')
         if user_name:
             try:
@@ -1392,7 +1399,7 @@ def reset_password():
                     # Проверка на существование пользователя
                     cursor.execute("SELECT mail, name, status FROM users WHERE mail = %(mail)s", {'mail': user_name})
                     us = cursor.fetchall()
-                    status = us[0][2]
+                    #status = us[0][2]
                     if len(us) == 1: #and (status == COACH or status == ADMIN or status == HEAD):
                         user_password = createPassword()
                         hash = generate_password_hash(user_password, "pbkdf2:sha256")
@@ -1407,27 +1414,27 @@ def reset_password():
                         except Exception as _ex:
                             print('[INFO] Error while working mail sender', _ex)
                             flash("В процессе создания запроса произошла ошибка. Пожалуйста, обновите страницу и повторите попытку.")
-                            return render_template('reset_password.html')
+                            return render_template('/reset_password.html', form = form, msg = msg_cap )
 
                         cursor.execute("UPDATE users SET hash = %(hash)s WHERE mail = %(mail)s", {'hash': hash, 'mail': user_name})
                         flash('Проверьте свою электронную почту. Если ваш email зарегистрирован в систему, то вы получите письмо с данными для входа.')
-                        return render_template('/login.html')
+                        return render_template('/login.html', form = form, msg = msg_cap)
 
                     else:
                         flash('Проверьте свою электронную почту. Если ваш email зарегистрирован в систему, то вы получите письмо с данными для входа.')
-                        return render_template('/login.html')
+                        return render_template('/login.html', form = form, msg = msg_cap)
 
             except Exception as _ex:
                 print("[INFO] Error while working with PostgresSQL", _ex)
                 flash("В процессе создания запроса произошла ошибка. Пожалуйста, обновите страницу и повторите попытку.")
-                return render_template('reset_password.html')
+                return render_template('reset_password.html', form = form, msg = msg_cap)
             finally:
                 if connection:
                     connection.close()
                     print("[INFO] PostgresSQL connection closed")
         else:
             flash('Укажите адрес электронной почты и повторите запрос')
-            return redirect('reset_password')
+            return redirect('reset_password', form = form, msg = msg_cap)
 
     else:
         return redirect('/')
