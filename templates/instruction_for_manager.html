@@ -189,7 +189,9 @@
 
 
 
-    <form action="/mail_manager" method="post" onsubmit="return show_alert('Отправить сообщение?')">
+   <p style="margin-top: 40px;"><a href="/users"><button class="btn btn-primary" type="submit" id="button" style="width: 100%; margin-bottom: 2%;">С информацией ознакомился, жду ссылку на тестирование</button></a></p>
+
+<form action="/mail_manager" method="post" onsubmit="return show_alert('Отправить сообщение?')">
         <input type="hidden" value="mail_from_manager_start" name ="flag">
         <label for="exampleFormControlTextarea1" class="form-label"><p>Если у Вас остались вопросы, Вы можете связаться с нами через форму: <br>
             Мы ответим в течение дня обращения или на следующий день.</p></label>
@@ -198,8 +200,6 @@
     </form>
 </div>
 
-<p style="margin-top: 40px;"><a href="/users"><button class="btn btn-primary" type="submit" id="button" style="width: 100%;">С информацией ознакомился, жду ссылку на тестирование</button></a></p>
-</div>
 {% endif %}
 
 {% endblock %}
