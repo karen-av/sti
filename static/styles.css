@@ -97,11 +97,11 @@ input {
 }
 
 table .red {
-background-color: rgb(221, 60, 60);
+background-color: rgb(237, 175, 175);
 }
 
 table .green {
-    background-color: rgb(124, 202, 126);
+background-color: rgb(175, 237, 200 );
 }
 
 .login_text{
