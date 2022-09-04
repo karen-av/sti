@@ -1,6 +1,7 @@
-notSendList = []
-x = [('edede'), ('edede')]
-y = ('rfff')
-notSendList = notSendList + x
-notSendList = notSendList + y
-print(notSendList)
+
+def one():
+    print("One")
+    
+if __name__ == "__main__":
+    print(__name__)
+    one()
