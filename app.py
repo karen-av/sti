@@ -1330,6 +1330,11 @@ def mail_heads():
             flash(f'Приглашение отправлено {counterSend}. Не удалось отправить {counterNotSend} сообщений.')
             return render_template('mail.html', users = users, notSendList = notSendList)
 
+        elif flag == 'reminder_single':
+            pass
+        elif flag == 'reminder_all':
+            pass
+
     elif request.method == 'POST' and session['user_status'] == HEAD:
         # сообщение от пользователя в конце опросника
         if flag == 'mail_from_head_end':
