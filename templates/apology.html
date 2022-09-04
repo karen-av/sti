@@ -8,8 +8,11 @@
 
 
     <!-- https://memegen.link/ -->
-    <img alt="{{ top }}" class="border img-fluid" src="http://memegen.link/custom/{{ top | urlencode }}/{{ bottom | urlencode }}.jpg?alt=https://images.freeimages.com/images/large-previews/aef/pages-1600269.jpg&width=600" title="{{ top }}">
+   <!-- <img alt="{{ top }}" class="border img-fluid" src="http://memegen.link/custom/{{ top | urlencode }}/{{ bottom | urlencode }}.jpg?alt=https://images.freeimages.com/images/large-previews/aef/pages-1600269.jpg&width=600" title="{{ top }}">
     
-
+-->
+    <div><p class="error">{{top}}</p></div>
+    <img src="static/error.jpg" style="width: 30%">
+    <div><p class="error">{{name}}</p></div>
 
     {% endblock %}

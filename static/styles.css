@@ -111,6 +111,14 @@ background-color: rgb(175, 237, 200 );
     font-size: 25px;
 }
 
+.error {
+    color: #0948a0;
+    font-size: xx-large;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 700;
+    font-style: oblique;
+}
+
 #cookie_notification{
     display: none;
     justify-content: space-between;

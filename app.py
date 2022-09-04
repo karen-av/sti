@@ -1879,7 +1879,8 @@ def handle_exception(e):
     if isinstance(e, HTTPException):
         code = e.code
         name = e.name
-        return render_template("apology.html", top=code, bottom = escape(name)), 400
+        print(code, name, escape(name))
+        return render_template("apology.html", top=code, bottom = escape(name), name = name), 400
     else:
         return render_template("apology.html", top='500', bottom = e), 500
         
