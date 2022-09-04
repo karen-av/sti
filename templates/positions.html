@@ -113,6 +113,9 @@
                 <th>Рук</th>
                 <th>Долж</th>
                 {% for com in competence %}<th>{{ com }}</th>{% endfor%}
+                
+                <td>Приглашение</td>
+                <td>Напоминание</td>
                 <td></td>
             </tr>
         </thead>
@@ -137,6 +140,13 @@
                         <input type="hidden" name="position_edit" value="{{pos.1}}">
                         <input type="hidden" name="reports_to_edit" value="{{pos.2}}">
                         <button type="submit" class="btn btn-primary">Редакт</button>
+                    </form>
+                    </td>
+                    <td>
+                    <form action="mail_head" method="post" onclick="alert('Отправить напоминание?')">
+                        <input type="hidden" name="flag" value="reminder_single">
+                        <input type="hidden" name="user_mail" value="{{ pos.1 }}">
+                        <button type="submit" class="btn btn-primary">Напомнить</button>
                     </form>
                 </td>
             </tr>{% endfor %}
