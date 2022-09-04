@@ -5,7 +5,7 @@ from flask_session import Session
 #from werkzeug.security import check_password_hash, generate_password_hash
 import psycopg2
 from config import host, user, password, db_name
-from helpers import apology, login_required, createPassword, checkPassword, checkPasswordBadSymbol, checkUsername, checkUsernameMastContain
+from helpers import apology, login_required, createPassword, checkPassword, checkPasswordBadSymbol, checkUsername, checkUsernameMastContain, escape 
 import os
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -13,6 +13,8 @@ import csv
 import pandas as pd
 import datetime
 from forms import ContactForm
+from werkzeug.exceptions import HTTPException
+
 #from flask_sqlalchemy import SQLAlchemy
 
 
@@ -1869,6 +1871,19 @@ def accept_rules():
             pass
     else:
         return redirect('/')
+
+
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    if isinstance(e, HTTPException):
+        code = e.code
+        name = e.name
+        return render_template("apology.html", top=code, bottom = escape(name)), 400
+    else:
+        return render_template("apology.html", top='500', bottom = e), 500
+        
+
 
 #if __name__ == "__main__":
  #   app.run(host="0.0.0.0")
