@@ -1,4 +1,5 @@
 
+
 from flask import Flask, redirect, render_template, request, session, flash
 from flask_mail import Mail, Message
 from flask_session import Session
@@ -105,14 +106,11 @@ def positions():
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
             connection.autocommit = True  
             with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM positions ORDER BY reports_pos ")
+                cursor.execute("SELECT * FROM positions WHERE reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos ", {'status': HEAD})
                 positions = cursor.fetchall()
-                # Присоединить дату напоминания и имя из таблицы users
-                # Передать через form еще и имя
-
                 #cursor.execute("SELECT * FROM positions WHERE  (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) ORDER BY reports_pos ")
                 #positionsNotDone = cursor.fetchall()
-                cursor.execute("SELECT DISTINCT reports_pos FROM positions ORDER BY reports_pos")
+                cursor.execute("SELECT DISTINCT reports_pos FROM positions WHERE reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'status': HEAD})
                 headList = cursor.fetchall()
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
@@ -170,38 +168,35 @@ def positions():
                     else:
                         return render_template('positions.html', position_edit = position_edit, competence = COMPETENCE, editValue = edit)
 
-                
-
-
                 if search:
-                    cursor.execute("SELECT * FROM positions WHERE reports_pos LIKE %(reports_pos)s ORDER BY reports_pos", {'reports_pos': search})
+                    cursor.execute("SELECT * FROM positions WHERE reports_pos LIKE %(reports_pos)s AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'reports_pos': search, 'status': HEAD})
                     positions = cursor.fetchall()
                     return render_template('positions.html', positions = positions, competence = COMPETENCE)
                 if reports_to and not ready_status:
-                    cursor.execute("SELECT * FROM positions  WHERE reports_pos = %(reports_pos)s ORDER BY reports_pos", {'reports_pos': reports_to})
+                    cursor.execute("SELECT * FROM positions  WHERE reports_pos = %(reports_pos)s AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'reports_pos': reports_to, 'status': HEAD})
                     positions = cursor.fetchall()
                 elif ready_status and not reports_to:
                     if ready_status == readyStatusList[0]: # all
-                        cursor.execute("SELECT * FROM positions ORDER BY reports_pos")
+                        cursor.execute("SELECT * FROM positions WHERE reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'status': HEAD})
                         positions = cursor.fetchall()
                     elif ready_status == readyStatusList[1]: # done
-                        cursor.execute("SELECT * FROM positions WHERE comp_1 IS NOT NULL AND comp_2 IS NOT NULL AND comp_3 IS NOT NULL AND comp_4 IS NOT NULL AND comp_5 IS NOT NULL AND comp_6 IS NOT NULL AND comp_7 IS NOT NULL AND comp_8 IS NOT NULL AND comp_9 IS NOT NULL ORDER BY reports_pos")
+                        cursor.execute("SELECT * FROM positions WHERE comp_1 IS NOT NULL AND comp_2 IS NOT NULL AND comp_3 IS NOT NULL AND comp_4 IS NOT NULL AND comp_5 IS NOT NULL AND comp_6 IS NOT NULL AND comp_7 IS NOT NULL AND comp_8 IS NOT NULL AND comp_9 IS NOT NULL AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'status': HEAD})
                         positions = cursor.fetchall()
                     elif ready_status == readyStatusList[2]: # done not
-                        cursor.execute("SELECT * FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) ORDER BY reports_pos")
+                        cursor.execute("SELECT * FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'status': HEAD})
                         positions = cursor.fetchall()
                 elif  reports_to and ready_status:
                     if ready_status == readyStatusList[0]: # all
-                        cursor.execute("SELECT * FROM positions WHERE reports_pos = %(reports_pos)s ORDER BY reports_pos", {'reports_pos': reports_to})
+                        cursor.execute("SELECT * FROM positions WHERE reports_pos = %(reports_pos)s AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'reports_pos': reports_to, 'status': HEAD})
                         positions = cursor.fetchall()
                     elif ready_status == readyStatusList[1]: # done
-                        cursor.execute("SELECT * FROM positions WHERE reports_pos = %(reports_pos)s and comp_1 IS NOT NULL AND comp_2 IS NOT NULL AND comp_3 IS NOT NULL AND comp_4 IS NOT NULL AND comp_5 IS NOT NULL AND comp_6 IS NOT NULL AND comp_7 IS NOT NULL AND comp_8 IS NOT NULL AND comp_9 IS NOT NULL ORDER BY reports_pos", {'reports_pos': reports_to})
+                        cursor.execute("SELECT * FROM positions WHERE reports_pos = %(reports_pos)s and comp_1 IS NOT NULL AND comp_2 IS NOT NULL AND comp_3 IS NOT NULL AND comp_4 IS NOT NULL AND comp_5 IS NOT NULL AND comp_6 IS NOT NULL AND comp_7 IS NOT NULL AND comp_8 IS NOT NULL AND comp_9 IS NOT NULL AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'reports_pos': reports_to, 'status': HEAD})
                         positions = cursor.fetchall()
                     elif ready_status == readyStatusList[2]: # done not
-                        cursor.execute("SELECT * FROM positions WHERE reports_pos = %(reports_pos)s AND (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) ORDER BY reports_pos" , {'reports_pos': reports_to})
+                        cursor.execute("SELECT * FROM positions WHERE reports_pos = %(reports_pos)s AND (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos" , {'reports_pos': reports_to, 'status': HEAD})
                         positions = cursor.fetchall()
                     
-                cursor.execute("SELECT DISTINCT reports_pos FROM positions ORDER BY reports_pos")
+                cursor.execute("SELECT DISTINCT reports_pos FROM positions WHERE reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'status': HEAD})
                 headList = cursor.fetchall()
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
@@ -1207,46 +1202,61 @@ def mail_heads():
 
             return render_template('mail.html', users = users, headList = headList, readyStatusList = readyStatusList, reports_to_query = reports_to, ready_status_query = ready_status)        
                 
-        # if single send mode
+        # if single send mode (Оставляем)
         if flag == 'single':
             user_name = request.form.get('user_name')
             user_mail = request.form.get('user_mail')
+            # conect to database
             try:
-                # create date, password and message
-                today = datetime.date.today()
-                user_password = createPassword()
-                hash = generate_password_hash(user_password, "pbkdf2:sha256")
-                msg = Message('From STI-Partners', recipients=[user_mail])
-                #msg.body = (f'Welcom to 123.com.\nYour login {user_mail}\nYour password {user_password}')
-                msg.body = render_template("to_head_email.txt", user_name = user_name, user_mail = user_mail, user_password = user_password)
-                msg.html = render_template("to_head_email.html", user_name = user_name, user_mail = user_mail, user_password = user_password)
-                mail.send(msg)
-    
-                # update database
-                try:
-                    connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
-                    connection.autocommit = True
-                    with connection.cursor() as cursor:
+                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+                connection.autocommit = True
+                with connection.cursor() as cursor:
+                    try:
+                        # create date, password and message
+                        today = datetime.date.today()
+                        user_password = createPassword()
+                        hash = generate_password_hash(user_password, "pbkdf2:sha256")
+                        # check mail date
+                        cursor.execute("SELECT mail_date FROM users WHERE mail = %(mail)s", {'mail':user_mail})
+                        mail_date = cursor.fetchall()
+                        msg = Message('From STI-Partners', recipients=[user_mail])
+                        # If the invitation was sent
+                        if mail_date[0][0] != None:
+                            cursor.execute("SELECT reports_pos FROM positions WHERE reports_pos = %(mail)s AND (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL)", {'mail':user_mail})
+                            comp = cursor.fetchall()
+                            if len(comp) != 0:
+                                msg.body = render_template("reminder_to_head.txt", user_name = user_name, user_mail = user_mail, user_password = user_password)
+                                msg.html = render_template("reminder_to_head.html", user_name = user_name, user_mail = user_mail, user_password = user_password)
+                            else:
+                                flash("Сообщение не отправлено, т.к. данный руководитель заполнил все данные.")
+                                return redirect('/mail_heads')
+                        else:
+                            msg.body = render_template("to_head_email.txt", user_name = user_name, user_mail = user_mail, user_password = user_password)
+                            msg.html = render_template("to_head_email.html", user_name = user_name, user_mail = user_mail, user_password = user_password)
+                        
+                        mail.send(msg)
                         cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':user_mail})
-                except Exception as _ex:
-                    print(f'[INFO] Error while working PostgresSQL', _ex)
-                    flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
-                    return redirect('/')
+
+                    except Exception as _ex:
+                        flash("Сообщение не отправлено. Проверьте коректно ли указана электронная почта.")
+                        print(f'[INFO] Error while working mail sender', _ex)
+                        return redirect('/mail_heads')
+
                     
-                finally:
-                    if connection:
-                        connection.close()
-                        print("[INFO] PostgresSQL nonnection closed")
-                flash(f'Приглашение отправлено')
-                print(f'[INFO] Message has bin sent via mail sender.')
-                return redirect('/mail_heads')
-
             except Exception as _ex:
-                flash("Сообщение не отправлено. Проверьте коректно ли указана электронная почта.")
-                print(f'[INFO] Error while working mail sender', _ex)
-                return redirect('/mail_heads')
+                print(f'[INFO] Error while working PostgresSQL', _ex)
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                return redirect('/')
+                    
+            finally:
+                if connection:
+                    connection.close()
+                    print("[INFO] PostgresSQL nonnection closed")
+            flash(f'Приглашение отправлено')
+            return redirect('/mail_heads')
 
-        elif flag == 'all_invite':
+        # if all send mode (Оставлять)
+        elif flag == 'all_invite': 
             today = today = datetime.date.today()
             try: 
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
@@ -1260,12 +1270,30 @@ def mail_heads():
                             user_password = createPassword()
                             hash  = generate_password_hash(user_password, "pbkdf2:sha256")
                             msg = Message("From STI-Partners", recipients=[singleUser[5]])
-                            msg.body = render_template("to_head_email.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
-                            msg.html = render_template('to_head_email.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
-                            mail.send(msg)
-                            counterSend = counterSend + 1
-                            cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
-                            print(f'[INFO] Message has bin sent via mail sender.')
+                            
+                            # If the invitation was sent
+                            if singleUser[6] != None:
+                                # Проверяем остались ли не выполненные задания у руководителя
+                                cursor.execute("SELECT reports_pos FROM positions WHERE reports_pos = %(mail)s AND (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL)", {'mail':singleUser[5]})
+                                comp = cursor.fetchall()
+
+                                if len(comp) != 0:
+                                    msg.body = render_template("reminder_to_head.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
+                                    msg.html = render_template("reminder_to_head.html", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
+                                    mail.send(msg)
+                                    counterSend = counterSend + 1
+                                    cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
+                                else:
+                                    notSendList.append(singleUser)
+                                    counterNotSend = counterNotSend + 1 
+                                    
+                            else:
+                                msg.body = render_template("to_head_email.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
+                                msg.html = render_template('to_head_email.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
+                                mail.send(msg)
+                                counterSend = counterSend + 1
+                                cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
+
                         except Exception as _ex:
                             notSendList.append(singleUser)
                             counterNotSend = counterNotSend + 1 
@@ -1276,7 +1304,6 @@ def mail_heads():
                             
             except Exception as _ex:
                 print(f'[INFO] Error while working PostgresSQL', _ex)
-                x = 1
                 notSendList.append(singleUser)
                 counterNotSend = counterNotSend + 1
                 flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
@@ -1287,91 +1314,9 @@ def mail_heads():
                     connection.close()
                     print(f"[INFO] PostgresSQL nonnection closed")
 
-            flash(f'Приглашение отправлено {counterSend}. Не удалось отправить {counterNotSend} сообщений.')
+            flash(f' Отправлено собщений - {counterSend}. Не отправлено сообщений - {counterNotSend} .')
             return render_template('mail.html', users = users, notSendList = notSendList)
 
-        elif flag == 'has_not_invite':
-            today = today = datetime.date.today()
-            try: 
-                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
-                connection.autocommit = True
-                with connection.cursor() as cursor:
-                    # default value mail_date is -
-                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s and mail_date IS NULL", {'status':HEAD})
-                    users = cursor.fetchall()
-                    for singleUser in users:
-                        try:
-                            user_password = createPassword()
-                            hash  = generate_password_hash(user_password, "pbkdf2:sha256")
-                            msg = Message("From STI-Partners", recipients=[singleUser[5]])
-                            msg.body = render_template("to_head_email.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
-                            msg.html = render_template('to_head_email.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
-                            mail.send(msg)
-                            counterSend = counterSend + 1
-                            cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
-                            print(f'[INFO] Message has bin sent via mail sender.')
-                        except Exception as _ex:
-                            notSendList.append(singleUser)
-                            counterNotSend = counterNotSend + 1 
-                            print(f'[INFO] Error while working mail sender:', _ex)
-
-                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status':HEAD})
-                    users = cursor.fetchall()
-
-            except Exception as _ex:
-                print(f'[INFO] Error while working PostgresSQL:', _ex)
-                x = 1
-                notSendList.append(singleUser)
-                counterNotSend = counterNotSend + 1 
-                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
-                return redirect('/')
-            finally:
-                if connection:
-                    connection.close()
-                    print(f"[INFO] PostgresSQL nonnection closed")
-
-            flash(f'Приглашение отправлено {counterSend}. Не удалось отправить {counterNotSend} сообщений.')
-            return render_template('mail.html', users = users, notSendList = notSendList)
-
-        elif flag == 'reminder_single':
-            user_name = request.form.get('user_name')
-            user_mail = request.form.get('user_mail')
-            try:
-                # create date, password and message
-                today = datetime.date.today()
-                user_password = createPassword()
-                hash = generate_password_hash(user_password, "pbkdf2:sha256")
-                msg = Message('From STI-Partners', recipients=[user_mail])
-                msg.body = render_template("reminder_to_head.txt", user_name = user_name, user_mail = user_mail, user_password = user_password)
-                msg.html = render_template("reminder_to_head.html", user_name = user_name, user_mail = user_mail, user_password = user_password)
-                mail.send(msg)
-    
-                # update database
-                try:
-                    connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
-                    connection.autocommit = True
-                    with connection.cursor() as cursor:
-                        cursor.execute("UPDATE users SET hash = %(hash)s, reminder_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':user_mail})
-                except Exception as _ex:
-                    print(f'[INFO] Error while working PostgresSQL', _ex)
-                    flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
-                    return redirect('/')
-                    
-                finally:
-                    if connection:
-                        connection.close()
-                        print("[INFO] PostgresSQL nonnection closed")
-                flash(f'Приглашение отправлено')
-                print(f'[INFO] Message has bin sent via mail sender.')
-                return redirect('/positions')
-
-            except Exception as _ex:
-                flash("Сообщение не отправлено. Проверьте коректно ли указана электронная почта.")
-                print(f'[INFO] Error while working mail sender', _ex)
-                return redirect('/')
-
-        elif flag == 'reminder_all':
-            pass
 
     elif request.method == 'POST' and session['user_status'] == HEAD:
         # сообщение от пользователя в конце опросника
@@ -1916,15 +1861,15 @@ def accept_rules():
         return redirect('/')
 
 
-
 @app.errorhandler(Exception)
 def handle_exception(e):
     if isinstance(e, HTTPException):
         code = e.code
         name = e.name
-        print(code, name, escape(name))
+        print(f'[INFO] HTTPException: {code} {name}')
         return render_template("apology.html", top=code, bottom = escape(name), name = name), 400
     else:
+        print(f'[INFO] Exception: {e}')
         return render_template("apology.html", top='500', bottom = e), 500
         
 

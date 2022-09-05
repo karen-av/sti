@@ -12,15 +12,9 @@
 </div>
     <div class="box">
         <div>
-        <form action="/mail_heads" method="post" onclick="return show_alert('Отправить приглашение всем пользователям?')">
-            <input type="hidden" value="all_invite" name ="flag"> 
-            <button class="btn btn-primary" type="submit" >Отправить приглашение всем</button>
-        </form>
-        </div>
-        <div>
         <form action="/mail_heads" method="post" onclick=" return show_alert('Отправить приглашение всем пользователям?')">
-            <input type="hidden" value="has_not_invite" name ="flag">
-            <button class="btn btn-primary" type="submit">Отправить приглашение тем пользователям, которые еще не поучали приглашение</button>
+            <input type="hidden" value="all_invite" name ="flag">
+            <button class="btn btn-primary" type="submit">Отправить сообщениея всем руководителям</button>
         </form>
     </div>
 </div>
@@ -58,7 +52,7 @@
     </form>
     <form action="/mail_heads" method="get"><button class="btn btn-primary" type="submit" id="sort_button">Сбросить фильтр</button></form>
 </div>
-
+<p style="text-align: right; width: 99%;">* Кнопка "Отправить сообщение" отправляет приглашение пользователю, если ранее оно не было отправлено и отправляет напоминание, если сообщение было отправлено ранее.</p>
     <table class="table table-striped" >
         <thead >
             <tr >
@@ -87,7 +81,7 @@
                     <input type="hidden" value="single" name ="flag">
                     <input type="hidden" value="{{ user.5 }}" name ="user_mail">
                     <input type="hidden" value="{{ user.4 }}" name ="user_name">
-                    <button class="btn btn-primary" type="submit">Пригласить</button>
+                    <button class="btn btn-primary" type="submit">Отправить сообщение</button>
                 </form>
                 </td>
             </tr>
@@ -101,7 +95,7 @@
     <table class="table table-striped">
         <thead>
             <tr>
-                <th colspan="9">Пользователи, которым не удалось отправить сообщениею</th>
+                <th colspan="9">Пользователи, которым сообщения не были отправлены. </th>
             </tr>
             <tr>
                 <th>N</th>
