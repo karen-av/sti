@@ -1,5 +1,6 @@
 
 
+from crypt import methods
 from flask import Flask, redirect, render_template, request, session, flash
 from flask_mail import Mail, Message
 from flask_session import Session
@@ -1702,15 +1703,12 @@ def mail_manager():
                             cursor.execute("SELECT accept_rules FROM users WHERE mail = %(mail)s", {'mail': user_mail})
                             accept_rules = cursor.fetchall()
                             if accept_rules[0][0] == None:
-                                print(f'message rimind')
                                 msg.body = render_template("reminder_to_manager.txt", user_name = user_name, user_mail = user_mail, user_password = user_password)
                                 msg.html = render_template("reminder_to_manager.html", user_name = user_name, user_mail = user_mail, user_password = user_password)
                             else:
-                                print(f'not')
                                 flash("Сообщение не отправлено, т.к. данный сотрудник принял условия.")
                                 return redirect('/mail_manager')
                         else:
-                            print(f'message ferst')
                             msg.body = render_template("to_manager_email.txt", user_name = user_name, user_mail = user_mail, user_password = user_password)
                             msg.html = render_template("to_manager_email.html", user_name = user_name, user_mail = user_mail, user_password = user_password)
 
@@ -1750,19 +1748,15 @@ def mail_manager():
                             msg = Message("From STI-Partners", recipients=[singleUser[5]])
                             if singleUser[6] != None:
                                 if singleUser[7] == None:
-                                    print(f'reminder - {singleUser[5]}')
                                     msg.body = render_template("reminder_to_manager.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
                                     msg.html = render_template('reminder_to_manager.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
                                     mail.send(msg)
                                     counterSend = counterSend + 1
                                     cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
                                 else:
-                                    print(f'not - {singleUser[5]}')
                                     notSendList.append(singleUser)
-                                    counterNotSend = counterNotSend + 1 
-                            
+                                    counterNotSend = counterNotSend + 1        
                             else:
-                                print(f'invite - {singleUser[5]}')
                                 msg.body = render_template("to_manager_email.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
                                 msg.html = render_template('to_manager_email.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
                                 mail.send(msg)
@@ -1858,8 +1852,30 @@ def handle_exception(e):
     else:
         print(f'[INFO] Exception: {e}')
         return render_template("apology.html", top='500', bottom = e), 500
-        
 
+
+@app.route('/settings', methods = ["GET", "POST"])
+@login_required
+def settings():
+    if request.method == 'GET':
+        return render_template('/settings.html')
+    else:
+        invite_head = request.form.get('invite_head')
+        reminder_head = request.form.get('reminder_head') 
+        invite_manager = request.form.get('invite_manager') 
+        reminder_manager = request.form.get('reminder_manager')
+
+        if invite_head:
+            return render_template('to_head_email.html', user_name = 'Иван Иванович', user_mail = 'ivan@example.com', user_password = 'xxxxxxxx')
+        if reminder_head:
+            return render_template('reminder_to_head.html', user_name = 'Иван Иванович', user_mail = 'ivan@example.com', user_password = 'xxxxxxxx')
+        if invite_manager:
+            return render_template('to_manager_email.html', user_name = 'Иван Иванович', user_mail = 'ivan@example.com', user_password = 'xxxxxxxx')
+        if reminder_manager:
+            return render_template('reminder_to_manager.html', user_name = 'Иван Иванович', user_mail = 'ivan@example.com', user_password = 'xxxxxxxx')
+        else:
+            return redirect ('/settings')
+    
 
 #if __name__ == "__main__":
  #   app.run(host="0.0.0.0")

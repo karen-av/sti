@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Сообщения
+{% endblock %}
+
+{% block main %}
+
+<h5>Так выглядят письма участникам:</h5>
+<p></p>
+    <form action="/settings" method="post">
+        <input type="hidden" name="invite_head" value="1"></input>
+        <button class="btn btn-primary">Приглашение руководителю</button>
+    </form>
+    <p></p>
+    <form action="/settings" method="post">
+        <input type="hidden" name="reminder_head" value="1"></input>
+        <button class="btn btn-primary">Напоминание руководителю</button>
+    </form>
+    <p></p>
+    <form action="/settings" method="post">
+        <input type="hidden" name="invite_manager" value="1"></input>
+        <button class="btn btn-primary">Приглашение сотруднику</button>
+    </form>
+    <p></p>
+    <form action="/settings" method="post">
+        <input type="hidden" name="reminder_manager" value="1"></input>
+        <button class="btn btn-primary">Напоминание сотруднику</button>
+    </form>
+
+{% endblock %}
