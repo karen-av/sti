@@ -14,16 +14,10 @@
         <div>
         <form action="/mail_manager" method="post" onclick="return show_alert('Отправить приглашение всем пользователям?')">
             <input type="hidden" value="all_invite" name ="flag"> 
-            <button class="btn btn-primary" type="submit" >Отправить приглашение всем</button>
+            <button class="btn btn-primary" type="submit" >Отправить сообщение всем сотрдникам</button>
         </form>
         </div>
-        <div>
-        <form action="/mail_manager" method="post" onclick=" return show_alert('Отправить приглашение всем пользователям?')">
-            <input type="hidden" value="has_not_invite" name ="flag">
-            <button class="btn btn-primary" type="submit">Отправить приглашение тем пользователям, которые еще не поучали приглашение</button>
-        </form>
     </div>
-</div>
 <div class="filtr"  id="filtr">
     <form action="/mail_manager" method="post" >
         <select id="reports_to" name="reports_to" >
@@ -58,7 +52,9 @@
     </form>
     <form action="/mail_manager" method="get"><button class="btn btn-primary" type="submit" id="sort_button">Сбросить фильтр</button></form>
 </div>
-
+<p style="text-align: right; width: 99%;">* Кнопка "Отправить сообщение" отправляет приглашение пользователю, если ранее оно не было отправлено и отправляет напоминание, если сообщение было отправлено ранее, но сотрудник не принял условия.<br>
+    * Кнопка "Отправить сообщения всем сотрудникам" отправляет приглашение всем сотрудникам, если ранее оно не было отправлено и отправляет напоминание, если сообщение было отправлено ранее, но сотрудник не принял условия.</p>
+   
     <table class="table table-striped" >
         <thead >
             <tr >
@@ -87,7 +83,7 @@
                     <input type="hidden" value="single" name ="flag">
                     <input type="hidden" value="{{ user.5 }}" name ="user_mail">
                     <input type="hidden" value="{{ user.4 }}" name ="user_name">
-                    <button class="btn btn-primary" type="submit">Пригласить</button>
+                    <button class="btn btn-primary" type="submit">Отправить сообщение</button>
                 </form>
                 </td>
             </tr>
