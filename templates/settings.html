@@ -6,6 +6,10 @@
 
 {% block main %}
 
+<div class="route">
+    <a href="/">Главная</a> - Настройки
+</div>
+
 <h5>Так выглядят письма участникам:</h5>
 <p></p>
     <form action="/settings" method="post">
@@ -27,5 +31,7 @@
         <input type="hidden" name="reminder_manager" value="1"></input>
         <button class="btn btn-primary">Напоминание сотруднику</button>
     </form>
+    
+
 
 {% endblock %}

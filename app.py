@@ -1011,7 +1011,7 @@ def test_results():
                 return render_template('/test_results.html', testResults = testResults, headerList = HEADER_LIST_FROM_TEST_SMALL)
 
     else:
-        return redirect('/test_results')
+        return redirect('/')
 
 
 @app.route('/file_test', methods = ["GET", "POST"])
@@ -1814,34 +1814,6 @@ def mail_manager():
         return redirect('/')
 
 
-@app.route('/accept_rules', methods = ['GET', 'POST'])
-@login_required
-def accept_rules():
-    if request.method == 'GET' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
-        try:
-            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
-            connection.autocommit = True
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT department, reports_to, status, position,  name,  mail, accept_rules FROM users WHERE status = %(status)s ORDER BY id", {'status': MANAGER})
-                users = cursor.fetchall()
-               
-        except Exception as _ex:
-            print(f'[INFO] Error while working PostgresSQL', _ex)
-            flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
-            return redirect('/')
-        finally:
-            if connection:
-                connection.close()
-                print(f"[INFO] PostgresSQL nonnection closed")
-        return render_template('accept_rules.html', users = users)
-
-
-    elif request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
-            pass
-    else:
-        return redirect('/')
-
-
 @app.errorhandler(Exception)
 def handle_exception(e):
     if isinstance(e, HTTPException):
@@ -1857,9 +1829,9 @@ def handle_exception(e):
 @app.route('/settings', methods = ["GET", "POST"])
 @login_required
 def settings():
-    if request.method == 'GET':
+    if request.method == 'GET' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
         return render_template('/settings.html')
-    else:
+    if request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
         invite_head = request.form.get('invite_head')
         reminder_head = request.form.get('reminder_head') 
         invite_manager = request.form.get('invite_manager') 
@@ -1875,6 +1847,8 @@ def settings():
             return render_template('reminder_to_manager.html', user_name = 'Иван Иванович', user_mail = 'ivan@example.com', user_password = 'xxxxxxxx')
         else:
             return redirect ('/settings')
+    else:
+        return redirect ('/')
     
 
 #if __name__ == "__main__":
