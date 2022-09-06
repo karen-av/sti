@@ -1219,7 +1219,7 @@ def mail_heads():
                         # check mail date
                         cursor.execute("SELECT mail_date FROM users WHERE mail = %(mail)s", {'mail':user_mail})
                         mail_date = cursor.fetchall()
-                        msg = Message('From STI-Partners', recipients=[user_mail])
+                        msg = Message('Проект «Развитие компетенций сотрудников back-office»', recipients=[user_mail])
                         # If the invitation was sent
                         if mail_date[0][0] != None:
                             cursor.execute("SELECT reports_pos FROM positions WHERE reports_pos = %(mail)s AND (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL)", {'mail':user_mail})
@@ -1269,7 +1269,7 @@ def mail_heads():
                         try:
                             user_password = createPassword()
                             hash  = generate_password_hash(user_password, "pbkdf2:sha256")
-                            msg = Message("From STI-Partners", recipients=[singleUser[5]])
+                            msg = Message("Проект «Развитие компетенций сотрудников back-office»", recipients=[singleUser[5]])
                             
                             # If the invitation was sent
                             if singleUser[6] != None:
@@ -1694,7 +1694,7 @@ def mail_manager():
                         today = datetime.date.today()
                         user_password = createPassword()
                         hash = generate_password_hash(user_password, "pbkdf2:sha256")
-                        msg = Message('From STI-Partners', recipients=[user_mail])
+                        msg = Message('Проект «Развитие компетенций сотрудников back-office»', recipients=[user_mail])
 
                         cursor.execute("SELECT mail_date FROM users WHERE mail = %(mail)s", {'mail': user_mail})
                         mail_date = cursor.fetchall()
@@ -1745,7 +1745,7 @@ def mail_manager():
                         try:
                             user_password = createPassword()
                             hash  = generate_password_hash(user_password, "pbkdf2:sha256")
-                            msg = Message("From STI-Partners", recipients=[singleUser[5]])
+                            msg = Message("Проект «Развитие компетенций сотрудников back-office»", recipients=[singleUser[5]])
                             if singleUser[6] != None:
                                 if singleUser[7] == None:
                                     msg.body = render_template("reminder_to_manager.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
