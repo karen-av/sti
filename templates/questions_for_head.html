@@ -20,7 +20,6 @@ Questions
     </style>
 </body>
 
-
 <div style="width: 95%; margin: auto; text-align: left; margin-bottom: 30px;">
     <p>Итак, внимательно ознакомьтесь с описанием каждой компетенции. Посмотрите, по каким шкалам проводится оценка. Подумайте, насколько поведение, описанное в каждой компетенции, важно для достижения результатов работы в каждой должности сотрудников, которыми Вы руководите.</p>
     <p>Выберите приоритеты по каждой компетенции, чтобы создать идеальный профиль для каждой должности сотрудников, которые работают под Вашим руководством.</p>
@@ -60,11 +59,9 @@ Questions
             </select>
         </td> 
     </tr>{%endfor%}
-
     <caption>
-        <button class="btn btn-primary" type="submit" id="button" onclick="return show_alert('Сохранить введеные значения?')">Нажмите здесь, чтобы перейти к следующей должности</button>
+        <button class="btn btn-primary" type="submit" id="button" onclick="return show_alert('Точно? Это действи необратимо.')">Вы уверены? Если да, нажмите здесь для перехода к следующей должности</button>
     </caption>
-
 </form>
 </tbody>
 </table> 
@@ -112,90 +109,7 @@ Questions
         }
     }
     
-    /* function  hyd(){
-        let id = new Array(10);
-        //let name = {1: 'Надежность', 2: 'Организованноcть', 3: 'Стремление к совершенству',  4: 'Приверженность', 5: 'Командность', 6: 'Ориентация на клиента', 7: 'Принятие решений', 8: 'Эффективная коммуникация', 9: 'Управленческое мастерство'}
-        let name = new Array('Надежность', 'Организованноcть', 'Стремление к совершенству', 'Приверженность', 'Командность', 'Ориентация на клиента', 'Принятие решений', 'Эффективная коммуникация', 'Управленческое мастерство')
-        let o_id = new Array(10);
-        let arr = new Array(0,1,2,3,4,5,6,7,8,9,10)
-        let opt = new Array(10);
-        for(let i = 1; i < 10; i++){    
-            id[i] = 'id_' + i;    
-            opt[i] = document.getElementById(id[i]).value;   
-        }
-        let l = opt.length;
-        let c = 1;
-        while (c < l) {
-            for (let b = 1; b < l; b++){
-                if (opt[c] == arr[b]){
-                    console.log(opt[c], arr[b])
-                    for (let n = 0; n < 9; n++){
-                        if (c != n+1){
-                        let x = 'op_' + b + name[n];
-                        console.log(x)
-                        //document.getElementById(x).style.display = "none"
-                        document.getElementById(x).disabled = true 
-                        }
-                    }
-                }  
-            } 
-            c ++;
-        }
-        return true;
-    } */
-
-   /* function reset_selector()
-    {
-        let id = new Array(10);
-        let name = new Array('Надежность', 'Организованноcть', 'Стремление к совершенству',  'Приверженность', 'Командность', 'Ориентация на клиента', 'Принятие решений', 'Эффективная коммуникация',  'Управленческое мастерство')
-        let o_id = new Array(10);
-        let arr = new Array(0,1,2,3,4,5,6,7,8,9,10)
-        let opt = new Array(10);
-        for(let i = 1; i < 10; i++){    
-            id[i] = 'id_' + i;    
-            opt[i] = document.getElementById(id[i]).value;   
-        }
-        let l = opt.length;
-        let c = 1;
-        while (c < l) {
-            for (let b = 1; b < l; b++){        
-                for (let n = 0; n < 9; n++){
-                    let x = 'op_' + b + name[n];
-                    document.getElementById(x).style.display = "block"
-                    document.getElementById(x).disabled = false
-                }
-            } 
-            c ++;
-        }
-    } */
-
-  /*  function check() {
-        let id = new Array(10);
-        let opt = new Array(10);
-        for(let i = 1; i < 10; i++){
-            id[i] = 'id_' + i;    
-            opt[i] = document.getElementById(id[i]).value;
-        } 
-        let l = opt.length;
-        let c = 1;
-        while (c < l) {
-            for (let b = 1; b < l; b++){
-                if (opt[c] === opt[b] && b != c && opt[c] != 0 ){
-                    alert('Значение должно быть уникальным');
-                    document.getElementById(id[b]).style.border = "1px solid red";
-                    document.getElementById(id[c]).style.border = "1px solid red";
-                    return false;
-                    break;
-                }
-                else {
-                    document.getElementById(id[b]).style.border = "1px solid black";
-                    document.getElementById(id[c]).style.border = "1px solid black";
-                }
-            } 
-            c ++;
-        }
-        return true;
-    } */
+    
 
     </script>
 

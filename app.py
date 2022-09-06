@@ -57,7 +57,7 @@ HEAD = 'head'
 MANAGER = 'manager'
 SORTLIST = ("Подразделению", "Руководителю", "Статусу", "Должности", 'Имени', 'Почте')
 COMPETENCE = ('Надежность', 'Организованноcть', 'Стремление к совершенству',  'Приверженность', 'Командность', 'Ориентация на клиента', 'Принятие решений', 'Эффективная коммуникация',  'Управленческое мастерство')
-COMPETENCE_DESCRIPTION  = (('Надежность', 'Берется за дополнительные задачи и интенсивно работает. Выполняет работу своевременно и несёт ответственность за результаты.'), ('Организованноcть', 'Стремление ставить перед собой четкие цели и планировать работу. Умение быстро адаптироваться к изменениям на работе.'), ('Стремление к совершенству', 'Ставит перед собой амбициозные цели. Обучается новому и совершенствует рабочие процессы.'), ('Приверженность', 'Следует целям и ценностям компании в своей работе. Делится своим опытом с коллегами и партнерами. Шкалы оценки: Лояльность; Взаимовыручка',), ('Командность', 'Объединяет людей и открыто обсуждает рабочие проблемы. Шкалы оценки: Готовность к компромиссу; Сотрудничество; Открытость; Открытость обратной связи'), ('Ориентация на клиента', 'Выясняет потребности клиентов, в том числе внутренних (коллег) и учитывает их в своей работе. Выстраивает долгосрочные отношения. Шкалы оценки: Ориентация на потребности клиента (в том числе внутреннего); Партнерство'), ('Принятие решений', 'Интересуется тенденциями рынка и конкурентами в своей отрасли. Ставит стратегические цели и управляет рисками на основе анализа информации.'), ('Эффективная коммуникация', 'Налаживает контакт с другими людьми и находит индивидуальный подход к собеседнику. Четко и уверенно отстаивает свою позицию.'), ('Управленческое мастерство', 'Организовывает работу подчиненных (коллег) и поддерживает позитивный командный настрой. Развивает и поддерживает подчиненных (коллег).'))
+COMPETENCE_DESCRIPTION  = (('Надежность', 'Берется за дополнительные задачи и интенсивно работает. Выполняет работу своевременно и несёт ответственность за результаты.'), ('Организованноcть', 'Ставит перед собой четкие цели и планировать работу. Умение быстро адаптироваться к изменениям на работе.'), ('Стремление к совершенству', 'Ставит перед собой амбициозные цели. Обучается новому и совершенствует рабочие процессы.'), ('Приверженность', 'Следует целям и ценностям компании в своей работе. Делится своим опытом с коллегами и партнерами. Шкалы оценки: Лояльность; Взаимовыручка',), ('Командность', 'Объединяет людей и открыто обсуждает рабочие проблемы. Шкалы оценки: Готовность к компромиссу; Сотрудничество; Открытость; Открытость обратной связи'), ('Ориентация на клиента', 'Выясняет потребности клиентов, в том числе внутренних (коллег) и учитывает их в своей работе. Выстраивает долгосрочные отношения. Шкалы оценки: Ориентация на потребности клиента (в том числе внутреннего); Партнерство'), ('Принятие решений', 'Интересуется тенденциями рынка и конкурентами в своей отрасли. Ставит стратегические цели и управляет рисками на основе анализа информации.'), ('Эффективная коммуникация', 'Налаживает контакт с другими людьми и находит индивидуальный подход к собеседнику. Четко и уверенно отстаивает свою позицию.'), ('Управленческое мастерство', 'Организовывает работу подчиненных (коллег) и поддерживает позитивный командный настрой. Развивает и поддерживает подчиненных (коллег).'))
 HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ', 'Дисциплинированность', 'Исполнительность', 'Ответственность', 'Решительность', 'ОРГАНИЗОВАННОСТЬ', 'Чёткое целеполагание', 'Адаптивность', 'Планирование', 'Стремление к порядку', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ', 'Стремление к достижениям', 'Стремление к развитию', 'Инновационность', 'ПРИВЕРЖЕННОСТЬ', 'Лояльность', 'Взаимовыручка', 'КОМАНДНОСТЬ', 'Готовность к компромиссу', 'Сотрудничество', 'Открытость', 'Открытость обратной связи', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ', 'Ориентация на потребности клиента', 'Партнёрство', 'ПРИНЯТИЕ РЕШЕНИЙ', 'Системное мышление', 'Бизнес-мышление', 'Перспективное мышление', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ', 'Чёткая коммуникация', 'Убеждение и влияние', 'Ведение переговоров', 'Кроссфункциональное взаимодействие', 'Неформальное лидерство', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО', 'Управление исполнением', 'Мотивация подчинённых', 'Организация работы', 'Управление изменениями', 'Развитие подчинённых', 'Управление командой')
 HEADER_LIST_FROM_TEST_SMALL = ('НАДЁЖНОСТЬ', 'ОРГАНИЗОВАННОСТЬ', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ', 'ПРИВЕРЖЕННОСТЬ', 'КОМАНДНОСТЬ', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ', 'ПРИНЯТИЕ РЕШЕНИЙ', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО')
 #HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ', 'Дисциплинированность', 'Исполнительность', 'Ответственность')
@@ -87,13 +87,37 @@ def after_request(response):
 @login_required
 def index():
     if session["user_status"] == ADMIN or session["user_status"] == COACH:
-        return render_template('index.html')
+        status = session["user_status"]
+        return render_template('index.html', status = status)
     elif session["user_status"] == HEAD:
         return render_template("/instruction_for_head.html")
     elif session["user_status"] == MANAGER:
         return render_template("/instruction_for_manager.html")
     else:
         return redirect("/login")
+
+
+@app.route('/log_table')
+@login_required
+def log_table():
+    if session['user_status'] == ADMIN:
+        try:
+            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
+            connection.autocommit = True  
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT name, mail, status, date FROM log_table")
+                log_data = cursor.fetchall()
+                return render_template('log_table.html', log_data = log_data)
+        except Exception as _ex:
+            print("[INFO] Error while working with PostgresSQL", _ex)
+            flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+            return redirect('/')
+        finally:
+            if connection:
+                connection.close()
+                print("[INFO] PostgresSQL connection closed")
+    else:
+        return redirect('/')
 
 
 @app.route("/positions", methods=['POST','GET'])
@@ -442,7 +466,6 @@ def users():
             comp_7 = request.form.get('comp_7')
             comp_8 = request.form.get('comp_8')
             comp_9 = request.form.get('comp_9')
-            print(f'comp: {comp_1}')
 
             # Проверка введенных данных
             if not comp_1 or not comp_2 or not comp_3 or not comp_4 or not comp_5 or not comp_6 or not comp_7 or not comp_8 or not comp_9:
@@ -510,6 +533,25 @@ def login():
                 mail = request.form.get('mail').lower().strip()
                 cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
                 rows = cursor.fetchall()
+                # Ensure username exists and password is correct
+                if len(rows) != 1 or not check_password_hash(rows[0][7], request.form.get("hash")):
+                    flash('Вы указали неверный логин или пароль')
+                    return render_template('/login.html', form = form, msg = msg )
+                    #return apology("invalid username and/or password", 403)
+
+                # Remember which user has logged in
+                session["user_id"] = rows[0][0]
+                session["user_name"] = rows[0][5]
+                session["user_status"] = rows[0][3]
+                session["user_mail"] = rows[0][6]
+                today = today = datetime.date.today()
+
+                #insert in to log table
+                cursor.execute("INSERT INTO log_table (name, mail, status, date) VALUES(%(name)s, %(mail)s, %(status)s, %(date)s)", {'name': session["user_name"], 'mail': session["user_mail"], 'status': session["user_status"], 'date': today})
+
+                # Redirect user to home page
+                return redirect('/' )
+
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
             flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
@@ -518,22 +560,6 @@ def login():
             if connection:
                 connection.close()
                 print("[INFO] PostgresSQL connection closed")
-
-        # Ensure username exists and password is correct
-        
-        if len(rows) != 1 or not check_password_hash(rows[0][7], request.form.get("hash")):
-            flash('Вы указали неверный логин или пароль')
-            return render_template('/login.html', form = form, msg = msg )
-            #return apology("invalid username and/or password", 403)
-
-        # Remember which user has logged in
-        session["user_id"] = rows[0][0]
-        session["user_name"] = rows[0][5]
-        session["user_status"] = rows[0][3]
-        session["user_mail"] = rows[0][6]
-
-        # Redirect user to home page
-        return redirect('/' )
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
@@ -1797,9 +1823,8 @@ def settings():
  #   app.run(host="0.0.0.0")
 
 
-#CREATE TABLE users (id INTEGER PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY NOT NULL, department VARCHAR(50), reports_to VARCHAR(50), status VARCHAR(50), position VARCHAR(50), name VARCHAR(50), mail VARCHAR(50) UNIQUE, hash VARCHAR(50));
+
 #CREATE TABLE users (id INTEGER PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY NOT NULL, department VARCHAR(150), reports_to VARCHAR(150), status VARCHAR(150), position VARCHAR(150), name VARCHAR(150), mail VARCHAR(150) UNIQUE, hash VARCHAR(300), mail_date VARCHAR(50), division VARCHAR(150), branch VARCHAR(150), accept_rules VARCHAR(50));
 #CREATE TABLE positions (ID INTEGER NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, position_pos VARCHAR(50), reports_pos VARCHAR(50), comp_1 INTEGER, comp_2 INTEGER, comp_3 INTEGER, comp_4 INTEGER, comp_5 INTEGER, comp_6 INTEGER, comp_7 INTEGER, comp_8 INTEGER, comp_9 INTEGER);
 #CREATE TABLE test_results (ID INTEGER NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, name_test VARCHAR(50), mail VARCHAR(50), reliability INTEGER,	discipline INTEGER,	executive INTEGER,	responsibility INTEGER,	resolved INTEGER,	organizational INTEGER,	software INTEGER,	adaptation INTEGER,	planning INTEGER,	page INTEGER,	strengthening INTEGER,	building_on_achievements INTEGER,	building_for_development INTEGER,	innovation INTEGER,	approved INTEGER,	loyalty INTEGER,	currency INTEGER,	country INTEGER,	preparedness_for_compromise INTEGER,	cooperation INTEGER,	openness INTEGER,	openness_of_feedback INTEGER,	clientoority INTEGER,	customer_needs_orientation INTEGER,	partnership INTEGER,	adoption_of_decisions INTEGER,	systemic_thinking INTEGER,	business INTEGER,	forward_thinking INTEGER,	effective_communication INTEGER,	clean_communication INTEGER,	impunity_and_influence INTEGER,	negotiations INTEGER,	cross_functional_interaction INTEGER,	informal_leadership INTEGER,	management INTEGER,	implementation_management INTEGER,	motivation_of_subordinates INTEGER,	organization_of_work INTEGER,	change_management INTEGER,	development_of_subordinates INTEGER, command_management INTEGER);
-#INSERT INTO test_results (mail , reliability , discipline , executive , responsibility , resolved , organizational , software , adaptation , planning , page , strengthening  , building_on_achievements  , building_for_development  , innovation  , approved  , loyalty  , currency  , country  , preparedness_for_compromise  , cooperation  , openness  , openness_of_feedback  , clientoority  , customer_needs_orientation  , partnership  , adoption_of_decisions  , systemic_thinking  , business  , forward_thinking  , effective_communication  , clean_communication  , impunity_and_influence  , negotiations  , cross_functional_interaction  , informal_leadership  , management  , implementation_management  , motivation_of_subordinates  , organization_of_work  , change_management  , development_of_subordinates  , command_management ) VALUES ('123@ed.er1' , 4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,3,3,3,34,4,4,4,44,4,4,4,4,4,44);
-#INSERT INTO test_results (mail , reliability , discipline , executive , responsibility , resolved , organizational , software , adaptation , planning , page , strengthening  , building_on_achievements  , building_for_development  , innovation  , approved  , loyalty  , currency  , country  , preparedness_for_compromise  , cooperation  , openness  , openness_of_feedback  , clientoority  , customer_needs_orientation  , partnership  , adoption_of_decisions  , systemic_thinking  , business  , forward_thinking  , effective_communication  , clean_communication  , impunity_and_influence  , negotiations  , cross_functional_interaction  , informal_leadership  , management  , implementation_management  , motivation_of_subordinates  , organization_of_work  , change_management  , development_of_subordinates  , command_management ) VALUES ('123@ed.er2' , 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42);
+#CREATE TABLE log_table (ID INTEGER NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, name VARCHAR(50), mail VARCHAR(50),status VARCHAR(50), date VARCHAR(50) );
