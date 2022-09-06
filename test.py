@@ -1,7 +1,6 @@
 
-from helpers import escape
+x = 1
+y = 2
+x += 3
 
-
-s = 'ddf$-/ff'
-print(s)
-print(escape(s))  
+print(x)

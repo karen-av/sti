@@ -783,8 +783,6 @@ def file():
         countErrorHead = 0
         countUploadManager = 0
         countUploadHead = 0
-        #usersError = []
-        #usersUpload = []
         
         # если расширение файла excel, то разбираем файл посточно
         if filename.endswith((".xlsx", ".xls")):
@@ -804,9 +802,7 @@ def file():
                         us = cursor.fetchall()
                         # Если существует, то не записываем в базу. Добавляем в список
                         if len(us) != 0:
-                            countErrorManager = countErrorManager + 1
-                            print(f'не сохранен - {mail}')
-                           #usersError = usersError + us
+                            countErrorManager += 1
                         # Если нет пользователя в базе, то записываем туда и добавляем в список
                         else:
                             name = str(table.iloc[i,:][2] + ' ' + table.iloc[i,:][1])
@@ -818,11 +814,7 @@ def file():
                             status = MANAGER
                             hash = generate_password_hash(createPassword(), "pbkdf2:sha256")
                             cursor.execute("INSERT INTO users ( name, mail, position, division, department, branch, reports_to, status, hash) VALUES(%(name)s, %(mail)s, %(position)s, %(division)s, %(department)s, %(branch)s, %(reports_to)s, %(status)s, %(hash)s)", {'name': name, 'mail': mail, 'position': position, 'division': division, 'department': department, 'branch': branch, 'reports_to': reports_to, 'status': status, 'hash': hash})
-                            countUploadManager = countUploadManager + 1
-
-                            #cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
-                            #usUpload = cursor.fetchall()
-                            #usersUpload = usersUpload + usUpload
+                            countUploadManager += 1
                             
                             # Проверяем должность в базе. Если существует, то пропускам
                             cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s AND reports_pos = %(reports_pos)s", {'position': position, 'reports_pos': reports_to})
@@ -837,8 +829,7 @@ def file():
                         us = cursor.fetchall()
                         # Если пользоватеть существует, то не записываем в базу. Добавляем в список
                         if len(us) != 0:
-                            print(f'head did not upload - {mail}')
-                            countErrorHead = countErrorHead + 1
+                            countErrorHead += 1
                            
                         # Если нет пользователя в базе, то записываем туда и добавляем в список
                         else:
@@ -851,7 +842,7 @@ def file():
                             status = HEAD
                             hash = generate_password_hash(createPassword(), "pbkdf2:sha256")
                             cursor.execute("INSERT INTO users ( name, mail, position, division, department, branch, status, hash, reports_to) VALUES(%(name)s, %(mail)s, %(position)s, %(division)s, %(department)s, %(branch)s, %(status)s, %(hash)s, %(reports_to)s)", {'name': name, 'mail': mail, 'position': position, 'division': division, 'department': department, 'branch': branch, 'status': status, 'hash': hash, 'reports_to':reports_to})
-                            countUploadHead = countUploadHead + 1
+                            countUploadHead += 1
                             
 
             except Exception as _ex:
@@ -861,55 +852,7 @@ def file():
             finally:
                 if connection:
                     connection.close()
-                    print("[INFO] PostgresSQL connection closed")  
-                    
-        elif filename.endswith(".csv"):
-            with open(f'upload_files/{filename}', newline="") as csvfile:
-                userData = csv.reader(csvfile, delimiter=';', quotechar='|')
-                next(userData)
-                try:
-                    connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
-                    connection.autocommit = True  
-                    
-                    with connection.cursor() as cursor:
-                        for userD in userData:
-                            department = userD[0]
-                            reports_to = userD[1]
-                            status = userD[2]
-                            position = userD[3]
-                            name = userD[4]
-                            mail = userD[5]         
-                            hash = ''
-                            if status == 'coach' or status == HEAD:
-                                hash = generate_password_hash(createPassword(), "pbkdf2:sha256")
-                            # проверить пользователя на сущесвование
-                            cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
-                            us = cursor.fetchall()
-
-                            if len(us) != 0:
-                                countErrorManager = countErrorManager + 1
-                                usersError = usersError + us
-                            else:
-                                cursor.execute("INSERT INTO users (department, reports_to, status, position, name, mail, hash) VALUES(%(department)s, %(reports_to)s, %(status)s, %(position)s, %(name)s, %(mail)s, %(hash)s)", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'hash': hash})
-                                countUploadManager = countUploadManager + 1
-                                cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
-                                usUpload = cursor.fetchall()
-                                usersUpload = usersUpload + usUpload
-                                cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s", {'position': position})
-                                pos = cursor.fetchall()
-                                if len(pos) == 0 and status != ADMIN and status != COACH:
-                                    cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
-
-
-
-                except Exception as _ex:
-                    print("[INFO] Error while working with PostgresSQL", _ex)
-                    flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
-                    return redirect('/')
-                finally:
-                    if connection:
-                        connection.close()
-                        print("[INFO] PostgresSQL connection closed")                  
+                    print("[INFO] PostgresSQL connection closed")                 
 
         else:
             flash('Тип загруженного файла не поддерживается.')
@@ -961,7 +904,7 @@ def test_results():
                     testResults = cursor.fetchall()
             except Exception as _ex:
                 print("[INFO] Erroe while working with PostgraseSQL", _ex)
-                flash(f'Не удалось подключиться к базе данных. Попробуйте повторить попытку. {_ex}')
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
                 return redirect('/')
             finally :
                 if connection:
@@ -1035,8 +978,6 @@ def file_test():
 
         countError = 0
         countUpload = 0
-        usersError = []
-        usersUpload = []
            
         if filename.endswith((".xlsx", ".xls")):
             xlsx = pd.ExcelFile(f'upload_files/{filename}')
@@ -1096,10 +1037,10 @@ def file_test():
                             command_management = int(table.iloc[i,:][47])
 
                             cursor.execute("INSERT INTO test_results (name_test, mail , reliability , discipline , executive , responsibility , resolved , organizational , software , adaptation , planning , page , strengthening  , building_on_achievements  , building_for_development  , innovation  , approved  , loyalty  , currency  , country  , preparedness_for_compromise  , cooperation  , openness  , openness_of_feedback  , clientoority  , customer_needs_orientation  , partnership  , adoption_of_decisions  , systemic_thinking  , business  , forward_thinking  , effective_communication  , clean_communication  , impunity_and_influence  , negotiations  , cross_functional_interaction  , informal_leadership  , management  , implementation_management  , motivation_of_subordinates  , organization_of_work  , change_management  , development_of_subordinates  , command_management) VALUES (%(name_test)s, %(mail)s, %(reliability)s, 	%(discipline)s, 	%(executive)s, 	%(responsibility)s, 	%(resolved)s, 	%(organizational)s, 	%(software)s, 	%(adaptation)s, 	%(planning)s, 	%(page)s, 	%(strengthening)s, 	%(building_on_achievements)s, 	%(building_for_development)s, 	%(innovation)s, 	%(approved)s, 	%(loyalty)s, 	%(currency)s, 	%(country)s, 	%(preparedness_for_compromise)s, 	%(cooperation)s, 	%(openness)s, 	%(openness_of_feedback)s, 	%(clientoority)s, 	%(customer_needs_orientation)s, 	%(partnership)s, 	%(adoption_of_decisions)s, 	%(systemic_thinking)s, 	%(business)s, 	%(forward_thinking)s, 	%(effective_communication)s, 	%(clean_communication)s, 	%(impunity_and_influence)s, 	%(negotiations)s, 	%(cross_functional_interaction)s, 	%(informal_leadership)s, 	%(management)s, 	%(implementation_management)s, 	%(motivation_of_subordinates)s, 	%(organization_of_work)s, 	%(change_management)s, 	%(development_of_subordinates)s, 	%(command_management)s)", {'name_test': name_test, 'mail': mail, 'reliability': reliability, 	'discipline': discipline, 	'executive': executive, 	'responsibility': responsibility, 	'resolved': resolved, 	'organizational': organizational, 	'software': software, 	'adaptation': adaptation, 	'planning': planning, 	'page': page, 	'strengthening': strengthening, 	'building_on_achievements': building_on_achievements, 	'building_for_development': building_for_development, 	'innovation': innovation, 	'approved': approved, 	'loyalty': loyalty, 	'currency': currency, 	'country': country, 	'preparedness_for_compromise': preparedness_for_compromise, 	'cooperation': cooperation, 	'openness': openness, 	'openness_of_feedback': openness_of_feedback, 	'clientoority': clientoority, 	'customer_needs_orientation': customer_needs_orientation, 	'partnership': partnership, 	'adoption_of_decisions': adoption_of_decisions, 	'systemic_thinking': systemic_thinking, 	'business': business, 	'forward_thinking': forward_thinking, 	'effective_communication': effective_communication, 	'clean_communication': clean_communication, 	'impunity_and_influence': impunity_and_influence, 	'negotiations': negotiations, 	'cross_functional_interaction': cross_functional_interaction, 	'informal_leadership': informal_leadership, 	'management': management, 	'implementation_management': implementation_management, 	'motivation_of_subordinates': motivation_of_subordinates, 	'organization_of_work': organization_of_work, 	'change_management': change_management, 	'development_of_subordinates': development_of_subordinates, 	'command_management': command_management})
-                            countUpload = countUpload + 1
+                            countUpload += 1
 
                         else: 
-                            countError = countError + 1
+                            countError += 1
 
             except Exception as _ex:
                 print(f'[INFO] Error while working PostgresSQL', _ex)
@@ -1281,22 +1222,22 @@ def mail_heads():
                                     msg.body = render_template("reminder_to_head.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
                                     msg.html = render_template("reminder_to_head.html", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
                                     mail.send(msg)
-                                    counterSend = counterSend + 1
+                                    counterSend += 1
                                     cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
                                 else:
                                     notSendList.append(singleUser)
-                                    counterNotSend = counterNotSend + 1 
+                                    counterNotSend += 1 
                                     
                             else:
                                 msg.body = render_template("to_head_email.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
                                 msg.html = render_template('to_head_email.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
                                 mail.send(msg)
-                                counterSend = counterSend + 1
+                                counterSend += 1
                                 cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
 
                         except Exception as _ex:
                             notSendList.append(singleUser)
-                            counterNotSend = counterNotSend + 1 
+                            counterNotSend += 1 
                             print(f'[INFO] Error while working mail sender:', _ex)
                         
                     cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status':HEAD})
@@ -1305,7 +1246,7 @@ def mail_heads():
             except Exception as _ex:
                 print(f'[INFO] Error while working PostgresSQL', _ex)
                 notSendList.append(singleUser)
-                counterNotSend = counterNotSend + 1
+                counterNotSend += 1
                 flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
                 return redirect('/')
                  
@@ -1751,21 +1692,21 @@ def mail_manager():
                                     msg.body = render_template("reminder_to_manager.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
                                     msg.html = render_template('reminder_to_manager.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
                                     mail.send(msg)
-                                    counterSend = counterSend + 1
+                                    counterSend += 1
                                     cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
                                 else:
                                     notSendList.append(singleUser)
-                                    counterNotSend = counterNotSend + 1        
+                                    counterNotSend += 1        
                             else:
                                 msg.body = render_template("to_manager_email.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
                                 msg.html = render_template('to_manager_email.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
                                 mail.send(msg)
-                                counterSend = counterSend + 1
+                                counterSend += 1
                                 cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
                            
                         except Exception as _ex:
                             notSendList.append(singleUser)
-                            counterNotSend = counterNotSend + 1 
+                            counterNotSend += 1 
                             print(f'[INFO] Error while working mail sender:', _ex)
                         
                     cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status':MANAGER})
@@ -1774,7 +1715,7 @@ def mail_manager():
             except Exception as _ex:
                 print(f'[INFO] Error while working PostgresSQL', _ex)
                 notSendList.append(singleUser)
-                counterNotSend = counterNotSend + 1
+                counterNotSend += 1
                 flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
                 return redirect('/')
                  
@@ -1836,6 +1777,7 @@ def settings():
         reminder_head = request.form.get('reminder_head') 
         invite_manager = request.form.get('invite_manager') 
         reminder_manager = request.form.get('reminder_manager')
+        res_password = request.form.get('res_password')
 
         if invite_head:
             return render_template('to_head_email.html', user_name = 'Иван Иванович', user_mail = 'ivan@example.com', user_password = 'xxxxxxxx')
@@ -1845,6 +1787,8 @@ def settings():
             return render_template('to_manager_email.html', user_name = 'Иван Иванович', user_mail = 'ivan@example.com', user_password = 'xxxxxxxx')
         if reminder_manager:
             return render_template('reminder_to_manager.html', user_name = 'Иван Иванович', user_mail = 'ivan@example.com', user_password = 'xxxxxxxx')
+        if res_password:
+            return render_template('mail_reset_password.html', user_name = 'Иван Иванович', user_mail = 'ivan@example.com', user_password = 'xxxxxxxx')
         else:
             return redirect ('/settings')
     else:

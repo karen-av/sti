@@ -11,7 +11,7 @@
 <div class="route">
     <a href="/">Главная</a> - Загрузить сотрудников
 </div>
-<dev>Загрузите файл со списком сотрудников.</dev>
+<h5>Загрузите excel файл со списком сотрудников.</h5>
 <form action="/file_users" method="post" enctype=multipart/form-data class="">
     <div class="input-group form_upload">
         <input accept=".xlsx,.xls" name="file" type="file" class="form-control" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" aria-label="Upload">
@@ -23,10 +23,10 @@
 <div class="route">
     <a href="/">Главная</a> - Загрузите файл с результатами тестирования 'Дельта аи'
 </div>
-<dev>Загрузите файл с результатами тестирования.</dev>
+<h5>Загрузите excel файл с результатами тестирования.</h5>
 <form action="/file_test" method="post" enctype=multipart/form-data class="">
     <div class="input-group form_upload">
-        <input accept=".xlsx,.xls,.csv" name="file" type="file" class="form-control" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" aria-label="Upload">
+        <input accept=".xlsx,.xls" name="file" type="file" class="form-control" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" aria-label="Upload">
         <button class="btn btn-primary" type="sybmit" id="inputGroupFileAddon04">Загрузить</button>
     </div>
 </form>
