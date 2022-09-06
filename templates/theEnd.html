@@ -5,38 +5,12 @@
 {% endblock %}
 
 {% block main %}
-<body>
-    <style>
-    div {
-    text-align: left;
-    margin-top: 20px
-    }
-    p {
-        margin-top: 0px;
-        margin-bottom: 1%;
-        text-align: justify;
-        font-size: 150%;
-    }
-    </style>
-</body>
-<div style="width: 80%; margin: auto; text-align: left; margin-bottom: 30px;">
-    <div style="margin-bottom: 30px;" >
-        <p><b>Благодарим Вас за активное участие! </b></p>
-        <p>Если в течение двух рабочих дней, Вы решите внести корректировки в профили должностей, обращайтесь к нам через форму ниже.</p>
-    </div> 
-    <p></p>
-    
-    <form action="/mail_heads" method="post" onsubmit="return show_alert('Отправить сообщение?')" >
-        <input type="hidden" value="mail_from_head_end" name ="flag">
-        <label for="exampleFormControlTextarea1" class="form-label"><p></p></label>
-        <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" name="messege_from_head"></textarea>
-        <button class="btn btn-primary" type="submit">Отправить сообщение</button>
-    </form>
-                
 
-<p></p>
+
+<h1>Благодарим Вас за активное участие!</h1>
+
 <a href="/logout"><button class="btn btn-primary" style="margin-top: 50px; width: 30%;">Завершить</button></a>
 
-</div>
+
 
 {% endblock %}

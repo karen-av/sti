@@ -961,7 +961,7 @@ def test_results():
                     testResults = cursor.fetchall()
             except Exception as _ex:
                 print("[INFO] Erroe while working with PostgraseSQL", _ex)
-                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                flash(f'Не удалось подключиться к базе данных. Попробуйте повторить попытку. {_ex}')
                 return redirect('/')
             finally :
                 if connection:
