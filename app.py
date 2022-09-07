@@ -848,7 +848,6 @@ def file():
                             pos = cursor.fetchall()
                             if len(pos) == 0:
                                 cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
-                        print("A")
                     # Проходип по таблице и записываем руководителей в базу
                     for i in range(len(table)):            
                         mail = str(table.iloc[i,:][9]).lower().strip()
