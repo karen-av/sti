@@ -1800,7 +1800,7 @@ def handle_exception(e):
                 return render_template("apology.html", top='500', bottom = e), 500
     except Exception as _ex:
         print("[INFO] Error while working with PostgresSQL", _ex)
-        flash("В процессе создания запроса произошла ошибка. Пожалуйста, обновите страницу и повторите попытку.")
+        flash("[INFO] В процессе создания запроса произошла ошибка. Пожалуйста, обновите страницу и повторите попытку.")
         return redirect('/')
     finally:
         if connection:
