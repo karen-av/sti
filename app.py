@@ -107,7 +107,7 @@ def log_table():
             with connection.cursor() as cursor:
                 cursor.execute("SELECT name, mail, status, date FROM log_table ORDER BY date DESC")
                 log_data = cursor.fetchall()
-                cursor.execute("SELECT exception_data, exception_code, exception_date FROM exception_table ORDER BY exception_date DESC")
+                cursor.execute("SELECT exception_data, exception_code, user_mail, exception_date FROM exception_table ORDER BY exception_date DESC")
                 exception_table = cursor.fetchall()
                 return render_template('log_table.html', log_data = log_data, exception_table = exception_table)
         except Exception as _ex:
@@ -546,8 +546,8 @@ def login():
                 session["user_name"] = rows[0][5]
                 session["user_status"] = rows[0][3]
                 session["user_mail"] = rows[0][6]
-                today = today = datetime.date.today()
-
+                today = datetime.datetime.today().strftime("%d.%m.%Y %X")
+               
                 #insert in to log table
                 cursor.execute("INSERT INTO log_table (name, mail, status, date) VALUES(%(name)s, %(mail)s, %(status)s, %(date)s)", {'name': session["user_name"], 'mail': session["user_mail"], 'status': session["user_status"], 'date': today})
 
@@ -1787,17 +1787,18 @@ def handle_exception(e):
         connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
         connection.autocommit = True
         #today = datetime.date.today()
-        today = datetime.datetime.now()
+        today = datetime.datetime.today().strftime("%d.%m.%Y %X")
+        user_mail = session['user_mail']
         with connection.cursor() as cursor:
             if isinstance(e, HTTPException):
                 code = e.code
                 name = e.name
                 print(f'[INFO] HTTPException: {code} {name}')
-                cursor.execute("INSERT INTO exception_table (exception_code, exception_data, exception_date) VALUES(%(code)s, %(name)s, %(today)s)", {'name': name, 'code': code, 'today': today})
+                cursor.execute("INSERT INTO exception_table (exception_code, exception_data, exception_date, user_mail) VALUES(%(code)s, %(name)s, %(today)s, %(user_mail)s)", {'name': name, 'code': code, 'today': today, 'user_mail': user_mail})
                 return render_template("apology.html", top=code, bottom = escape(name), name = name), 400
             else:
                 print(f'[INFO] Exception: {e}')
-                cursor.execute("INSERT INTO exception_table (exception_code, exception_data, exception_date) VALUES('500', %(name)s,  %(today)s)", {'name': e, 'today': today})
+                cursor.execute("INSERT INTO exception_table (exception_code, exception_data, exception_date, user_mail) VALUES('500', %(name)s,  %(today)s, %(user_mail)s)", {'name': e, 'today': today, 'user_mail':user_mail})
                 return render_template("apology.html", top='500', bottom = e), 500
     except Exception as _ex:
         print("[INFO] Error while working with PostgresSQL", _ex)

@@ -5,21 +5,31 @@
 {% endblock %}
 
 {% block main %}
-<button type="button" id="err">Err</button>
-<button id="log">Err</button>
-<div class="err">
+<button class="btn btn-primary" type="button"  onclick="funcShowLog()">Log</button>
+<button class="btn btn-primary"  type="button" onclick="funcShowErr()">Error</button>
 
+<div id="err" style="display: none;">
 {% for row in exception_table %}
 <p>{{ row }}</p>
-{%endfor%}
+{% endfor %}
 </div>
-<div class="log" style="display: none;">
-    {% for row in log_data %}
+
+<div id="log" style="display: none;">
+{% for row in log_data %}
 <p>{{row}}</p>
-{%endfor%}
+{% endfor %}
 </div>
 
+<script>
+    function funcShowLog() {
+        document.getElementById("log").style.display = "block";
+        document.getElementById("err").style.display = "none";
+    }
 
-
+    function funcShowErr() {
+        document.getElementById("err").style.display = "block";
+        document.getElementById("log").style.display = "none";
+    }
+</script>
 
 {% endblock %}
