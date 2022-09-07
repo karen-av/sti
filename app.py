@@ -822,9 +822,7 @@ def file():
                     # Проходип по таблице и записываем сотрудников в базу
                     for i in range(len(table)):
                         # Разбираем данные из считанных строк
-                        print(f"mail A - ")
                         mail = str(table.iloc[i,:][3]).lower().strip()
-                        print(f"mail B - {mail}")
                         # Ищем в базе email 
                         cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
                         us = cursor.fetchall()
