@@ -105,9 +105,9 @@ def log_table():
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
             connection.autocommit = True  
             with connection.cursor() as cursor:
-                cursor.execute("SELECT name, mail, status, date FROM log_table")
+                cursor.execute("SELECT name, mail, status, date FROM log_table ORDER BY date DESC")
                 log_data = cursor.fetchall()
-                cursor.execute("SELECT exception_data, exception_code, exception_date FROM exception_table")
+                cursor.execute("SELECT exception_data, exception_code, exception_date FROM exception_table ORDER BY exception_date DESC")
                 exception_table = cursor.fetchall()
                 return render_template('log_table.html', log_data = log_data, exception_table = exception_table)
         except Exception as _ex:
@@ -822,7 +822,9 @@ def file():
                     # Проходип по таблице и записываем сотрудников в базу
                     for i in range(len(table)):
                         # Разбираем данные из считанных строк
+                        print(f"mail A - ")
                         mail = str(table.iloc[i,:][3]).lower().strip()
+                        print(f"mail B - {mail}")
                         # Ищем в базе email 
                         cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
                         us = cursor.fetchall()
@@ -1786,7 +1788,8 @@ def handle_exception(e):
     try:
         connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
         connection.autocommit = True
-        today = datetime.date.today()
+        #today = datetime.date.today()
+        today = datetime.datetime.now()
         with connection.cursor() as cursor:
             if isinstance(e, HTTPException):
                 code = e.code

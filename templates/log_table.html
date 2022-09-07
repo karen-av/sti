@@ -4,8 +4,22 @@
     Log
 {% endblock %}
 
-
 {% block main %}
+<button type="button" id="err">Err</button>
+<button id="log">Err</button>
+<div class="err">
 
-{{ exception_table }}
+{% for row in exception_table %}
+<p>{{ row }}</p>
+{%endfor%}
+</div>
+<div class="log">
+    {% for row in log_data %}
+<p>{{row}}</p>
+{%endfor%}
+</div>
+
+
+
+
 {% endblock %}
