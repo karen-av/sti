@@ -339,7 +339,6 @@ def users():
                     accept_rules = request.form.get("accept_rules")
                     
                     if accept_rules:
-                        print(accept_rules)
                         if accept_rules == 'Приняли':
                             cursor.execute("SELECT * FROM users WHERE accept_rules IS NOT NULL ORDER BY id")
                         elif accept_rules == 'Не приняли':
@@ -1615,19 +1614,19 @@ def mail_manager():
                         users = cursor.fetchall()
                     elif ready_status and not reports_to:
                         if ready_status == 'Отправлено':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date NOT LIKE '-' ORDER BY id", {'status':MANAGER})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date NOT NULL ORDER BY id", {'status':MANAGER})
                             users = cursor.fetchall()
                         elif ready_status == 'Не отправлено':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date = '-' ORDER BY id", {'status':MANAGER})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date IS NULL ORDER BY id", {'status':MANAGER})
                             users = cursor.fetchall()
                         else:
                             return redirect('/mail_manager')
                     elif ready_status and reports_to:
                         if ready_status == 'Отправлено':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date NOT LIKE '-' AND mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to':reports_to})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date NOT IS NULL AND mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to':reports_to})
                             users = cursor.fetchall()
                         elif ready_status == 'Не отправлено':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date = '-' AND mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to':reports_to})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date IS NULL AND mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to':reports_to})
                             users = cursor.fetchall()
                         else:
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s and mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to': reports_to})
@@ -1751,6 +1750,50 @@ def mail_manager():
                     print(f"[INFO] PostgresSQL nonnection closed")
 
             flash(f'Сообщений отправлено - {counterSend}. Сообщений не отправлено - {counterNotSend}.')
+            return render_template('mail_manager.html', users = users, notSendList = notSendList)
+
+        elif flag == 'has_not_invite':
+            print(flag)
+            today = today = datetime.date.today()
+            try: 
+                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+                connection.autocommit = True
+                with connection.cursor() as cursor:
+                    # default value mail_date is -
+                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s and mail_date IS NULL", {'status':MANAGER})
+                    users = cursor.fetchall()
+                    for singleUser in users:
+                        try:
+                            user_password = createPassword()
+                            hash  = generate_password_hash(user_password, "pbkdf2:sha256")
+                            msg = Message("From STI-Partners", recipients=[singleUser[5]])
+                            msg.body = render_template("to_manager_email.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
+                            msg.html = render_template('to_manager_email.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
+                            mail.send(msg)
+                            counterSend = counterSend + 1
+                            cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
+                            print(f'[INFO] Message has bin sent via mail sender.')
+                        except Exception as _ex:
+                            notSendList.append(singleUser)
+                            counterNotSend = counterNotSend + 1 
+                            print(f'[INFO] Error while working mail sender:', _ex)
+
+                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status':MANAGER})
+                    users = cursor.fetchall()
+
+            except Exception as _ex:
+                print(f'[INFO] Error while working PostgresSQL:', _ex)
+                x = 1
+                notSendList.append(singleUser)
+                counterNotSend = counterNotSend + 1 
+                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+                return redirect('/')
+            finally:
+                if connection:
+                    connection.close()
+                    print(f"[INFO] PostgresSQL nonnection closed")
+
+            flash(f'Приглашение отправлено {counterSend}. Не удалось отправить {counterNotSend} сообщений.')
             return render_template('mail_manager.html', users = users, notSendList = notSendList)
 
     elif request.method == 'POST' and session['user_status'] == MANAGER:
