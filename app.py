@@ -1136,7 +1136,7 @@ def mail_heads():
                         users = cursor.fetchall()
                     elif ready_status and not reports_to:
                         if ready_status == 'Отправлено':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date NOT IS NULL ORDER BY id", {'status':HEAD})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date IS NOT NULL ORDER BY id", {'status':HEAD})
                             users = cursor.fetchall()
                         elif ready_status == 'Не отправлено':
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date IS NULL ORDER BY id", {'status':HEAD})
@@ -1145,7 +1145,7 @@ def mail_heads():
                             return redirect('/mail_heads')
                     elif ready_status and reports_to:
                         if ready_status == 'Отправлено':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date NOT IS NULL AND mail = %(reports_to)s ORDER BY id", {'status':HEAD, 'reports_to':reports_to})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date IS NOT NULL AND mail = %(reports_to)s ORDER BY id", {'status':HEAD, 'reports_to':reports_to})
                             users = cursor.fetchall()
                         elif ready_status == 'Не отправлено':
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date IS NULL AND mail = %(reports_to)s ORDER BY id", {'status':HEAD, 'reports_to':reports_to})
