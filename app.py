@@ -1709,7 +1709,7 @@ def mail_manager():
             return redirect('/mail_manager')    
 
         elif flag == 'all_invite':
-            today = today = datetime.date.today()
+            today = datetime.date.today()
             try: 
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
                 connection.autocommit = True
