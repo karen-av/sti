@@ -1089,7 +1089,7 @@ def mail_heads():
             connection.autocommit = True
             with connection.cursor() as cursor:
                 cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
-                                FROM users_new WHERE status = %(status)s ORDER BY id", {'status':HEAD})
+                                FROM users WHERE status = %(status)s ORDER BY id", {'status':HEAD})
                 users = cursor.fetchall()
                 cursor.execute("SELECT DISTINCT mail FROM users WHERE status = %(status)s ORDER BY mail", {'status': HEAD})
                 headList = cursor.fetchall()
@@ -1249,20 +1249,19 @@ def mail_heads():
                 connection.autocommit = True
                 with connection.cursor() as cursor:
                     cursor.execute("SELECT department, reports_to, status, position, name, mail, mail_date \
-                                    FROM users_new WHERE status = %(status)s AND mail in \
-                                    (SELECT reports_pos FROM positions_new WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL \
+                                    FROM users WHERE status = %(status)s AND mail in \
+                                    (SELECT reports_pos FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL \
                                         OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL \
                                         OR comp_9 IS NULL))\
                                     ORDER BY id", {'status':HEAD})
                     users = cursor.fetchall()
-                    print(f'users - {users}')
                     for singleUser in users:
                         subject = "Проект «Развитие компетенций сотрудников back-office»"
                         user_name = singleUser[4]
                         user_mail = singleUser[5]
                         user_password = createPassword()
                         if singleUser[6] != None:
-                            if singleUser[6] != str(today)  : 
+                            if singleUser[6] != str(today): 
                                 text_body = "reminder_to_head.txt"
                                 html_body = 'reminder_to_head.html'
                                 send_message(subject, text_body, html_body, user_name, user_mail, user_password)
@@ -1277,7 +1276,7 @@ def mail_heads():
                             counterSend += 1
                         
                     cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
-                                    FROM users_new WHERE status = %(status)s ORDER BY id", {'status':HEAD})
+                                    FROM users WHERE status = %(status)s ORDER BY id", {'status':HEAD})
                     users = cursor.fetchall()
 
             except Exception as _ex:
