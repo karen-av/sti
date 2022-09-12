@@ -1159,7 +1159,7 @@ def mail_heads():
                             WHERE status = %(status)s and mail = %(search)s ORDER BY id", {'status':HEAD, 'search': search})
                         users = cursor.fetchall()
                     elif ranking_done:
-                        if ranking_done == 'done':
+                        if ranking_done == 'Заполнил':
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users \
                                 WHERE status = %(status)s and mail in \
                                 (SELECT reports_pos FROM positions \
@@ -1168,7 +1168,7 @@ def mail_heads():
                                     AND comp_7 IS NOT NULL AND comp_8 IS NOT NULL AND comp_9 IS NOT NULL)) \
                                 ORDER BY mail_date", {'status': HEAD})
                             users = cursor.fetchall()
-                        elif ranking_done == 'not_done':
+                        elif ranking_done == 'Не заполнил':
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
                                 FROM users WHERE status = %(status)s and mail in \
                                 (SELECT reports_pos FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL \
@@ -1186,7 +1186,7 @@ def mail_heads():
                     print("[INFO] PostgresSQL nonnection closed")
 
             return render_template('mail.html', users = users, headList = headList, readyStatusList = readyStatusList, 
-                                   reports_to_query = reports_to, ready_status_query = ready_status)        
+                                   reports_to_query = reports_to, ready_status_query = ready_status, ranking_done_status = ranking_done)        
                 
         # if single send mode (Оставляем)
         if flag == 'single':
