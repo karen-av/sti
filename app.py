@@ -1579,7 +1579,7 @@ def mail_manager():
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True
             with connection.cursor() as cursor:
-                cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status': MANAGER})
+                cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s ORDER BY id", {'status': MANAGER})
                 users = cursor.fetchall()
                 cursor.execute("SELECT DISTINCT mail FROM users WHERE status = %(status)s ORDER BY mail", {'status': MANAGER})
                 headList = cursor.fetchall()
@@ -1598,9 +1598,10 @@ def mail_manager():
         reports_to = request.form.get('reports_to')
         ready_status = request.form.get('ready_status')
         search = request.form.get('search')
+        rules = request.form.get('rules')
 
         # Данные для фитра и поиска
-        if reports_to or ready_status or search:
+        if reports_to or ready_status or search or rules:
             try:
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
                 connection.autocommit = True
@@ -1610,30 +1611,38 @@ def mail_manager():
                     headList = cursor.fetchall()
 
                     if reports_to and not ready_status:
-                        cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s  and mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to': reports_to})
+                        cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules  FROM users WHERE status = %(status)s  and mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to': reports_to})
                         users = cursor.fetchall()
                     elif ready_status and not reports_to:
                         if ready_status == 'Отправлено':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date IS NOT NULL ORDER BY id", {'status':MANAGER})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s AND mail_date IS NOT NULL ORDER BY id", {'status':MANAGER})
                             users = cursor.fetchall()
                         elif ready_status == 'Не отправлено':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date IS NULL ORDER BY id", {'status':MANAGER})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s AND mail_date IS NULL ORDER BY id", {'status':MANAGER})
                             users = cursor.fetchall()
                         else:
                             return redirect('/mail_manager')
                     elif ready_status and reports_to:
                         if ready_status == 'Отправлено':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date IS NOT NULL AND mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to':reports_to})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s AND mail_date IS NOT NULL AND mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to':reports_to})
                             users = cursor.fetchall()
                         elif ready_status == 'Не отправлено':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date IS NULL AND mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to':reports_to})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s AND mail_date IS NULL AND mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to':reports_to})
                             users = cursor.fetchall()
                         else:
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s and mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to': reports_to})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s and mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to': reports_to})
                             users = cursor.fetchall()
                     elif search:
-                        cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s and mail = %(search)s ORDER BY id", {'status':MANAGER, 'search': search})
+                        cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s and mail = %(search)s ORDER BY id", {'status':MANAGER, 'search': search})
                         users = cursor.fetchall()
+                    elif rules:
+                        if rules == 'accept':
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s AND accept_rules IS NOT NULL  ORDER BY id", {'status':MANAGER})
+                            users = cursor.fetchall()
+                        elif rules == 'not_accept':
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s AND accept_rules IS NULL  ORDER BY id", {'status':MANAGER})
+                            users = cursor.fetchall()
+
         
             except Exception as _ex:
                 print(f'[INFO] Error while working PostgresSQL', _ex)

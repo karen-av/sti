@@ -55,6 +55,13 @@
         <button class="btn btn-primary" type="submit">Поиск</button>
     </form>
     <form action="/mail_manager" method="get"><button class="btn btn-primary" type="submit" id="sort_button">Сбросить фильтр</button></form>
+    <form action="/mail_manager" method="post" id="accept_rules" onchange="document.getElementById('accept_rules').submit()">
+        <select id="rules" name="rules" >
+            <option  disabled selected value="Статус принятия правил">Правила</option>
+            <option  value="accept">Принял</option>
+            <option value="not_accept">Не принял</option>
+        </select>  
+    </form>
 </div>
 <p style="text-align: right; width: 99%;">* Кнопка "Отправить сообщение" отправляет приглашение пользователю, если ранее оно не было отправлено и отправляет напоминание, если сообщение было отправлено ранее, но сотрудник не принял условия.<br>
     * Кнопка "Отправить сообщения всем сотрудникам" отправляет приглашение всем сотрудникам, если ранее оно не было отправлено и отправляет напоминание, если сообщение было отправлено ранее, но сотрудник не принял условия.</p>
@@ -70,6 +77,7 @@
                 <th>ФИО</th>
                 <th>Почта</th>
                 <th>Письмо отправлено</th>
+                <th>Приняли условия</th>
             </tr>
         </thead>
         <tbody> 
@@ -83,6 +91,7 @@
                 <td>{{ user.4 }}</td>
                 <td>{{ user.5 }}</td>
                 {% if user.6 is none %} <td>-</td> {% else %}  <td>{{ user.6 }} </td>{% endif %}
+                {% if user.7 is none %} <td>-</td> {% else %}  <td>да</td>{% endif %}
                 <td><form action="/mail_manager" method="post" onclick="return show_alert('Отправить приглашение пользователю?')">
                     <input type="hidden" value="single" name ="flag">
                     <input type="hidden" value="{{ user.5 }}" name ="user_mail">
