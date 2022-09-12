@@ -1612,7 +1612,8 @@ def mail_manager():
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True
             with connection.cursor() as cursor:
-                cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s ORDER BY id", {'status': MANAGER})
+                cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
+                    FROM users WHERE status = %(status)s ORDER BY id", {'status': MANAGER})
                 users = cursor.fetchall()
                 cursor.execute("SELECT DISTINCT mail FROM users WHERE status = %(status)s ORDER BY mail", {'status': MANAGER})
                 headList = cursor.fetchall()
@@ -1644,36 +1645,49 @@ def mail_manager():
                     headList = cursor.fetchall()
 
                     if reports_to and not ready_status:
-                        cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules  FROM users WHERE status = %(status)s  and mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to': reports_to})
+                        cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules  \
+                            FROM users WHERE status = %(status)s  and mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to': reports_to})
                         users = cursor.fetchall()
                     elif ready_status and not reports_to:
                         if ready_status == 'Отправлено':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s AND mail_date IS NOT NULL ORDER BY id", {'status':MANAGER})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
+                                FROM users WHERE status = %(status)s AND mail_date IS NOT NULL ORDER BY id", {'status':MANAGER})
                             users = cursor.fetchall()
                         elif ready_status == 'Не отправлено':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s AND mail_date IS NULL ORDER BY id", {'status':MANAGER})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
+                                FROM users WHERE status = %(status)s AND mail_date IS NULL ORDER BY id", {'status':MANAGER})
                             users = cursor.fetchall()
                         else:
                             return redirect('/mail_manager')
                     elif ready_status and reports_to:
                         if ready_status == 'Отправлено':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s AND mail_date IS NOT NULL AND mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to':reports_to})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
+                                FROM users WHERE status = %(status)s AND mail_date IS NOT NULL AND mail = %(reports_to)s \
+                                ORDER BY id", {'status':MANAGER, 'reports_to':reports_to})
                             users = cursor.fetchall()
                         elif ready_status == 'Не отправлено':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s AND mail_date IS NULL AND mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to':reports_to})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
+                                FROM users WHERE status = %(status)s AND mail_date IS NULL AND mail = %(reports_to)s \
+                                ORDER BY id", {'status':MANAGER, 'reports_to':reports_to})
                             users = cursor.fetchall()
                         else:
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s and mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to': reports_to})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
+                                FROM users WHERE status = %(status)s and mail = %(reports_to)s \
+                                ORDER BY id", {'status':MANAGER, 'reports_to': reports_to})
                             users = cursor.fetchall()
                     elif search:
-                        cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s and mail = %(search)s ORDER BY id", {'status':MANAGER, 'search': search})
+                        cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
+                            FROM users WHERE status = %(status)s and mail = %(search)s \
+                            ORDER BY id", {'status':MANAGER, 'search': search})
                         users = cursor.fetchall()
                     elif rules:
                         if rules == 'accept':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s AND accept_rules IS NOT NULL  ORDER BY mail_date", {'status':MANAGER})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
+                                FROM users WHERE status = %(status)s AND accept_rules IS NOT NULL ORDER BY mail_date", {'status':MANAGER})
                             users = cursor.fetchall()
                         elif rules == 'not_accept':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s AND accept_rules IS NULL  ORDER BY mail_date", {'status':MANAGER})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
+                                FROM users WHERE status = %(status)s AND accept_rules IS NULL  ORDER BY mail_date", {'status':MANAGER})
                             users = cursor.fetchall()
 
         
@@ -1686,7 +1700,8 @@ def mail_manager():
                     connection.close()
                     print("[INFO] PostgresSQL nonnection closed")
 
-            return render_template('mail_manager.html', users = users, headList = headList, readyStatusList = readyStatusList, reports_to_query = reports_to, ready_status_query = ready_status)        
+            return render_template('mail_manager.html', users = users, headList = headList, readyStatusList = readyStatusList, 
+                                    reports_to_query = reports_to, ready_status_query = ready_status)        
                
          # if single send mode
         if flag == 'single':
@@ -1711,17 +1726,22 @@ def mail_manager():
                             cursor.execute("SELECT accept_rules FROM users WHERE mail = %(mail)s", {'mail': user_mail})
                             accept_rules = cursor.fetchall()
                             if accept_rules[0][0] == None:
-                                msg.body = render_template("reminder_to_manager.txt", user_name = user_name, user_mail = user_mail, user_password = user_password)
-                                msg.html = render_template("reminder_to_manager.html", user_name = user_name, user_mail = user_mail, user_password = user_password)
+                                msg.body = render_template("reminder_to_manager.txt", user_name = user_name, 
+                                                            user_mail = user_mail, user_password = user_password)
+                                msg.html = render_template("reminder_to_manager.html", user_name = user_name, 
+                                                            user_mail = user_mail, user_password = user_password)
                             else:
                                 flash("Сообщение не отправлено, т.к. данный сотрудник принял условия.")
                                 return redirect('/mail_manager')
                         else:
-                            msg.body = render_template("to_manager_email.txt", user_name = user_name, user_mail = user_mail, user_password = user_password)
-                            msg.html = render_template("to_manager_email.html", user_name = user_name, user_mail = user_mail, user_password = user_password)
+                            msg.body = render_template("to_manager_email.txt", user_name = user_name, 
+                                                        user_mail = user_mail, user_password = user_password)
+                            msg.html = render_template("to_manager_email.html", user_name = user_name, 
+                                                        user_mail = user_mail, user_password = user_password)
 
                         mail.send(msg)
-                        cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':user_mail})
+                        cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s \
+                            WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':user_mail})
 
                     except Exception as _ex:
                         flash("Сообщение не отправлено. Проверьте коректно ли указана электронная почта.")
@@ -1747,7 +1767,8 @@ def mail_manager():
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
                 connection.autocommit = True
                 with connection.cursor() as cursor:
-                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s ORDER BY id", {'status':MANAGER})
+                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
+                        FROM users WHERE status = %(status)s ORDER BY id", {'status':MANAGER})
                     users = cursor.fetchall()
                     for singleUser in users:
                         try:
@@ -1756,27 +1777,34 @@ def mail_manager():
                             msg = Message("Проект «Развитие компетенций сотрудников back-office»", recipients=[singleUser[5]])
                             if singleUser[6] != None:
                                 if singleUser[7] == None and singleUser[6] != str(today): 
-                                    msg.body = render_template("reminder_to_manager.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
-                                    msg.html = render_template('reminder_to_manager.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
+                                    msg.body = render_template("reminder_to_manager.txt", user_name = singleUser[4], 
+                                                                user_mail = singleUser[5], user_password = user_password)
+                                    msg.html = render_template('reminder_to_manager.html', user_name = singleUser[4], 
+                                                                user_mail = singleUser[5], user_password = user_password)
                                     mail.send(msg)
                                     counterSend += 1
-                                    cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
+                                    cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s \
+                                        WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
                                 else:
                                     notSendList.append(singleUser)
                                     counterNotSend += 1   
                             else:
-                                msg.body = render_template("to_manager_email.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
-                                msg.html = render_template('to_manager_email.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
+                                msg.body = render_template("to_manager_email.txt", user_name = singleUser[4], 
+                                                            user_mail = singleUser[5], user_password = user_password)
+                                msg.html = render_template('to_manager_email.html', user_name = singleUser[4], 
+                                                            user_mail = singleUser[5], user_password = user_password)
                                 mail.send(msg)
                                 counterSend += 1
-                                cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
+                                cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s \
+                                    WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
                            
                         except Exception as _ex:
                             notSendList.append(singleUser)
                             counterNotSend += 1 
                             print(f'[INFO] Error while working mail sender:', _ex)
                         
-                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status':MANAGER})
+                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
+                        FROM users WHERE status = %(status)s ORDER BY id", {'status':MANAGER})
                     users = cursor.fetchall()
                             
             except Exception as _ex:
