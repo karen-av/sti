@@ -1721,7 +1721,7 @@ def mail_manager():
                                     cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
                                 else:
                                     notSendList.append(singleUser)
-                                    counterNotSend += 1        
+                                    counterNotSend += 1   
                             else:
                                 msg.body = render_template("to_manager_email.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
                                 msg.html = render_template('to_manager_email.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
