@@ -1088,8 +1088,8 @@ def mail_heads():
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True
             with connection.cursor() as cursor:
-                cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users\
-                     WHERE status = %(status)s ORDER BY id", {'status':HEAD})
+                cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
+                                FROM users WHERE status = %(status)s ORDER BY id", {'status':HEAD})
                 users = cursor.fetchall()
                 cursor.execute("SELECT DISTINCT mail FROM users WHERE status = %(status)s ORDER BY mail", {'status': HEAD})
                 headList = cursor.fetchall()
@@ -1600,7 +1600,7 @@ def mail_manager():
             connection.autocommit = True
             with connection.cursor() as cursor:
                 cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
-                    FROM users_new WHERE status = %(status)s ORDER BY id", {'status': MANAGER})
+                    FROM users WHERE status = %(status)s ORDER BY id", {'status': MANAGER})
                 users = cursor.fetchall()
                 cursor.execute("SELECT DISTINCT mail FROM users WHERE status = %(status)s ORDER BY mail", {'status': MANAGER})
                 headList = cursor.fetchall()
@@ -1755,7 +1755,7 @@ def mail_manager():
                 connection.autocommit = True
                 with connection.cursor() as cursor:
                     cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
-                                    FROM users_new WHERE status = %(status)s ORDER BY id", {'status':MANAGER})
+                                    FROM users WHERE status = %(status)s ORDER BY id", {'status':MANAGER})
                     users = cursor.fetchall()
                     for singleUser in users:
                         subject = "Проект «Развитие компетенций сотрудников back-office»"
@@ -1776,10 +1776,6 @@ def mail_manager():
                             html_body = 'to_manager_email.html'
                             send_message(subject, text_body, html_body, user_name, user_mail, user_password)
                             counterSend += 1
-                        
-                    #cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
-                         #           FROM users_new WHERE status = %(status)s ORDER BY id", {'status':MANAGER})
-                    #users = cursor.fetchall()
                             
             except Exception as _ex:
                 print(f'[INFO] Error while working PostgresSQL', _ex)

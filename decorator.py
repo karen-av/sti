@@ -31,7 +31,7 @@ def send_message(subject, text_body, html_body, user_name, user_mail, user_passw
                 msg.body = render_template(text_body, user_name = user_name, user_mail = user_mail, user_password = user_password)
                 msg.html = render_template(html_body, user_name = user_name, user_mail = user_mail, user_password = user_password)
                 mail.send(msg)
-                cursor.execute("UPDATE users_new SET hash = %(hash)s, mail_date = %(date)s \
+                cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s \
                                                     WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':user_mail})
                 print(f'sent - {user_mail}')
         except Exception as _ex:
