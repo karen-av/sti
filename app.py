@@ -1223,7 +1223,7 @@ def mail_heads():
 
         # if all send mode (Оставлять)
         elif flag == 'all_invite': 
-            today = today = datetime.date.today()
+            today = datetime.date.today()
             try: 
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
                 connection.autocommit = True
@@ -1243,7 +1243,7 @@ def mail_heads():
                                 cursor.execute("SELECT reports_pos FROM positions WHERE reports_pos = %(mail)s AND (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL)", {'mail':singleUser[5]})
                                 comp = cursor.fetchall()
 
-                                if len(comp) != 0:
+                                if len(comp) != 0 and singleUser[6] != str(today):
                                     msg.body = render_template("reminder_to_head.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
                                     msg.html = render_template("reminder_to_head.html", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
                                     mail.send(msg)
