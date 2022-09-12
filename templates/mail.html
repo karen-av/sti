@@ -51,6 +51,13 @@
         <button class="btn btn-primary" type="submit">Поиск</button>
     </form>
     <form action="/mail_heads" method="get"><button class="btn btn-primary" type="submit" id="sort_button">Сбросить фильтр</button></form>
+    <form action="/mail_heads" method="post" id="ranking_done" onchange="document.getElementById('ranking_done').submit()">
+        <select id="ranking_done" name="ranking_done" >
+            <option  disabled selected value="Статус принятия правил">Ранжирование</option>
+            <option  value="done">Заполнил</option>
+            <option value="not_done">Не заполнил</option>
+        </select>  
+    </form>
 </div>
 <p style="text-align: right; width: 99%;">* Кнопка "Отправить сообщение" отправляет приглашение пользователю, если ранее оно не было отправлено и отправляет напоминание, если сообщение было отправлено ранее, но руководитель не заполнил все должности.<br>
     * Кнопка "Отправить сообщения всем руководителям" отправляет приглашение всем руководителям, если ранее оно не было отправлено и отправляет напоминание, если сообщение было отправлено ранее, но руководитель не заполнил все должности.</p>

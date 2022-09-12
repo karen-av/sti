@@ -1101,7 +1101,8 @@ def mail_heads():
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True
             with connection.cursor() as cursor:
-                cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status':HEAD})
+                cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users\
+                     WHERE status = %(status)s ORDER BY id", {'status':HEAD})
                 users = cursor.fetchall()
                 cursor.execute("SELECT DISTINCT mail FROM users WHERE status = %(status)s ORDER BY mail", {'status': HEAD})
                 headList = cursor.fetchall()
@@ -1120,42 +1121,73 @@ def mail_heads():
         reports_to = request.form.get('reports_to')
         ready_status = request.form.get('ready_status')
         search = request.form.get('search')
+        ranking_done = request.form.get('ranking_done')
 
         # Данные для фитра и поиска
-        if reports_to or ready_status or search:
+        if reports_to or ready_status or search or ranking_done:
             try:
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
                 connection.autocommit = True
                 with connection.cursor() as cursor:
                     
-                    cursor.execute("SELECT DISTINCT mail FROM users WHERE status = %(status)s ORDER BY mail", {'status': HEAD})
+                    cursor.execute("SELECT DISTINCT mail FROM users WHERE status = %(status)s \
+                        ORDER BY mail", {'status': HEAD})
                     headList = cursor.fetchall()
 
                     if reports_to and not ready_status:
-                        cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s  and mail = %(reports_to)s ORDER BY id", {'status':HEAD, 'reports_to': reports_to})
+                        cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
+                            FROM users WHERE status = %(status)s \
+                            AND mail = %(reports_to)s ORDER BY id", {'status':HEAD, 'reports_to': reports_to})
                         users = cursor.fetchall()
                     elif ready_status and not reports_to:
                         if ready_status == 'Отправлено':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date IS NOT NULL ORDER BY id", {'status':HEAD})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
+                                FROM users WHERE status = %(status)s \
+                                AND mail_date IS NOT NULL ORDER BY id", {'status':HEAD})
                             users = cursor.fetchall()
                         elif ready_status == 'Не отправлено':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date IS NULL ORDER BY id", {'status':HEAD})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
+                                FROM users WHERE status = %(status)s AND mail_date IS NULL \
+                                ORDER BY id", {'status':HEAD})
                             users = cursor.fetchall()
                         else:
                             return redirect('/mail_heads')
                     elif ready_status and reports_to:
                         if ready_status == 'Отправлено':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date IS NOT NULL AND mail = %(reports_to)s ORDER BY id", {'status':HEAD, 'reports_to':reports_to})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
+                                FROM users WHERE status = %(status)s AND mail_date IS NOT NULL AND mail = %(reports_to)s \
+                                ORDER BY id", {'status':HEAD, 'reports_to':reports_to})
                             users = cursor.fetchall()
                         elif ready_status == 'Не отправлено':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s AND mail_date IS NULL AND mail = %(reports_to)s ORDER BY id", {'status':HEAD, 'reports_to':reports_to})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
+                                FROM users WHERE status = %(status)s AND mail_date IS NULL AND mail = %(reports_to)s \
+                                ORDER BY id", {'status':HEAD, 'reports_to':reports_to})
                             users = cursor.fetchall()
                         else:
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s and mail = %(reports_to)s ORDER BY id", {'status':HEAD, 'reports_to': reports_to})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
+                                FROM users WHERE status = %(status)s and mail = %(reports_to)s ORDER BY id", {'status':HEAD, 'reports_to': reports_to})
                             users = cursor.fetchall()
                     elif search:
-                        cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s and mail = %(search)s ORDER BY id", {'status':HEAD, 'search': search})
+                        cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users \
+                            WHERE status = %(status)s and mail = %(search)s ORDER BY id", {'status':HEAD, 'search': search})
                         users = cursor.fetchall()
+                    elif ranking_done:
+                        if ranking_done == 'done':
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users \
+                                WHERE status = %(status)s and mail in \
+                                (SELECT reports_pos FROM positions \
+                                    WHERE (comp_1 IS NOT NULL AND comp_2 IS NOT NULL AND comp_3 IS NOT NULL \
+                                    AND comp_4 IS NOT NULL AND comp_5 IS NOT NULL AND comp_6 IS NOT NULL \
+                                    AND comp_7 IS NOT NULL AND comp_8 IS NOT NULL AND comp_9 IS NOT NULL)) \
+                                ORDER BY mail_date", {'status': HEAD})
+                            users = cursor.fetchall()
+                        elif ranking_done == 'not_done':
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
+                                FROM users WHERE status = %(status)s and mail in \
+                                (SELECT reports_pos FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL \
+                                    OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL \
+                                    OR comp_9 IS NULL)) ORDER BY mail_date", {'status':HEAD})
+                            users = cursor.fetchall()
         
             except Exception as _ex:
                 print(f'[INFO] Error while working PostgresSQL', _ex)
@@ -1166,7 +1198,8 @@ def mail_heads():
                     connection.close()
                     print("[INFO] PostgresSQL nonnection closed")
 
-            return render_template('mail.html', users = users, headList = headList, readyStatusList = readyStatusList, reports_to_query = reports_to, ready_status_query = ready_status)        
+            return render_template('mail.html', users = users, headList = headList, readyStatusList = readyStatusList, 
+                                   reports_to_query = reports_to, ready_status_query = ready_status)        
                 
         # if single send mode (Оставляем)
         if flag == 'single':
