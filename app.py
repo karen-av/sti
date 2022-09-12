@@ -1722,7 +1722,7 @@ def mail_manager():
                             hash  = generate_password_hash(user_password, "pbkdf2:sha256")
                             msg = Message("Проект «Развитие компетенций сотрудников back-office»", recipients=[singleUser[5]])
                             if singleUser[6] != None:
-                                if singleUser[7] == None:
+                                if singleUser[7] == None and singleUser[6] != str(today): 
                                     msg.body = render_template("reminder_to_manager.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
                                     msg.html = render_template('reminder_to_manager.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
                                     mail.send(msg)
