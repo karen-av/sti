@@ -1089,7 +1089,7 @@ def mail_heads():
             connection.autocommit = True
             with connection.cursor() as cursor:
                 cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
-                                FROM users WHERE status = %(status)s ORDER BY id", {'status':HEAD})
+                                FROM users_new WHERE status = %(status)s ORDER BY id", {'status':HEAD})
                 users = cursor.fetchall()
                 cursor.execute("SELECT DISTINCT mail FROM users WHERE status = %(status)s ORDER BY mail", {'status': HEAD})
                 headList = cursor.fetchall()
@@ -1248,46 +1248,38 @@ def mail_heads():
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
                 connection.autocommit = True
                 with connection.cursor() as cursor:
-                    #cursor.execute("SELECT name, mail  FROM users WHERE status = %(status)s", {'status': HEAD})
-                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status':HEAD})
+                    cursor.execute("SELECT department, reports_to, status, position, name, mail, mail_date \
+                                    FROM users_new WHERE status = %(status)s AND mail in \
+                                    (SELECT reports_pos FROM positions_new WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL \
+                                        OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL \
+                                        OR comp_9 IS NULL))\
+                                    ORDER BY id", {'status':HEAD})
                     users = cursor.fetchall()
+                    print(f'users - {users}')
                     for singleUser in users:
-                        try:
-                            user_password = createPassword()
-                            hash  = generate_password_hash(user_password, "pbkdf2:sha256")
-                            msg = Message("Проект «Развитие компетенций сотрудников back-office»", recipients=[singleUser[5]])
-                            
-                            # If the invitation was sent
-                            if singleUser[6] != None:
-                                # Проверяем остались ли не выполненные задания у руководителя
-                                cursor.execute("SELECT reports_pos FROM positions WHERE reports_pos = %(mail)s AND (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL)", {'mail':singleUser[5]})
-                                comp = cursor.fetchall()
-
-                                if len(comp) != 0 and singleUser[6] != str(today):
-                                    msg.body = render_template("reminder_to_head.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
-                                    msg.html = render_template("reminder_to_head.html", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
-                                    mail.send(msg)
-                                    counterSend += 1
-                                    cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
-                                else:
-                                    notSendList.append(singleUser)
-                                    counterNotSend += 1 
-                                    
-                            else:
-                                msg.body = render_template("to_head_email.txt", user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
-                                msg.html = render_template('to_head_email.html', user_name = singleUser[4], user_mail = singleUser[5], user_password = user_password)
-                                mail.send(msg)
+                        subject = "Проект «Развитие компетенций сотрудников back-office»"
+                        user_name = singleUser[4]
+                        user_mail = singleUser[5]
+                        user_password = createPassword()
+                        if singleUser[6] != None:
+                            if singleUser[6] != str(today)  : 
+                                text_body = "reminder_to_head.txt"
+                                html_body = 'reminder_to_head.html'
+                                send_message(subject, text_body, html_body, user_name, user_mail, user_password)
                                 counterSend += 1
-                                cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
-
-                        except Exception as _ex:
-                            notSendList.append(singleUser)
-                            counterNotSend += 1 
-                            print(f'[INFO] Error while working mail sender:', _ex)
+                            else:
+                                notSendList.append(singleUser)
+                                counterNotSend += 1
+                        else:
+                            text_body = "to_head_email.txt"
+                            html_body = 'to_head_email.html'
+                            send_message(subject, text_body, html_body, user_name, user_mail, user_password)
+                            counterSend += 1
                         
-                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status':HEAD})
+                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
+                                    FROM users_new WHERE status = %(status)s ORDER BY id", {'status':HEAD})
                     users = cursor.fetchall()
-                            
+
             except Exception as _ex:
                 print(f'[INFO] Error while working PostgresSQL', _ex)
                 notSendList.append(singleUser)
