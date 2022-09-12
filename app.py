@@ -1637,10 +1637,10 @@ def mail_manager():
                         users = cursor.fetchall()
                     elif rules:
                         if rules == 'accept':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s AND accept_rules IS NOT NULL  ORDER BY id", {'status':MANAGER})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s AND accept_rules IS NOT NULL  ORDER BY mail_date", {'status':MANAGER})
                             users = cursor.fetchall()
                         elif rules == 'not_accept':
-                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s AND accept_rules IS NULL  ORDER BY id", {'status':MANAGER})
+                            cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules FROM users WHERE status = %(status)s AND accept_rules IS NULL  ORDER BY mail_date", {'status':MANAGER})
                             users = cursor.fetchall()
 
         
