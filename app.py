@@ -4,7 +4,7 @@ from flask_mail import Mail, Message
 from flask_session import Session
 #from werkzeug.security import check_password_hash, generate_password_hash
 import psycopg2
-from config import host, user, password, db_name
+from config import host, user, password, db_name, Config
 from helpers import apology, login_required, createPassword, checkPassword, checkPasswordBadSymbol, checkUsername, checkUsernameMastContain, escape 
 import os
 from werkzeug.utils import secure_filename
@@ -15,12 +15,14 @@ import datetime
 from forms import ContactForm
 from werkzeug.exceptions import HTTPException
 import time
+from decorator import send_message
 
 #from flask_sqlalchemy import SQLAlchemy
 
 
 # Configure application
 app = Flask(__name__)
+app.config.from_object(Config)
 
 app.config['SECRET_KEY'] = "12345"
 
@@ -28,22 +30,7 @@ app.config['RECAPTCHA_PUBLIC_KEY'] = "6LcNd8khAAAAAOn_IY_vOVqktHdZPZKmn1c7Ibgi"
 app.config['RECAPTCHA_PRIVATE_KEY'] = "6LcNd8khAAAAAJWAGPyVfjL0LxplCOsnkPUrXDAU"
 app.config['RECAPTCHA_DISABLE'] = True #  будет капча или нет
 
-app.config['DEBAG'] = True
-app.config['TESTING'] = False
-app.config['MAIL_SERVER'] = 'smtp.yandex.ru'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USE_SSL'] = True
-#app.config['MAIL_DEBUG'] = True
-app.config['MAIL_USERNAME'] = 'backoffice@sti-partners.ru'
-app.config['MAIL_PASSWORD'] = 'jz4V4$?9RpiGzVG'
-app.config['MAIL_DEFAULT_SENDER'] = 'backoffice@sti-partners.ru'
-app.config['MAIL_MAX_EMAILS'] = None
-#app.config['MAIL_SUPPRESS_SEND'] = False
-app.config['MAIL_ASCII_ATTACHMENTS'] = False
-
 mail = Mail(app)
-
 
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -1613,7 +1600,7 @@ def mail_manager():
             connection.autocommit = True
             with connection.cursor() as cursor:
                 cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
-                    FROM users WHERE status = %(status)s ORDER BY id", {'status': MANAGER})
+                    FROM users_new WHERE status = %(status)s ORDER BY id", {'status': MANAGER})
                 users = cursor.fetchall()
                 cursor.execute("SELECT DISTINCT mail FROM users WHERE status = %(status)s ORDER BY mail", {'status': MANAGER})
                 headList = cursor.fetchall()
@@ -1768,44 +1755,31 @@ def mail_manager():
                 connection.autocommit = True
                 with connection.cursor() as cursor:
                     cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
-                        FROM users WHERE status = %(status)s ORDER BY id", {'status':MANAGER})
+                                    FROM users_new WHERE status = %(status)s ORDER BY id", {'status':MANAGER})
                     users = cursor.fetchall()
                     for singleUser in users:
-                        try:
-                            user_password = createPassword()
-                            hash  = generate_password_hash(user_password, "pbkdf2:sha256")
-                            msg = Message("Проект «Развитие компетенций сотрудников back-office»", recipients=[singleUser[5]])
-                            if singleUser[6] != None:
-                                if singleUser[7] == None and singleUser[6] != str(today): 
-                                    msg.body = render_template("reminder_to_manager.txt", user_name = singleUser[4], 
-                                                                user_mail = singleUser[5], user_password = user_password)
-                                    msg.html = render_template('reminder_to_manager.html', user_name = singleUser[4], 
-                                                                user_mail = singleUser[5], user_password = user_password)
-                                    mail.send(msg)
-                                    counterSend += 1
-                                    cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s \
-                                        WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
-                                else:
-                                    notSendList.append(singleUser)
-                                    counterNotSend += 1   
-                            else:
-                                msg.body = render_template("to_manager_email.txt", user_name = singleUser[4], 
-                                                            user_mail = singleUser[5], user_password = user_password)
-                                msg.html = render_template('to_manager_email.html', user_name = singleUser[4], 
-                                                            user_mail = singleUser[5], user_password = user_password)
-                                mail.send(msg)
+                        subject = "Проект «Развитие компетенций сотрудников back-office»"
+                        user_name = singleUser[4]
+                        user_mail = singleUser[5]
+                        user_password = createPassword()
+                        if singleUser[6] != None:
+                            if singleUser[7] == None and singleUser[6] != str(today): 
+                                text_body = "reminder_to_manager.txt"
+                                html_body = 'reminder_to_manager.html'
+                                send_message(subject, text_body, html_body, user_name, user_mail, user_password)
                                 counterSend += 1
-                                cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s \
-                                    WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':singleUser[5]})
-                           
-                        except Exception as _ex:
-                            notSendList.append(singleUser)
-                            counterNotSend += 1 
-                            print(f'[INFO] Error while working mail sender:', _ex)
+                            else:
+                                notSendList.append(singleUser)
+                                counterNotSend += 1
+                        else:
+                            text_body = "to_manager_email.txt"
+                            html_body = 'to_manager_email.html'
+                            send_message(subject, text_body, html_body, user_name, user_mail, user_password)
+                            counterSend += 1
                         
-                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
-                        FROM users WHERE status = %(status)s ORDER BY id", {'status':MANAGER})
-                    users = cursor.fetchall()
+                    #cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
+                         #           FROM users_new WHERE status = %(status)s ORDER BY id", {'status':MANAGER})
+                    #users = cursor.fetchall()
                             
             except Exception as _ex:
                 print(f'[INFO] Error while working PostgresSQL', _ex)
