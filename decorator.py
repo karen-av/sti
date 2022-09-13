@@ -164,7 +164,6 @@ def upload_test_results(table):
                         change_management = int(table.iloc[i,:][45])
                         development_of_subordinates = int(table.iloc[i,:][46])
                         command_management = int(table.iloc[i,:][47])
-                        print(f'upload - {mail}')
 
                         cursor.execute(
                                         "INSERT INTO test_results (name_test, mail , reliability , discipline , executive , \
