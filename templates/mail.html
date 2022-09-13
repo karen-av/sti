@@ -12,9 +12,10 @@
 </div>
     <div class="box">
         <div>
-        <form action="/mail_heads" method="post" onclick=" return show_alert('Отправить приглашение всем пользователям?')">
+        <form action="/mail_heads" method="post" onclick=" return show_alert('Отправить сообщения всем руководителям?')">
             <input type="hidden" value="all_invite" name ="flag">
-            <button class="btn btn-primary" type="submit">Отправить сообщения всем руководителям</button>
+            <button class="btn btn-primary" type="submit">Отправить сообщения всем руководителям</button><br>
+            * Сообщения отправятся тем руководителям, которые еще не завершили ранжирование.
         </form>
     </div>
 </div>
@@ -67,8 +68,11 @@
         </select>  
     </form>
 </div>
-<p style="text-align: right; width: 99%;">* Кнопка "Отправить сообщение" отправляет приглашение пользователю, если ранее оно не было отправлено и отправляет напоминание, если сообщение было отправлено ранее, но руководитель не заполнил все должности.<br>
+<!--
+    <p style="text-align: right; width: 99%;">* Кнопка "Отправить сообщение" отправляет приглашение пользователю, если ранее оно не было отправлено и отправляет напоминание, если сообщение было отправлено ранее, но руководитель не заполнил все должности.<br>
     * Кнопка "Отправить сообщения всем руководителям" отправляет приглашение всем руководителям, если ранее оно не было отправлено и отправляет напоминание, если сообщение было отправлено ранее, но руководитель не заполнил все должности.</p>
+-->
+
     <table class="table table-striped" >
         <thead >
             <tr >
@@ -94,7 +98,7 @@
                 <td>{{ user.4 }}</td>
                 <td>{{ user.5 }}</td>
                 {% if user.6 is none %} <td>-</td> {% else %}  <td>{{ user.6 }} </td>{% endif %}
-                <td><form action="/mail_heads" method="post" onclick="return show_alert('Отправить приглашение пользователю?')">
+                <td><form action="/mail_heads" method="post" onclick="return show_alert('Отправить сообщение пользователю?')">
                     <input type="hidden" value="single" name ="flag">
                     <input type="hidden" value="{{ user.5 }}" name ="user_mail">
                     <input type="hidden" value="{{ user.4 }}" name ="user_name">
