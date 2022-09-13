@@ -206,3 +206,76 @@ def upload_test_results(table):
         finally:
             if connection:
                 connection.close()
+
+
+
+@asyncc
+def upload_file_users(table, manager_status, head_status):
+    with app.app_context():
+        try:
+            connection = connection_db()
+            connection.autocommit = True 
+            with connection.cursor() as cursor:
+                # Проходип по таблице и записываем сотрудников в базу
+                for i in range(len(table)):
+                    # Разбираем данные из считанных строк
+                    mail = str(table.iloc[i,:][3]).lower().strip()
+                    # Ищем в базе email 
+                    cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
+                    us = cursor.fetchall()
+                    # # Если нет пользователя в базе, то записываем туда и добавляем в список
+                    if len(us) == 0:
+                        name = str(table.iloc[i,:][2] + ' ' + table.iloc[i,:][1])
+                        position = str(table.iloc[i,:][4]).strip()
+                        division = str(table.iloc[i,:][5]).strip()
+                        department = str(table.iloc[i,:][6]).strip()
+                        branch = str(table.iloc[i,:][7]).strip()
+                        reports_to = str(table.iloc[i,:][9]).lower().strip()
+                        status = manager_status
+                        hash = generate_password_hash(createPassword(), "pbkdf2:sha256")
+                        cursor.execute(
+                                        "INSERT INTO users ( name, mail, position, division, department, branch, reports_to, status, hash) \
+                                        VALUES(%(name)s, %(mail)s, %(position)s, %(division)s, %(department)s, %(branch)s, %(reports_to)s, %(status)s, %(hash)s)", \
+                                        {'name': name, 'mail': mail, 'position': position, 'division': division, 'department': department, 'branch': branch, \
+                                            'reports_to': reports_to, 'status': status, 'hash': hash}
+                                        )
+                        # Проверяем должность в базе. Если существует, то пропускам
+                        cursor.execute(
+                                        "SELECT * FROM positions WHERE position_pos = %(position)s \
+                                        AND reports_pos = %(reports_pos)s", \
+                                        {'position': position, 'reports_pos': reports_to}
+                                        )
+                        pos = cursor.fetchall()
+                        if len(pos) == 0:
+                            cursor.execute(
+                                            "INSERT INTO positions (position_pos, reports_pos) \
+                                            VALUES(%(position_pos)s, %(reports_pos)s)", \
+                                            {'position_pos': position, 'reports_pos': reports_to}
+                                            )
+                # Проходип по таблице и записываем руководителей в базу
+                for i in range(len(table)):            
+                    mail = str(table.iloc[i,:][9]).lower().strip()
+                    cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
+                    us = cursor.fetchall()
+                    # Если нет пользователя в базе, то записываем туда и добавляем в список
+                    if len(us) == 0:
+                        division = str(table.iloc[i,:][5]).strip()
+                        department = str(table.iloc[i,:][6]).strip()
+                        branch = str(table.iloc[i,:][7]).strip()
+                        name = str(table.iloc[i,:][8]).strip()
+                        reports_to = '-'
+                        position = '-'
+                        status = head_status
+                        hash = generate_password_hash(createPassword(), "pbkdf2:sha256")
+                        cursor.execute(
+                                        "INSERT INTO users ( name, mail, position, division, department, branch, status, hash, reports_to) \
+                                        VALUES(%(name)s, %(mail)s, %(position)s, %(division)s, %(department)s, %(branch)s, %(status)s, %(hash)s, %(reports_to)s)", \
+                                        {'name': name, 'mail': mail, 'position': position, 'division': division, \
+                                            'department': department, 'branch': branch, 'status': status, 'hash': hash, 'reports_to':reports_to}
+                                        )
+        except Exception as _ex:
+            print("[INFO] Error while working with PostgresSQL", _ex)
+        finally:
+            if connection:
+                connection.close()
+                print("[INFO] PostgresSQL connection closed")  

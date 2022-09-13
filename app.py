@@ -1,4 +1,5 @@
 
+from stat import FILE_ATTRIBUTE_OFFLINE
 from flask import Flask, redirect, render_template, request, session, flash
 from flask_mail import Mail, Message
 from flask_session import Session
@@ -15,7 +16,7 @@ import datetime
 from forms import ContactForm
 from werkzeug.exceptions import HTTPException
 import time
-from decorator import send_message_head, send_message_manager, upload_test_results
+from decorator import send_message_head, send_message_manager, upload_test_results, upload_file_users
 
 #from flask_sqlalchemy import SQLAlchemy
 
@@ -776,105 +777,28 @@ def file():
         return render_template('upload_file.html', typeDataFlag = 'users')
 
     elif request.method == "POST" and (session["user_status"] == ADMIN or session["user_status"] == COACH):
+        file = request.files['file']
         
-        # Проверяем получен ли файл
-        if not request.files['file']:
+        # Проверяем получен ли файл и Проверка имени файла
+        if not request.files['file'] or file.filename == '':
             flash('Не могу прочитать файл или файл не загружен')
             return redirect('/file_users')
-        file = request.files['file']
-        # Проверка имени файла
-        if file.filename == '':
-            flash('Не могу прочитать файл')
-            return redirect('/file_users')
-        # Безовасное сохраниение имени файла
-        if file :
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-        # Счетскики загруженных пользователей и списи для выводаинформаци о загруженных и незагруженных пользхователях
-        countErrorManager = 0
-        countErrorHead = 0
-        countUploadManager = 0
-        countUploadHead = 0
-        
+        # Безовасное сохраниение имени файла
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
         # если расширение файла excel, то разбираем файл посточно
         if filename.endswith((".xlsx", ".xls")):
             xlsx = pd.ExcelFile(f'upload_files/{filename}')
             table = xlsx.parse()
-            # Подключаемся к базе данных
-            try:
-                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
-                connection.autocommit = True 
-                with connection.cursor() as cursor:
-                    # Проходип по таблице и записываем сотрудников в базу
-                    for i in range(len(table)):
-                        # Разбираем данные из считанных строк
-                        mail = str(table.iloc[i,:][3]).lower().strip()
-                        # Ищем в базе email 
-                        cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
-                        us = cursor.fetchall()
-                        # Если существует, то не записываем в базу. Добавляем в список
-                        if len(us) != 0:
-                            countErrorManager += 1
-                        # Если нет пользователя в базе, то записываем туда и добавляем в список
-                        else:
-                            name = str(table.iloc[i,:][2] + ' ' + table.iloc[i,:][1])
-                            position = str(table.iloc[i,:][4]).strip()
-                            division = str(table.iloc[i,:][5]).strip()
-                            department = str(table.iloc[i,:][6]).strip()
-                            branch = str(table.iloc[i,:][7]).strip()
-                            reports_to = str(table.iloc[i,:][9]).lower().strip()
-                            status = MANAGER
-                            hash = generate_password_hash(createPassword(), "pbkdf2:sha256")
-                            cursor.execute("INSERT INTO users ( name, mail, position, division, department, branch, reports_to, status, hash) VALUES(%(name)s, %(mail)s, %(position)s, %(division)s, %(department)s, %(branch)s, %(reports_to)s, %(status)s, %(hash)s)", {'name': name, 'mail': mail, 'position': position, 'division': division, 'department': department, 'branch': branch, 'reports_to': reports_to, 'status': status, 'hash': hash})
-                            countUploadManager += 1
-                            
-                            # Проверяем должность в базе. Если существует, то пропускам
-                            cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s AND reports_pos = %(reports_pos)s", {'position': position, 'reports_pos': reports_to})
-                            pos = cursor.fetchall()
-                            if len(pos) == 0:
-                                cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
-                    # Проходип по таблице и записываем руководителей в базу
-                    for i in range(len(table)):            
-                        mail = str(table.iloc[i,:][9]).lower().strip()
-                        cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
-                        us = cursor.fetchall()
-                        # Если пользоватеть существует, то не записываем в базу. Добавляем в список
-                        if len(us) != 0:
-                            countErrorHead += 1
-                           
-                        # Если нет пользователя в базе, то записываем туда и добавляем в список
-                        else:
-                            division = str(table.iloc[i,:][5]).strip()
-                            department = str(table.iloc[i,:][6]).strip()
-                            branch = str(table.iloc[i,:][7]).strip()
-                            name = str(table.iloc[i,:][8]).strip()
-                            reports_to = '-'
-                            position = '-'
-                            status = HEAD
-                            hash = generate_password_hash(createPassword(), "pbkdf2:sha256")
-                            cursor.execute("INSERT INTO users ( name, mail, position, division, department, branch, status, hash, reports_to) VALUES(%(name)s, %(mail)s, %(position)s, %(division)s, %(department)s, %(branch)s, %(status)s, %(hash)s, %(reports_to)s)", {'name': name, 'mail': mail, 'position': position, 'division': division, 'department': department, 'branch': branch, 'status': status, 'hash': hash, 'reports_to':reports_to})
-                            countUploadHead += 1
-                            
+            upload_file_users(table, MANAGER, HEAD)
+            flash(f"Загрузка идет в фоновом режиме")
+            return redirect ('/users')
 
-            except Exception as _ex:
-                print("[INFO] Error while working with PostgresSQL", _ex)
-                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
-                return redirect('/')
-            finally:
-                if connection:
-                    connection.close()
-                    print("[INFO] PostgresSQL connection closed")                 
-
-        else:
-            flash('Тип загруженного файла не поддерживается.')
-            return redirect('/')
+        flash('Тип загруженного файла не поддерживается.')
+        return redirect('/')
         
-        flash(f"Загруженно {countUploadManager} пользователей и {countUploadHead} руководителей.")
-        return redirect ('/users')
-        # не самый красивый вариант
-        #return render_template('afterUpload.html', countError = countError, countUpload = countUpload, usersError = usersError, usersUpload = usersUpload)
-    
     else:
         return redirect('/')
 
@@ -979,28 +903,22 @@ def file_test():
     elif request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
         file = request.files['file']
 
-        if not request.files['file']: 
+        if not file or file.filename == '': 
             flash('Не могу прочитать файл или файл не загружен.')
             return redirect('/file_test')
-        
-        if file.filename == '':
-            flash('Не могу прочитать файл или файл не .')
-            return redirect('/file_test')
 
-        if file :
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-        if filename.endswith((".xlsx", ".xls")):
+        if filename.endswith(("xlsx", "xls")):
             xlsx = pd.ExcelFile(f'upload_files/{filename}')
             table = xlsx.parse()
             upload_test_results(table)
             flash(f"Загрузка идет в фоновом режиме.")
             return redirect ('/test_results')
 
-        else:
-            flash('Тип загруженного файла не поддерживается.')
-            return redirect('/file_test')
+        flash('Тип загруженного файла не поддерживается.')
+        return redirect('/file_test')
 
     else:
         return redirect ('/')
@@ -1706,7 +1624,6 @@ def handle_exception(e):
     try:
         connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
         connection.autocommit = True
-        #today = datetime.date.today()
         today = datetime.datetime.today().strftime("%d.%m.%Y %X")
         user_mail = session['user_mail']
         user_status = session['user_status']
@@ -1721,14 +1638,14 @@ def handle_exception(e):
                 print(f'[INFO] Exception: {e}')
                 cursor.execute("INSERT INTO exception_table (exception_code, exception_data, exception_date, user_mail, user_status) VALUES('500', %(name)s,  %(today)s, %(user_mail)s, %(user_status)s)", {'name': e, 'today': today, 'user_mail':user_mail, 'user_status': user_status})
                 return render_template("apology.html", top='500', bottom = e), 500
+                
     except Exception as _ex:
-        print("[INFO] Error while working with PostgresSQL", _ex)
-        flash("[INFO] В процессе создания запроса произошла ошибка. Пожалуйста, обновите страницу и повторите попытку.")
-        return redirect('/')
+            print("[INFO] Error while working with PostgresSQL", _ex)
     finally:
         if connection:
             connection.close()
             print("[INFO] PostgresSQL connection closed")
+   
 
 
 @app.route('/settings', methods = ["GET", "POST"])
