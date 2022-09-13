@@ -57,9 +57,17 @@
     <form action="/mail_manager" method="get"><button class="btn btn-primary" type="submit" id="sort_button">Сбросить фильтр</button></form>
     <form action="/mail_manager" method="post" id="accept_rules" onchange="document.getElementById('accept_rules').submit()">
         <select id="rules" name="rules" >
-            <option  disabled selected value="Статус принятия правил">Правила</option>
-            <option  value="accept">Принял</option>
-            <option value="not_accept">Не принял</option>
+            {%if rules_status%}
+            <option  selected value="{{rules_status}}">{{rules_status}}</option>
+            {%else%}
+            <option  disabled selected>Правила</option>
+            {%endif%}
+            {% set rules_list = ['Принял', 'Не принял'] %}
+            {% for rule in rules_list %}
+            {%if rules_status != rule %}
+            <option>{{rule}}</option>
+            {%endif%}
+            {%endfor%}
         </select>  
     </form>
 </div>
@@ -78,6 +86,7 @@
                 <th>Почта</th>
                 <th>Письмо отправлено</th>
                 <th>Приняли условия</th>
+                <th></th>
             </tr>
         </thead>
         <tbody> 

@@ -1607,11 +1607,11 @@ def mail_manager():
                             ORDER BY id", {'status':MANAGER, 'search': search})
                         users = cursor.fetchall()
                     elif rules:
-                        if rules == 'accept':
+                        if rules == 'Принял':
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
                                 FROM users WHERE status = %(status)s AND accept_rules IS NOT NULL ORDER BY mail_date", {'status':MANAGER})
                             users = cursor.fetchall()
-                        elif rules == 'not_accept':
+                        elif rules == 'Не принял':
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
                                 FROM users WHERE status = %(status)s AND accept_rules IS NULL  ORDER BY mail_date", {'status':MANAGER})
                             users = cursor.fetchall()
@@ -1627,7 +1627,7 @@ def mail_manager():
                     print("[INFO] PostgresSQL nonnection closed")
 
             return render_template('mail_manager.html', users = users, headList = headList, readyStatusList = readyStatusList, 
-                                    reports_to_query = reports_to, ready_status_query = ready_status)        
+                                    reports_to_query = reports_to, ready_status_query = ready_status, rules_status = rules)        
                
          # if single send mode
         if flag == 'single':

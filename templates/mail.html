@@ -56,7 +56,7 @@
             {%if ranking_done_status%}
             <option  selected value="{{ranking_done_status}}">{{ranking_done_status}}</option>
             {%else%}
-            <option  disabled selected value="Статус принятия правил">Ранжирование</option>
+            <option  disabled selected>Ранжирование</option>
             {%endif%}
             {% set ranking_done_list = ['Заполнил', 'Не заполнил'] %}
             {% for ranc in ranking_done_list %}
@@ -80,6 +80,7 @@
                 <th>ФИО</th>
                 <th>Почта</th>
                 <th>Письмо отправлено</th>
+                <th></th>
             </tr>
         </thead>
         <tbody> 
