@@ -210,7 +210,7 @@ def upload_test_results(table):
 
 
 @asyncc
-def upload_file_users(table, manager_status, head_status):
+def upload_file_users(table, manager_status, head_status):    
     with app.app_context():
         try:
             connection = connection_db()

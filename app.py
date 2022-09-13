@@ -1,5 +1,4 @@
 
-from stat import FILE_ATTRIBUTE_OFFLINE
 from flask import Flask, redirect, render_template, request, session, flash
 from flask_mail import Mail, Message
 from flask_session import Session
