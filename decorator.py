@@ -19,8 +19,8 @@ def asyncc(f):
     return wrapper
 
 
-def message_sender(subject, text_body, html_body, user_name, user_mail, user_password):
-    msg = Message(subject,  recipients = [user_mail])
+def message_sender(text_body, html_body, user_name, user_mail, user_password):
+    msg = Message("Проект «Развитие компетенций сотрудников back-office»",  recipients = [user_mail])
     msg.body = render_template(text_body, user_name = user_name, user_mail = user_mail, user_password = user_password)
     msg.html = render_template(html_body, user_name = user_name, user_mail = user_mail, user_password = user_password)
     mail.send(msg)
@@ -38,7 +38,6 @@ def send_message_manager(status):
                                 FROM users WHERE status = %(status)s ORDER BY id", {'status':status})
                 users = cursor.fetchall()
                 for singleUser in users:
-                    subject = "Проект «Развитие компетенций сотрудников back-office»"
                     user_name = singleUser[4]
                     user_mail = singleUser[5]
                     user_password = createPassword()
@@ -46,13 +45,13 @@ def send_message_manager(status):
                     if singleUser[6] != None and singleUser[7] == None and singleUser[6] != str(today): 
                         text_body = "reminder_to_manager.txt"
                         html_body = 'reminder_to_manager.html'
-                        message_sender(subject, text_body, html_body, user_name, user_mail, user_password)
+                        message_sender(text_body, html_body, user_name, user_mail, user_password)
                         cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s \
                                             WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':user_mail}) 
                     elif singleUser[6] == None:
                         text_body = "to_manager_email.txt"
                         html_body = 'to_manager_email.html'
-                        message_sender(subject, text_body, html_body, user_name, user_mail, user_password)
+                        message_sender(text_body, html_body, user_name, user_mail, user_password)
                         cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s \
                                         WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':user_mail})
                                                         
@@ -62,6 +61,21 @@ def send_message_manager(status):
             if connection:
                 connection.close()
                 print(f"[INFO] PostgresSQL nonnection closed")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # переписать для руководителей и Удалить
