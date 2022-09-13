@@ -64,38 +64,43 @@ def send_message_manager(status):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# переписать для руководителей и Удалить
 @asyncc
-def send_message(subject, text_body, html_body, user_name, user_mail, user_password):
+def send_message_head(status):
     with app.app_context():
-        hash  = generate_password_hash(user_password, "pbkdf2:sha256")
         today = datetime.date.today()
-        try:
+        try: 
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
-            connection.autocommit = True 
+            connection.autocommit = True
             with connection.cursor() as cursor:
-                msg = Message(subject,  recipients = [user_mail])
-                msg.body = render_template(text_body, user_name = user_name, user_mail = user_mail, user_password = user_password)
-                msg.html = render_template(html_body, user_name = user_name, user_mail = user_mail, user_password = user_password)
-                mail.send(msg)
-                cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s \
-                                WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':user_mail})
+                cursor.execute("SELECT department, reports_to, status, position, name, mail, mail_date \
+                                FROM users WHERE status = %(status)s AND mail in \
+                                (SELECT reports_pos FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL \
+                                    OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL \
+                                    OR comp_9 IS NULL))\
+                                ORDER BY id", {'status':status})
+                users = cursor.fetchall()
+                for singleUser in users:
+                    user_name = singleUser[4]
+                    user_mail = singleUser[5]
+                    user_password = createPassword()
+                    hash  = generate_password_hash(user_password, "pbkdf2:sha256")
+                    if singleUser[6] != None and singleUser[6] != str(today): 
+                        text_body = "reminder_to_head.txt"
+                        html_body = 'reminder_to_head.html'
+                        message_sender(text_body, html_body, user_name, user_mail, user_password) 
+                        cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s \
+                                        WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':user_mail})
+                    elif singleUser[6] == None:
+                        text_body = "to_head_email.txt"
+                        html_body = 'to_head_email.html'
+                        message_sender(text_body, html_body, user_name, user_mail, user_password)
+                        cursor.execute("UPDATE users SET hash = %(hash)s, mail_date = %(date)s \
+                                        WHERE mail = %(mail)s", {'hash': hash, 'date': today, 'mail':user_mail})
+
         except Exception as _ex:
-            print(f'[INFO]: {_ex}')
+            print(f'[INFO] Error while working PostgresSQL', _ex)
         finally:
             if connection:
                 connection.close()
+                print(f"[INFO] PostgresSQL nonnection closed")
+

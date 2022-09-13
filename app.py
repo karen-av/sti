@@ -15,7 +15,7 @@ import datetime
 from forms import ContactForm
 from werkzeug.exceptions import HTTPException
 import time
-from decorator import send_message_manager, send_message
+from decorator import send_message_head, send_message_manager
 
 #from flask_sqlalchemy import SQLAlchemy
 
@@ -1072,16 +1072,11 @@ def file_test():
 @app.route('/mail_heads', methods = ['GET', 'POST'])
 @login_required
 def mail_heads():
-    # создаем списки и счетчики отправленных и неотправленных сообщений
-    notSendList = []
-    counterSend = 0
-    counterNotSend = 0
     # Статусы для фильтра 
     readyStatusList = ['Все', 'Отправлено', 'Не отправлено']
     # Флаг для выбора пути. Одно письмо, всем или токо тем, кто еще не получал приглашение
     flag  = request.form.get('flag')
 
-    
     if request.method == 'GET' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
         # Выбираем все пользователей со статусом HEAD  и все почты для поиска
         try:
@@ -1243,56 +1238,9 @@ def mail_heads():
 
         # if all send mode (Оставлять)
         elif flag == 'all_invite': 
-            today = datetime.date.today()
-            try: 
-                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
-                connection.autocommit = True
-                with connection.cursor() as cursor:
-                    cursor.execute("SELECT department, reports_to, status, position, name, mail, mail_date \
-                                    FROM users WHERE status = %(status)s AND mail in \
-                                    (SELECT reports_pos FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL \
-                                        OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL \
-                                        OR comp_9 IS NULL))\
-                                    ORDER BY id", {'status':HEAD})
-                    users = cursor.fetchall()
-                    for singleUser in users:
-                        subject = "Проект «Развитие компетенций сотрудников back-office»"
-                        user_name = singleUser[4]
-                        user_mail = singleUser[5]
-                        user_password = createPassword()
-                        if singleUser[6] != None:
-                            if singleUser[6] != str(today): 
-                                text_body = "reminder_to_head.txt"
-                                html_body = 'reminder_to_head.html'
-                                send_message(subject, text_body, html_body, user_name, user_mail, user_password)
-                                counterSend += 1
-                            else:
-                                notSendList.append(singleUser)
-                                counterNotSend += 1
-                        else:
-                            text_body = "to_head_email.txt"
-                            html_body = 'to_head_email.html'
-                            send_message(subject, text_body, html_body, user_name, user_mail, user_password)
-                            counterSend += 1
-                        
-                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
-                                    FROM users WHERE status = %(status)s ORDER BY id", {'status':HEAD})
-                    users = cursor.fetchall()
-
-            except Exception as _ex:
-                print(f'[INFO] Error while working PostgresSQL', _ex)
-                notSendList.append(singleUser)
-                counterNotSend += 1
-                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
-                return redirect('/')
-                 
-            finally:
-                if connection:
-                    connection.close()
-                    print(f"[INFO] PostgresSQL nonnection closed")
-
-            flash(f' Отправлено собщений - {counterSend}. Не отправлено сообщений - {counterNotSend} .')
-            return render_template('mail.html', users = users, notSendList = notSendList)
+            send_message_head(HEAD)
+            flash(f'Процесс отправки сообщений идет в фоновом режиме')
+            return redirect('/mail_heads')
 
 
     elif request.method == 'POST' and session['user_status'] == HEAD:
