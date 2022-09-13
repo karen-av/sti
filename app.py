@@ -15,7 +15,7 @@ import datetime
 from forms import ContactForm
 from werkzeug.exceptions import HTTPException
 import time
-from decorator import send_message
+from decorator import send_message_manager, send_message
 
 #from flask_sqlalchemy import SQLAlchemy
 
@@ -1740,48 +1740,9 @@ def mail_manager():
             return redirect('/mail_manager')    
 
         elif flag == 'all_invite':
-            today = datetime.date.today()
-            try: 
-                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
-                connection.autocommit = True
-                with connection.cursor() as cursor:
-                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
-                                    FROM users WHERE status = %(status)s ORDER BY id", {'status':MANAGER})
-                    users = cursor.fetchall()
-                    for singleUser in users:
-                        subject = "Проект «Развитие компетенций сотрудников back-office»"
-                        user_name = singleUser[4]
-                        user_mail = singleUser[5]
-                        user_password = createPassword()
-                        if singleUser[6] != None:
-                            if singleUser[7] == None and singleUser[6] != str(today): 
-                                text_body = "reminder_to_manager.txt"
-                                html_body = 'reminder_to_manager.html'
-                                send_message(subject, text_body, html_body, user_name, user_mail, user_password)
-                                counterSend += 1
-                            else:
-                                notSendList.append(singleUser)
-                                counterNotSend += 1
-                        else:
-                            text_body = "to_manager_email.txt"
-                            html_body = 'to_manager_email.html'
-                            send_message(subject, text_body, html_body, user_name, user_mail, user_password)
-                            counterSend += 1
-                            
-            except Exception as _ex:
-                print(f'[INFO] Error while working PostgresSQL', _ex)
-                notSendList.append(singleUser)
-                counterNotSend += 1
-                flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
-                return redirect('/')
-                 
-            finally:
-                if connection:
-                    connection.close()
-                    print(f"[INFO] PostgresSQL nonnection closed")
-
-            flash(f'Сообщений отправлено - {counterSend}. Сообщений не отправлено - {counterNotSend}.')
-            return render_template('mail_manager.html', users = users, notSendList = notSendList)
+            send_message_manager(MANAGER)
+            flash(f'Процесс отправки сообщений идет в фоновом режиме')
+            return redirect('/mail_manager')
 
         elif flag == 'has_not_invite':
             print(flag)
