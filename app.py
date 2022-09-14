@@ -788,16 +788,18 @@ def file():
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
         # если расширение файла excel, то разбираем файл посточно
-        if filename.endswith((".xlsx", ".xls")):
-            xlsx = pd.ExcelFile(f'upload_files/{filename}')
-            table = xlsx.parse()
-            upload_file_users(table, MANAGER, HEAD)
-            flash(f"Загрузка идет в фоновом режиме")
-            return redirect ('/users')
+        if filename.endswith(("xlsx", "xls")) == False:
+            os.remove(f'upload_files/{filename}')
+            flash('Тип загруженного файла не поддерживается.')
+            return redirect('/')
 
-        flash('Тип загруженного файла не поддерживается.')
-        return redirect('/')
-        
+        xlsx = pd.ExcelFile(f'upload_files/{filename}')
+        table = xlsx.parse()
+        upload_file_users(table, MANAGER, HEAD)
+        os.remove(f'upload_files/{filename}')
+        flash(f"Загрузка идет в фоновом режиме")
+        return redirect ('/users')
+
     else:
         return redirect('/')
 
@@ -909,15 +911,17 @@ def file_test():
         filename = secure_filename(file.filename)
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-        if filename.endswith(("xlsx", "xls")):
-            xlsx = pd.ExcelFile(f'upload_files/{filename}')
-            table = xlsx.parse()
-            upload_test_results(table)
-            flash(f"Загрузка идет в фоновом режиме.")
-            return redirect ('/test_results')
-
-        flash('Тип загруженного файла не поддерживается.')
-        return redirect('/file_test')
+        if filename.endswith(("xlsx", "xls")) == False:
+            os.remove(f'upload_files/{filename}')
+            flash('Тип загруженного файла не поддерживается.')
+            return redirect('/file_test')
+        
+        xlsx = pd.ExcelFile(f'upload_files/{filename}')
+        table = xlsx.parse()
+        upload_test_results(table)
+        os.remove(f'upload_files/{filename}')
+        flash(f"Загрузка идет в фоновом режиме.")
+        return redirect ('/test_results')
 
     else:
         return redirect ('/')
