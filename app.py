@@ -41,9 +41,7 @@ COMPETENCE_DESCRIPTION  = (('Надежность', 'Берется за доп�
 HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ', 'Дисциплинированность', 'Исполнительность', 'Ответственность', 'Решительность', 'ОРГАНИЗОВАННОСТЬ', 'Чёткое целеполагание', 'Адаптивность', 'Планирование', 'Стремление к порядку', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ', 'Стремление к достижениям', 'Стремление к развитию', 'Инновационность', 'ПРИВЕРЖЕННОСТЬ', 'Лояльность', 'Взаимовыручка', 'КОМАНДНОСТЬ', 'Готовность к компромиссу', 'Сотрудничество', 'Открытость', 'Открытость обратной связи', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ', 'Ориентация на потребности клиента', 'Партнёрство', 'ПРИНЯТИЕ РЕШЕНИЙ', 'Системное мышление', 'Бизнес-мышление', 'Перспективное мышление', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ', 'Чёткая коммуникация', 'Убеждение и влияние', 'Ведение переговоров', 'Кроссфункциональное взаимодействие', 'Неформальное лидерство', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО', 'Управление исполнением', 'Мотивация подчинённых', 'Организация работы', 'Управление изменениями', 'Развитие подчинённых', 'Управление командой')
 HEADER_LIST_FROM_TEST_SMALL = ('НАДЁЖНОСТЬ', 'ОРГАНИЗОВАННОСТЬ', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ', 'ПРИВЕРЖЕННОСТЬ', 'КОМАНДНОСТЬ', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ', 'ПРИНЯТИЕ РЕШЕНИЙ', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО')
 HEAD_COACH_EMAIL = 't.astralenko@sti-partners.ru'
-UPLOAD_FOLDER = 'upload_files'
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.after_request
 def after_request(response):
@@ -759,27 +757,23 @@ def file():
         return render_template('upload_file.html', typeDataFlag = 'users')
 
     elif request.method == "POST" and (session["user_status"] == ADMIN or session["user_status"] == COACH):
-        file = request.files['file']
-        
-        # Проверяем получен ли файл и Проверка имени файла
-        if not request.files['file'] or file.filename == '':
-            flash('Не могу прочитать файл или файл не загружен')
-            return redirect('/file_users')
-
-        # Безовасное сохраниение имени файла
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(Config.UPLOAD_FOLDER, filename))
-
-        # если расширение файла excel, то разбираем файл посточно
-        if filename.endswith(("xlsx", "xls")) == False:
-            os.remove(os.path.join(Config.UPLOAD_FOLDER, filename))
-            flash('Тип загруженного файла не поддерживается.')
+        if 'file' not in request.files:
+            flash('No file part')
             return redirect('/')
+        file = request.files['file']
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if file.filename == '':
+            flash('No selected file')
+            return redirect('/')
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-        xlsx = pd.ExcelFile(os.path.join(Config.UPLOAD_FOLDER, filename))
+        xlsx = pd.ExcelFile(f'{Config.UPLOAD_FOLDER}/{filename}')
         table = xlsx.parse()
         upload_file_users(table, MANAGER, HEAD)
-        os.remove(os.path.join(Config.UPLOAD_FOLDER, filename))
+        os.remove(f'{Config.UPLOAD_FOLDER}/{filename}')
         flash(f"Загрузка идет в фоновом режиме")
         return redirect ('/users')
 
@@ -899,10 +893,10 @@ def file_test():
             print("AAA")
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             print("BBB")
-            xlsx = pd.ExcelFile(f'{UPLOAD_FOLDER}/{filename}')
+            xlsx = pd.ExcelFile(f'{Config.UPLOAD_FOLDER}/{filename}')
             table = xlsx.parse()
             upload_test_results(table)
-            #os.remove(f'{UPLOAD_FOLDER}/{filename}')
+            os.remove(f'{Config.UPLOAD_FOLDER}/{filename}')
             flash(f"Загрузка идет в фоновом режиме.")
             return redirect ('/test_results')
 
