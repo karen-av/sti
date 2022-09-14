@@ -891,20 +891,20 @@ def file_test():
 
         filename = secure_filename(file.filename)
         print("ASD")
-        file.save(os.path.join(Config.UPLOAD_FOLDER, filename))
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
         print("AAA")
         if filename.endswith(("xlsx", "xls")) == False:
             print("BBB")
-            os.remove(os.path.join(Config.UPLOAD_FOLDER, filename))
+            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             flash('Тип загруженного файла не поддерживается.')
             return redirect('/file_test')
         print("CCC")
-        xlsx = pd.ExcelFile(os.path.join(Config.UPLOAD_FOLDER, filename))
+        xlsx = pd.ExcelFile(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         print("DDD")
         table = xlsx.parse()
         upload_test_results(table)
-        os.remove(os.path.join(Config.UPLOAD_FOLDER, filename))
+        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         flash(f"Загрузка идет в фоновом режиме.")
         return redirect ('/test_results')
 
