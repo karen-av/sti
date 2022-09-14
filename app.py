@@ -890,6 +890,7 @@ def file_test():
             return redirect('/file_test')
 
         filename = secure_filename(file.filename)
+        print("ASD")
         file.save(os.path.join(Config.UPLOAD_FOLDER, filename))
 
         print("AAA")
