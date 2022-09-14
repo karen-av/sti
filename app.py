@@ -15,7 +15,7 @@ import datetime
 from forms import ContactForm
 from werkzeug.exceptions import HTTPException
 import time
-from decorator import send_message_head, send_message_manager, upload_test_results, upload_file_users
+from decorator import send_message_head, send_message_manager, upload_test_results, upload_file_users, allowed_file
 
 #from flask_sqlalchemy import SQLAlchemy
 
@@ -885,25 +885,26 @@ def file_test():
 
     # Описание есть в загрузке файла с пользователями /file
     elif request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect('/')
         file = request.files['file']
-
-        if not file or file.filename == '': 
-            flash('Не могу прочитать файл или файл не загружен.')
-            return redirect('/file_test')
-
-        filename = secure_filename(file.filename)
-
-        if filename.endswith(("xlsx", "xls")) == False:
-            flash('Тип загруженного файла не поддерживается.')
-            return redirect('/file_test')
-
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        xlsx = pd.ExcelFile(f'{UPLOAD_FOLDER}/{filename}')
-        table = xlsx.parse()
-        upload_test_results(table)
-        os.remove(f'{UPLOAD_FOLDER}/{filename}')
-        flash(f"Загрузка идет в фоновом режиме.")
-        return redirect ('/test_results')
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if file.filename == '':
+            flash('No selected file')
+            return redirect('/')
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            print("AAA")
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            print("BBB")
+            xlsx = pd.ExcelFile(f'{UPLOAD_FOLDER}/{filename}')
+            table = xlsx.parse()
+            upload_test_results(table)
+            #os.remove(f'{UPLOAD_FOLDER}/{filename}')
+            flash(f"Загрузка идет в фоновом режиме.")
+            return redirect ('/test_results')
 
     else:
         return redirect ('/')

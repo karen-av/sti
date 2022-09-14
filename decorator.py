@@ -12,6 +12,11 @@ app = Flask(__name__)
 app.config.from_object(Config)
 mail = Mail(app)
 
+ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def asyncc(f):
     def wrapper(*args, **kwargs):
