@@ -900,6 +900,7 @@ def file_test():
             return redirect('/file_test')
         print("CCC")
         xlsx = pd.ExcelFile(os.path.join(Config.UPLOAD_FOLDER, filename))
+        print("DDD")
         table = xlsx.parse()
         upload_test_results(table)
         os.remove(os.path.join(Config.UPLOAD_FOLDER, filename))
