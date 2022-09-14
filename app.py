@@ -26,6 +26,9 @@ app.config.from_object(Config)
 mail = Mail(app)
 Session(app)
 
+UPLOAD_FOLDER = 'upload_files'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 POSITIONS_LIST = ("Директор", "Юрист", "Повар", "Садовник", 'Слесарь', 'DEV', 'Тренер')
 STATUS_LIST = ('admin', 'coach', 'manager', 'head')
 UPLOAD_FOLDER = 'upload_files'
@@ -894,7 +897,7 @@ def file_test():
             flash('Тип загруженного файла не поддерживается.')
             return redirect('/file_test')
 
-        file.save(f'{UPLOAD_FOLDER}/{filename}')
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         xlsx = pd.ExcelFile(f'{UPLOAD_FOLDER}/{filename}')
         table = xlsx.parse()
         upload_test_results(table)

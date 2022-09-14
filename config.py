@@ -27,7 +27,7 @@ class Config(object):
     RECAPTCHA_PRIVATE_KEY = "6LcNd8khAAAAAJWAGPyVfjL0LxplCOsnkPUrXDAU"
     RECAPTCHA_DISABLE = True #  будет капча или нет
     TEMPLATES_AUTO_RELOAD = True
-    UPLOAD_FOLDER = 'upload_files'
+    #UPLOAD_FOLDER = 'upload_files'
     SESSION_PERMANENT = False
     SESSION_TYPE = "filesystem" 
     UPLOAD_FOLDER = 'upload_files'
