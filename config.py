@@ -30,7 +30,6 @@ class Config(object):
     UPLOAD_FOLDER = 'upload_files'
     SESSION_PERMANENT = False
     SESSION_TYPE = "filesystem" 
-    #UPLOAD_FOLDER = 'upload_files'
 
 
 def func_sql(comand):
