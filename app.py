@@ -26,6 +26,8 @@ app.config.from_object(Config)
 mail = Mail(app)
 Session(app)
 
+
+
 POSITIONS_LIST = ("Директор", "Юрист", "Повар", "Садовник", 'Слесарь', 'DEV', 'Тренер')
 STATUS_LIST = ('admin', 'coach', 'manager', 'head')
 UPLOAD_FOLDER = 'upload_files'
@@ -41,7 +43,7 @@ HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ', 'Дисциплинирован
 HEADER_LIST_FROM_TEST_SMALL = ('НАДЁЖНОСТЬ', 'ОРГАНИЗОВАННОСТЬ', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ', 'ПРИВЕРЖЕННОСТЬ', 'КОМАНДНОСТЬ', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ', 'ПРИНЯТИЕ РЕШЕНИЙ', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО')
 HEAD_COACH_EMAIL = 't.astralenko@sti-partners.ru'
 
-
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.after_request
 def after_request(response):
@@ -894,12 +896,12 @@ def file_test():
             flash('Тип загруженного файла не поддерживается.')
             return redirect('/file_test')
 
-        #file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        file.save(os.path.join(UPLOAD_FOLDER, filename))
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        #file.save(os.path.join(UPLOAD_FOLDER, filename))
         xlsx = pd.ExcelFile(f'{UPLOAD_FOLDER}/{filename}')
         table = xlsx.parse()
         upload_test_results(table)
-        #os.remove(f'{UPLOAD_FOLDER}/{filename}')
+        os.remove(f'{UPLOAD_FOLDER}/{filename}')
         flash(f"Загрузка идет в фоновом режиме.")
         return redirect ('/test_results')
 
