@@ -30,7 +30,6 @@ Session(app)
 
 POSITIONS_LIST = ("Директор", "Юрист", "Повар", "Садовник", 'Слесарь', 'DEV', 'Тренер')
 STATUS_LIST = ('admin', 'coach', 'manager', 'head')
-ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 ADMIN = 'admin'
 COACH = 'coach'
 HEAD = 'head'
@@ -890,9 +889,7 @@ def file_test():
             return redirect('/')
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            print("AAA")
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            print("BBB")
             xlsx = pd.ExcelFile(f'{Config.UPLOAD_FOLDER}/{filename}')
             table = xlsx.parse()
             upload_test_results(table)
