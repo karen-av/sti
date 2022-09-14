@@ -1623,31 +1623,44 @@ def mail_manager():
 
 
 @app.errorhandler(Exception)
-def handle_exception(e):
-    try:
-        connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
-        connection.autocommit = True
-        today = datetime.datetime.today().strftime("%d.%m.%Y %X")
-        user_mail = session['user_mail']
-        user_status = session['user_status']
-        with connection.cursor() as cursor:
-            if isinstance(e, HTTPException):
-                code = e.code
-                name = e.name
-                print(f'[INFO] HTTPException: {code} {name}')
+def handle_exception(e):    
+    today = datetime.datetime.today().strftime("%d.%m.%Y %X")
+    user_mail = session['user_mail']
+    user_status = session['user_status']
+    if isinstance(e, HTTPException):
+        code = e.code
+        name = e.name
+        print(f'[INFO] HTTPException: {code} {name}')
+        try:
+            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+            connection.autocommit = True
+            with connection.cursor() as cursor:
                 cursor.execute("INSERT INTO exception_table (exception_code, exception_data, exception_date, user_mail, user_status) VALUES(%(code)s, %(name)s, %(today)s, %(user_mail)s, %(user_status)s)", {'name': name, 'code': code, 'today': today, 'user_mail': user_mail, 'user_status': user_status})
-                return render_template("apology.html", top=code, bottom = escape(name), name = name), 400
-            else:
-                print(f'[INFO] Exception: {e}')
-                cursor.execute("INSERT INTO exception_table (exception_code, exception_data, exception_date, user_mail, user_status) VALUES('500', %(name)s,  %(today)s, %(user_mail)s, %(user_status)s)", {'name': e, 'today': today, 'user_mail':user_mail, 'user_status': user_status})
-                return render_template("apology.html", top='500', bottom = e), 500
-                
-    except Exception as _ex:
+        except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
-    finally:
-        if connection:
-            connection.close()
-            print("[INFO] PostgresSQL connection closed")
+            return redirect('/')
+        finally:
+            if connection:
+                connection.close()
+                print("[INFO] PostgresSQL connection closed")
+        return render_template("apology.html", top=code, bottom = escape(name), name = name), 400
+    else:
+        print(f'[INFO] Exception: {e}')
+        try:
+            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+            connection.autocommit = True
+            with connection.cursor() as cursor:
+                cursor.execute("INSERT INTO exception_table (exception_code, exception_data, exception_date, user_mail, user_status) VALUES('500', %(name)s,  %(today)s, %(user_mail)s, %(user_status)s)", {'name': e, 'today': today, 'user_mail':user_mail, 'user_status': user_status})
+        except Exception as _ex:
+            print("[INFO] Error while working with PostgresSQL", _ex)
+            return redirect('/')
+        finally:
+            if connection:
+                connection.close()
+                print("[INFO] PostgresSQL connection closed")
+        return render_template("apology.html", top='500', bottom = e), 500
+                
+    
    
 
 
