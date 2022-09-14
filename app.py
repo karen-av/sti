@@ -895,12 +895,14 @@ def file_test():
         if filename.endswith(("xlsx", "xls")) == False:
             flash('Тип загруженного файла не поддерживается.')
             return redirect('/file_test')
-
+        print("AAA")
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         #file.save(os.path.join(UPLOAD_FOLDER, filename))
+        print("BBB")
         xlsx = pd.ExcelFile(f'upload_files/{filename}')
         table = xlsx.parse()
         upload_test_results(table)
+        print("CCC")
         os.remove(f'{UPLOAD_FOLDER}/{filename}')
         flash(f"Загрузка идет в фоновом режиме.")
         return redirect ('/test_results')
