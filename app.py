@@ -23,17 +23,8 @@ from decorator import send_message_head, send_message_manager, upload_test_resul
 # Configure application
 app = Flask(__name__)
 app.config.from_object(Config)
-
-app.config['SECRET_KEY'] = "12345"
-
-app.config['RECAPTCHA_PUBLIC_KEY'] = "6LcNd8khAAAAAOn_IY_vOVqktHdZPZKmn1c7Ibgi"
-app.config['RECAPTCHA_PRIVATE_KEY'] = "6LcNd8khAAAAAJWAGPyVfjL0LxplCOsnkPUrXDAU"
-app.config['RECAPTCHA_DISABLE'] = True #  будет капча или нет
-
 mail = Mail(app)
-
-# Ensure templates are auto-reloaded
-app.config["TEMPLATES_AUTO_RELOAD"] = True
+Session(app)
 
 POSITIONS_LIST = ("Директор", "Юрист", "Повар", "Садовник", 'Слесарь', 'DEV', 'Тренер')
 STATUS_LIST = ('admin', 'coach', 'manager', 'head')
@@ -48,17 +39,7 @@ COMPETENCE = ('Надежность', 'Организованноcть', 'Стр
 COMPETENCE_DESCRIPTION  = (('Надежность', 'Берется за дополнительные задачи и интенсивно работает. Выполняет работу своевременно и несёт ответственность за результаты.'), ('Организованноcть', 'Ставит перед собой четкие цели и планирует работу. Умеет быстро адаптироваться к изменениям на работе.'), ('Стремление к совершенству', 'Ставит перед собой амбициозные цели. Обучается новому и совершенствует рабочие процессы.'), ('Приверженность', 'Следует целям и ценностям компании в своей работе. Делится своим опытом с коллегами и партнерами. Шкалы оценки: Лояльность; Взаимовыручка',), ('Командность', 'Объединяет людей и открыто обсуждает рабочие проблемы. Шкалы оценки: Готовность к компромиссу; Сотрудничество; Открытость; Открытость обратной связи'), ('Ориентация на клиента', 'Выясняет потребности клиентов, в том числе внутренних (коллег) и учитывает их в своей работе. Выстраивает долгосрочные отношения. Шкалы оценки: Ориентация на потребности клиента (в том числе внутреннего); Партнерство'), ('Принятие решений', 'Интересуется тенденциями рынка и конкурентами в своей отрасли. Ставит стратегические цели и управляет рисками на основе анализа информации.'), ('Эффективная коммуникация', 'Налаживает контакт с другими людьми и находит индивидуальный подход к собеседнику. Четко и уверенно отстаивает свою позицию.'), ('Управленческое мастерство', 'Организовывает работу подчиненных (коллег) и поддерживает позитивный командный настрой. Развивает и поддерживает подчиненных (коллег).'))
 HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ', 'Дисциплинированность', 'Исполнительность', 'Ответственность', 'Решительность', 'ОРГАНИЗОВАННОСТЬ', 'Чёткое целеполагание', 'Адаптивность', 'Планирование', 'Стремление к порядку', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ', 'Стремление к достижениям', 'Стремление к развитию', 'Инновационность', 'ПРИВЕРЖЕННОСТЬ', 'Лояльность', 'Взаимовыручка', 'КОМАНДНОСТЬ', 'Готовность к компромиссу', 'Сотрудничество', 'Открытость', 'Открытость обратной связи', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ', 'Ориентация на потребности клиента', 'Партнёрство', 'ПРИНЯТИЕ РЕШЕНИЙ', 'Системное мышление', 'Бизнес-мышление', 'Перспективное мышление', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ', 'Чёткая коммуникация', 'Убеждение и влияние', 'Ведение переговоров', 'Кроссфункциональное взаимодействие', 'Неформальное лидерство', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО', 'Управление исполнением', 'Мотивация подчинённых', 'Организация работы', 'Управление изменениями', 'Развитие подчинённых', 'Управление командой')
 HEADER_LIST_FROM_TEST_SMALL = ('НАДЁЖНОСТЬ', 'ОРГАНИЗОВАННОСТЬ', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ', 'ПРИВЕРЖЕННОСТЬ', 'КОМАНДНОСТЬ', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ', 'ПРИНЯТИЕ РЕШЕНИЙ', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО')
-#HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ', 'Дисциплинированность', 'Исполнительность', 'Ответственность')
-#HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ 1', 'Дисциплинированность 2', 'Исполнительность 3', 'Ответственность 4', 'Решительность5', 'ОРГАНИЗОВАННОСТЬ6', 'Чёткое целеполагание7', 'Адаптивность8', 'Планирование9', 'Стремление к порядку10', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ11', 'Стремление к достижениям12', 'Стремление к развитию13', 'Инновационность14', 'ПРИВЕРЖЕННОСТЬ15', 'Лояльность16', 'Взаимовыручка17', 'КОМАНДНОСТЬ18', 'Готовность к компромиссу19', 'Сотрудничество20', 'Открытость21', 'Открытость обратной связи22', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ23', 'Ориентация на потребности клиента24', 'Партнёрство25', 'ПРИНЯТИЕ РЕШЕНИЙ26', 'Системное мышление27', 'Бизнес-мышление28', 'Перспективное мышление29', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ30', 'Чёткая коммуникация31', 'Убеждение и влияние32', 'Ведение переговоров33', 'Кроссфункциональное взаимодействие34', 'Неформальное лидерство35', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО36', 'Управление исполнением37', 'Мотивация подчинённых38', 'Организация работы39', 'Управление изменениями40', 'Развитие подчинённых41', 'Управление командой42')
 HEAD_COACH_EMAIL = 't.astralenko@sti-partners.ru'
-#HEAD_COACH_EMAIL = 'hd.spk27@gmail.com'
-
-
-# Configure session to use filesystem (instead of signed cookies)
-app.config["SESSION_PERMANENT"] = False
-app.config["SESSION_TYPE"] = "filesystem"
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-Session(app)
 
 
 
@@ -785,18 +766,18 @@ def file():
 
         # Безовасное сохраниение имени файла
         filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        file.save(os.path.join(Config.UPLOAD_FOLDER, filename))
 
         # если расширение файла excel, то разбираем файл посточно
         if filename.endswith(("xlsx", "xls")) == False:
-            os.remove(f'upload_files/{filename}')
+            os.remove(os.path.join(Config.UPLOAD_FOLDER, filename))
             flash('Тип загруженного файла не поддерживается.')
             return redirect('/')
 
-        xlsx = pd.ExcelFile(f'upload_files/{filename}')
+        xlsx = pd.ExcelFile(os.path.join(Config.UPLOAD_FOLDER, filename))
         table = xlsx.parse()
         upload_file_users(table, MANAGER, HEAD)
-        os.remove(f'upload_files/{filename}')
+        os.remove(os.path.join(Config.UPLOAD_FOLDER, filename))
         flash(f"Загрузка идет в фоновом режиме")
         return redirect ('/users')
 
@@ -909,17 +890,17 @@ def file_test():
             return redirect('/file_test')
 
         filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        file.save(os.path.join(Config.UPLOAD_FOLDER, filename))
 
         if filename.endswith(("xlsx", "xls")) == False:
-            os.remove(f'upload_files/{filename}')
+            os.remove(os.path.join(Config.UPLOAD_FOLDER, filename))
             flash('Тип загруженного файла не поддерживается.')
             return redirect('/file_test')
         
-        xlsx = pd.ExcelFile(f'upload_files/{filename}')
+        xlsx = pd.ExcelFile(os.path.join(Config.UPLOAD_FOLDER, filename))
         table = xlsx.parse()
         upload_test_results(table)
-        os.remove(f'upload_files/{filename}')
+        os.remove(os.path.join(Config.UPLOAD_FOLDER, filename))
         flash(f"Загрузка идет в фоновом режиме.")
         return redirect ('/test_results')
 
@@ -1661,9 +1642,6 @@ def handle_exception(e):
         return render_template("apology.html", top='500', bottom = e), 500
                 
     
-   
-
-
 @app.route('/settings', methods = ["GET", "POST"])
 @login_required
 def settings():

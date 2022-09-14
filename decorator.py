@@ -18,8 +18,10 @@ def asyncc(f):
         Thread(target = f, args = args, kwargs = kwargs).start()
     return wrapper
 
+
 def connection_db():
     connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
+    connection.autocommit = True 
     return connection
 
 

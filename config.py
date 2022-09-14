@@ -9,6 +9,7 @@ port = 5432
 
 
 class Config(object):
+    SECRET_KEY = "12345"
     DEBAG = True
     TESTING = False
     MAIL_SERVER = 'smtp.yandex.ru'
@@ -22,6 +23,14 @@ class Config(object):
     MAIL_MAX_EMAILS = None
     #app.config['MAIL_SUPPRESS_SEND'] = False
     MAIL_ASCII_ATTACHMENTS = False
+    RECAPTCHA_PUBLIC_KEY = "6LcNd8khAAAAAOn_IY_vOVqktHdZPZKmn1c7Ibgi"
+    RECAPTCHA_PRIVATE_KEY = "6LcNd8khAAAAAJWAGPyVfjL0LxplCOsnkPUrXDAU"
+    RECAPTCHA_DISABLE = True #  будет капча или нет
+    TEMPLATES_AUTO_RELOAD = True
+    UPLOAD_FOLDER = 'upload_files'
+    SESSION_PERMANENT = False
+    SESSION_TYPE = "filesystem" 
+    UPLOAD_FOLDER = 'upload_files'
 
 
 def func_sql(comand):
