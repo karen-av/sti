@@ -892,11 +892,13 @@ def file_test():
         filename = secure_filename(file.filename)
         file.save(os.path.join(Config.UPLOAD_FOLDER, filename))
 
+        print("AAA")
         if filename.endswith(("xlsx", "xls")) == False:
+            print("BBB")
             os.remove(os.path.join(Config.UPLOAD_FOLDER, filename))
             flash('Тип загруженного файла не поддерживается.')
             return redirect('/file_test')
-        
+        print("CCC")
         xlsx = pd.ExcelFile(os.path.join(Config.UPLOAD_FOLDER, filename))
         table = xlsx.parse()
         upload_test_results(table)
