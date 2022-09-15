@@ -1181,84 +1181,7 @@ def reset_password():
 @login_required
 def summary():
     if request.method == 'GET' and (session['user_status'] == constants.ADMIN or session['user_status'] == constants.COACH):
-        allManagers = []
-        try:
-            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
-            connection.autocommit = True  
-            with connection.cursor() as cursor:
-                # Данные все пользователей
-                cursor.execute("SELECT id, name, mail, department, position, reports_to, status FROM users")
-                usersData = cursor.fetchall()
-
-                for userData in usersData:
-                    if userData[6] == 'manager':
-                        # Важнейшие компетенции
-                        cursor.execute("SELECT comp_1, comp_2, comp_3, comp_4, comp_5,comp_6, comp_7, comp_8, comp_9 \
-                                        FROM positions WHERE reports_pos = %(reports_to)s AND position_pos = %(position)s", \
-                                        {'reports_to': userData[5], 'position': userData[4]})
-                        topCompetence = cursor.fetchall()
-                        
-                        # Результаты тестирования
-                        cursor.execute("SELECT reliability, organizational, strengthening, approved, country, clientoority, \
-                                        adoption_of_decisions, effective_communication, management FROM test_results \
-                                        WHERE mail = %(userMail)s", {'userMail': userData[2]})
-                        testResults = cursor.fetchall() 
-
-                        # Если нет результатов тестирования
-                        if len(testResults) == 0:
-                            testResults.append((0,0,0,0,0,0,0,0,0))
-                        
-                        # общий словарь
-                        summaryDict = {}
-                        for i in range(9):
-                            summaryDict[f'comp_{i+1}'] = (constants.HEADER_LIST_FROM_TEST_SMALL[i], topCompetence[0][i], testResults[0][i])
-                        
-                        # Словарь для сортировки по важности
-                        topCompetenceDict = {}
-                        i = 1
-                        for comp in topCompetence[0]:
-                            topCompetenceDict[f'comp_{i}'] = comp
-                            i = i + 1
-
-                        # Сортировка по важности и запись ключа в новый список
-                        newCompRang = []
-
-                        # Если есть неранжированные компетенции, то ранжируем их цифрой 10
-                        for comp in topCompetenceDict:
-                            if topCompetenceDict[comp] == None:
-                                topCompetenceDict[comp] = 0
-
-                        # Добавляем в список компетенции по возростанию 
-                        for comp in topCompetenceDict:
-                            x = min(topCompetenceDict, key=topCompetenceDict.get)
-                            newCompRang.append(x)
-                            topCompetenceDict[x] = 10
-
-                        # Список по конкретному пользователю
-                        manager = [userData[1], userData[2]]
-                        # Сравнить первые 5 компетенций их с результатами тестов
-                        for i in range(5):
-                            # Сравнить ранж с результатом теста
-                            if summaryDict[newCompRang[i]][1] == None:
-                                manager.append('-')
-                            elif summaryDict[newCompRang[i]][1] <= 3 and summaryDict[newCompRang[i]][1] >= 1 and summaryDict[newCompRang[i]][2] <= 70:
-                                manager.append(summaryDict[newCompRang[i]][0])
-                            elif summaryDict[newCompRang[i]][1] <= 6 and summaryDict[newCompRang[i]][1] >= 4 and summaryDict[newCompRang[i]][2] <= 30:
-                                manager.append(summaryDict[newCompRang[i]][0])
-                            else:
-                                manager.append('-')
-                            
-                        # Список списоков
-                        allManagers.append(manager)
-
-        except Exception as _ex:
-            print("[INFO] Error while working with PostgresSQL", _ex)
-            flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
-            return redirect('/')
-        finally:
-            if connection:
-                connection.close()
-                print("[INFO] PostgresSQL connection closed")
+        allManagers = create_summary_table_to_download()
 
         # Передаем данные для создания страницы        
         return render_template('/summary_table_all_managers.html',  allManagers = allManagers)
@@ -1271,8 +1194,7 @@ def summary():
 
         # Подключение к базе данных
         try:
-            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
-            connection.autocommit = True  
+            connection = connection_db()
             with connection.cursor() as cursor:
                 # Данные пользователя
                 cursor.execute("SELECT id, name, mail, department, position, reports_to, mail_date, accept_rules FROM users WHERE mail = %(mail)s ", {'mail': userMail})
@@ -1653,24 +1575,26 @@ def download():
 
     elif request.method == "POST":
         today = datetime.datetime.now()
-        if request.form.get('download_file') == 'summary':
+        if request.form.get('download_file') == 'positions':
+            flash("Function not exist")
+            return render_template('download.html')
+        elif request.form.get('download_file') == 'summary':
             data_to_download = create_summary_table_to_download()
-            print(data_to_download[0])
             file_name = 'Итоговая_таблица.xlsx'
-            number = []
-            nameList = []
-            lastName = []
-            eMailList = []
-            priority1 = [] 
-            priority2 = []
-            priority3 = []
-            priority4 = []
-            priority5 = []
+            col0, col1, col2, col3, col4, col5, col6, col7, col8 = '', "eMail",\
+                 "Имя", 'Фамилия', 'Приоритет 1', 'Приоритет 2', 'Приоритет 3',\
+                 'Приоритет 4', 'Приоритет 5'
+            number, nameList, lastName, eMailList, priority1, priority2, priority3,\
+                    priority4, priority5 = [], [], [], [], [], [], [], [], []
         
             for i, user in enumerate(data_to_download, start=1):
                 number.append(i)
-                nameList.append(user[0])
-                lastName.append(user[0])
+                name = user[0].split()
+                nameList.append(name[0])
+                if len(name) == 3:
+                    lastName.append(f'{name[1]}{name[2]}')
+                else:
+                    lastName.append(name[1])
                 eMailList.append(user[1])
                 priority1.append(user[2])
                 priority2.append(user[3])
@@ -1679,18 +1603,17 @@ def download():
                 priority5.append(user[6])
 
             
-            col0 = ''
-            col1 = "eMail"
-            col2 = "Имя"
-            col3 = 'Фамилия'
-            col4 = 'Приоритет 1'
-            col5 = 'Приоритет 2'
-            col6 = 'Приоритет 3'
-            col7 = 'Приоритет 4'
-            col8 = 'Приоритет 5'
+            df = pd.DataFrame({col0: number, col1: eMailList, col2: nameList, col3: \
+                        lastName, col4: priority1, col5: priority2, col6: priority3, \
+                        col7: priority4, col8: priority5})
+            writer = pd.ExcelWriter(file_name)
+            df.to_excel(writer, sheet_name='sheet_1', index=False)
+            for column in df:
+                column_width = max(df[column].astype(str).map(len).max(), len(column))
+                col_idx = df.columns.get_loc(column)
+                writer.sheets['sheet_1'].set_column(col_idx, col_idx, column_width)
 
-            pd.DataFrame({col0: number, col1: eMailList, col2: nameList, col3: lastName, col4: priority1, col5: priority2, col6: priority3, col7: priority4, col8: priority5})\
-                        .to_excel(file_name, sheet_name='sheet_1', index=False)
+            writer.save()
         
         x = download_file_to_user(file_name)
         os.remove(file_name)

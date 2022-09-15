@@ -298,7 +298,7 @@ def create_summary_table_to_download():
         with connection.cursor() as cursor:
             # Данные все пользователей
             cursor.execute("SELECT id, name, mail, department, position, reports_to, status \
-                            FROM users WHERE status = %(status)s", {'status': constants.MANAGER})
+                            FROM users WHERE status = %(status)s ORDER BY id", {'status': constants.MANAGER})
             usersData = cursor.fetchall()
             
             # Все должности. Выгружаем из алы и создаем словарь для быстрой работы с данными
