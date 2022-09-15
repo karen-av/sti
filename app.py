@@ -1201,20 +1201,20 @@ def summary():
                 # Данные все пользователей
                 cursor.execute("SELECT id, name, mail, department, position, reports_to, status FROM users")
                 usersData = cursor.fetchall()
-                #print(usersData)
 
                 for userData in usersData:
-                    #print(f'userData = {userData[6]}')
                     if userData[6] == 'manager':
                         # Важнейшие компетенции
-                        cursor.execute("SELECT comp_1, comp_2, comp_3, comp_4, comp_5,comp_6, comp_7, comp_8, comp_9 FROM positions WHERE reports_pos = %(reports_to)s AND position_pos = %(position)s", {'reports_to': userData[5], 'position': userData[4]})
+                        cursor.execute("SELECT comp_1, comp_2, comp_3, comp_4, comp_5,comp_6, comp_7, comp_8, comp_9 \
+                                        FROM positions WHERE reports_pos = %(reports_to)s AND position_pos = %(position)s", \
+                                        {'reports_to': userData[5], 'position': userData[4]})
                         topCompetence = cursor.fetchall()
-                        #print(f'topCompetence - {topCompetence}' )
                         
                         # Результаты тестирования
-                        cursor.execute("SELECT reliability, organizational, strengthening, approved, country, clientoority, adoption_of_decisions, effective_communication, management FROM test_results WHERE mail = %(userMail)s", {'userMail': userData[2]})
+                        cursor.execute("SELECT reliability, organizational, strengthening, approved, country, clientoority, \
+                                        adoption_of_decisions, effective_communication, management FROM test_results \
+                                        WHERE mail = %(userMail)s", {'userMail': userData[2]})
                         testResults = cursor.fetchall() 
-                        #print(f'testResults - {testResults}')
 
                         # Если нет результатов тестирования
                         if len(testResults) == 0:
@@ -1260,15 +1260,8 @@ def summary():
                             else:
                                 manager.append('-')
                             
-                                
-
-                      
                         # Список списоков
                         allManagers.append(manager)
-                        
-                        
-                        #print(f'userData - {userData};\n\nsummaryDict - {summaryDict};\n\nnewCompRang - {newCompRang}\n\n\n {allManagers}')
-                   
 
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
