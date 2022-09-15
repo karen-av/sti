@@ -15,7 +15,10 @@ import datetime
 from forms import ContactForm
 from werkzeug.exceptions import HTTPException
 import time
-from decorator import send_message_head, send_message_manager, upload_test_results, upload_file_users, allowed_file
+from decorator import send_message_head, send_message_manager, upload_test_results, \
+                    upload_file_users, allowed_file, download_file_to_user, connection_db, \
+                    create_summary_table_to_download
+import constants
 
 #from flask_sqlalchemy import SQLAlchemy
 
@@ -25,21 +28,6 @@ app = Flask(__name__)
 app.config.from_object(Config)
 mail = Mail(app)
 Session(app)
-
-
-
-POSITIONS_LIST = ("Директор", "Юрист", "Повар", "Садовник", 'Слесарь', 'DEV', 'Тренер')
-STATUS_LIST = ('admin', 'coach', 'manager', 'head')
-ADMIN = 'admin'
-COACH = 'coach'
-HEAD = 'head'
-MANAGER = 'manager'
-SORTLIST = ("Подразделению", "Руководителю", "Статусу", "Должности", 'Имени', 'Почте')
-COMPETENCE = ('Надежность', 'Организованноcть', 'Стремление к совершенству',  'Приверженность', 'Командность', 'Ориентация на клиента', 'Принятие решений', 'Эффективная коммуникация',  'Управленческое мастерство')
-COMPETENCE_DESCRIPTION  = (('Надежность', 'Берется за дополнительные задачи и интенсивно работает. Выполняет работу своевременно и несёт ответственность за результаты.'), ('Организованноcть', 'Ставит перед собой четкие цели и планирует работу. Умеет быстро адаптироваться к изменениям на работе.'), ('Стремление к совершенству', 'Ставит перед собой амбициозные цели. Обучается новому и совершенствует рабочие процессы.'), ('Приверженность', 'Следует целям и ценностям компании в своей работе. Делится своим опытом с коллегами и партнерами. Шкалы оценки: Лояльность; Взаимовыручка',), ('Командность', 'Объединяет людей и открыто обсуждает рабочие проблемы. Шкалы оценки: Готовность к компромиссу; Сотрудничество; Открытость; Открытость обратной связи'), ('Ориентация на клиента', 'Выясняет потребности клиентов, в том числе внутренних (коллег) и учитывает их в своей работе. Выстраивает долгосрочные отношения. Шкалы оценки: Ориентация на потребности клиента (в том числе внутреннего); Партнерство'), ('Принятие решений', 'Интересуется тенденциями рынка и конкурентами в своей отрасли. Ставит стратегические цели и управляет рисками на основе анализа информации.'), ('Эффективная коммуникация', 'Налаживает контакт с другими людьми и находит индивидуальный подход к собеседнику. Четко и уверенно отстаивает свою позицию.'), ('Управленческое мастерство', 'Организовывает работу подчиненных (коллег) и поддерживает позитивный командный настрой. Развивает и поддерживает подчиненных (коллег).'))
-HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ', 'Дисциплинированность', 'Исполнительность', 'Ответственность', 'Решительность', 'ОРГАНИЗОВАННОСТЬ', 'Чёткое целеполагание', 'Адаптивность', 'Планирование', 'Стремление к порядку', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ', 'Стремление к достижениям', 'Стремление к развитию', 'Инновационность', 'ПРИВЕРЖЕННОСТЬ', 'Лояльность', 'Взаимовыручка', 'КОМАНДНОСТЬ', 'Готовность к компромиссу', 'Сотрудничество', 'Открытость', 'Открытость обратной связи', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ', 'Ориентация на потребности клиента', 'Партнёрство', 'ПРИНЯТИЕ РЕШЕНИЙ', 'Системное мышление', 'Бизнес-мышление', 'Перспективное мышление', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ', 'Чёткая коммуникация', 'Убеждение и влияние', 'Ведение переговоров', 'Кроссфункциональное взаимодействие', 'Неформальное лидерство', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО', 'Управление исполнением', 'Мотивация подчинённых', 'Организация работы', 'Управление изменениями', 'Развитие подчинённых', 'Управление командой')
-HEADER_LIST_FROM_TEST_SMALL = ('НАДЁЖНОСТЬ', 'ОРГАНИЗОВАННОСТЬ', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ', 'ПРИВЕРЖЕННОСТЬ', 'КОМАНДНОСТЬ', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ', 'ПРИНЯТИЕ РЕШЕНИЙ', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО')
-HEAD_COACH_EMAIL = 't.astralenko@sti-partners.ru'
 
 
 @app.after_request
@@ -54,12 +42,12 @@ def after_request(response):
 @app.route('/')
 @login_required
 def index():
-    if session["user_status"] == ADMIN or session["user_status"] == COACH:
+    if session["user_status"] == constants.ADMIN or session["user_status"] == constants.COACH:
         status = session["user_status"]
         return render_template('index.html', status = status)
-    elif session["user_status"] == HEAD:
+    elif session["user_status"] == constants.HEAD:
         return render_template("/instruction_for_head.html")
-    elif session["user_status"] == MANAGER:
+    elif session["user_status"] == constants.MANAGER:
         return render_template("/instruction_for_manager.html")
     else:
         return redirect("/login")
@@ -68,7 +56,7 @@ def index():
 @app.route('/log_table')
 @login_required
 def log_table():
-    if session['user_status'] == ADMIN:
+    if session['user_status'] == constants.ADMIN:
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
             connection.autocommit = True  
@@ -94,16 +82,16 @@ def log_table():
 @login_required
 def positions():
     readyStatusList = ['Все', 'Заполнено', 'Не заполнено']
-    if request.method == 'GET' and (session["user_status"] == ADMIN or session["user_status"] == COACH):
+    if request.method == 'GET' and (session["user_status"] == constants.ADMIN or session["user_status"] == constants.COACH):
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
             connection.autocommit = True  
             with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM positions WHERE reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos ", {'status': HEAD})
+                cursor.execute("SELECT * FROM positions WHERE reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos ", {'status': constants.HEAD})
                 positions = cursor.fetchall()
                 cursor.execute("SELECT DISTINCT reports_pos FROM positions WHERE reports_pos in \
                                 (SELECT mail FROM users WHERE status = %(status)s) \
-                                ORDER BY reports_pos", {'status': HEAD})
+                                ORDER BY reports_pos", {'status': constants.HEAD})
                 headList = cursor.fetchall()
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
@@ -115,9 +103,9 @@ def positions():
                 print("[INFO] PostgresSQL connection closed")
 
         return render_template('positions.html', positions = positions, headList = headList,
-                                readyStatusList = readyStatusList, competence = COMPETENCE)
+                                readyStatusList = readyStatusList, competence = constants.COMPETENCE)
 
-    elif request.method == 'POST' and (session["user_status"] == ADMIN or session["user_status"] == COACH):
+    elif request.method == 'POST' and (session["user_status"] == constants.ADMIN or session["user_status"] == constants.COACH):
         print('[INFO] route: /positions. method: POST')
         reports_to = request.form.get('reports_to')
         ready_status = request.form.get('ready_status')
@@ -158,39 +146,39 @@ def positions():
                     cursor.execute("SELECT * FROM positions WHERE position_pos = %(position_edit)s AND reports_pos = %(reports_to_edit)s", {'position_edit': position_edit, 'reports_to_edit': reports_to_edit})
                     position_edit = cursor.fetchall()
                     if user_name:
-                        return render_template('positions.html', position_edit = position_edit, competence = COMPETENCE, editValue = edit, user_name = user_name)
+                        return render_template('positions.html', position_edit = position_edit, competence = constants.COMPETENCE, editValue = edit, user_name = user_name)
                     else:
-                        return render_template('positions.html', position_edit = position_edit, competence = COMPETENCE, editValue = edit)
+                        return render_template('positions.html', position_edit = position_edit, competence = constants.COMPETENCE, editValue = edit)
 
                 if search:
-                    cursor.execute("SELECT * FROM positions WHERE reports_pos LIKE %(reports_pos)s AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'reports_pos': search, 'status': HEAD})
+                    cursor.execute("SELECT * FROM positions WHERE reports_pos LIKE %(reports_pos)s AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'reports_pos': search, 'status': constants.HEAD})
                     positions = cursor.fetchall()
-                    return render_template('positions.html', positions = positions, competence = COMPETENCE)
+                    return render_template('positions.html', positions = positions, competence = constants.COMPETENCE)
                 if reports_to and not ready_status:
-                    cursor.execute("SELECT * FROM positions  WHERE reports_pos = %(reports_pos)s AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'reports_pos': reports_to, 'status': HEAD})
+                    cursor.execute("SELECT * FROM positions  WHERE reports_pos = %(reports_pos)s AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'reports_pos': reports_to, 'status': constants.HEAD})
                     positions = cursor.fetchall()
                 elif ready_status and not reports_to:
                     if ready_status == readyStatusList[0]: # all
-                        cursor.execute("SELECT * FROM positions WHERE reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'status': HEAD})
+                        cursor.execute("SELECT * FROM positions WHERE reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'status': constants.HEAD})
                         positions = cursor.fetchall()
                     elif ready_status == readyStatusList[1]: # done
-                        cursor.execute("SELECT * FROM positions WHERE comp_1 IS NOT NULL AND comp_2 IS NOT NULL AND comp_3 IS NOT NULL AND comp_4 IS NOT NULL AND comp_5 IS NOT NULL AND comp_6 IS NOT NULL AND comp_7 IS NOT NULL AND comp_8 IS NOT NULL AND comp_9 IS NOT NULL AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'status': HEAD})
+                        cursor.execute("SELECT * FROM positions WHERE comp_1 IS NOT NULL AND comp_2 IS NOT NULL AND comp_3 IS NOT NULL AND comp_4 IS NOT NULL AND comp_5 IS NOT NULL AND comp_6 IS NOT NULL AND comp_7 IS NOT NULL AND comp_8 IS NOT NULL AND comp_9 IS NOT NULL AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'status': constants.HEAD})
                         positions = cursor.fetchall()
                     elif ready_status == readyStatusList[2]: # done not
-                        cursor.execute("SELECT * FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'status': HEAD})
+                        cursor.execute("SELECT * FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'status': constants.HEAD})
                         positions = cursor.fetchall()
                 elif  reports_to and ready_status:
                     if ready_status == readyStatusList[0]: # all
-                        cursor.execute("SELECT * FROM positions WHERE reports_pos = %(reports_pos)s AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'reports_pos': reports_to, 'status': HEAD})
+                        cursor.execute("SELECT * FROM positions WHERE reports_pos = %(reports_pos)s AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'reports_pos': reports_to, 'status': constants.HEAD})
                         positions = cursor.fetchall()
                     elif ready_status == readyStatusList[1]: # done
-                        cursor.execute("SELECT * FROM positions WHERE reports_pos = %(reports_pos)s and comp_1 IS NOT NULL AND comp_2 IS NOT NULL AND comp_3 IS NOT NULL AND comp_4 IS NOT NULL AND comp_5 IS NOT NULL AND comp_6 IS NOT NULL AND comp_7 IS NOT NULL AND comp_8 IS NOT NULL AND comp_9 IS NOT NULL AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'reports_pos': reports_to, 'status': HEAD})
+                        cursor.execute("SELECT * FROM positions WHERE reports_pos = %(reports_pos)s and comp_1 IS NOT NULL AND comp_2 IS NOT NULL AND comp_3 IS NOT NULL AND comp_4 IS NOT NULL AND comp_5 IS NOT NULL AND comp_6 IS NOT NULL AND comp_7 IS NOT NULL AND comp_8 IS NOT NULL AND comp_9 IS NOT NULL AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'reports_pos': reports_to, 'status': constants.HEAD})
                         positions = cursor.fetchall()
                     elif ready_status == readyStatusList[2]: # done not
-                        cursor.execute("SELECT * FROM positions WHERE reports_pos = %(reports_pos)s AND (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos" , {'reports_pos': reports_to, 'status': HEAD})
+                        cursor.execute("SELECT * FROM positions WHERE reports_pos = %(reports_pos)s AND (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) AND reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos" , {'reports_pos': reports_to, 'status': constants.HEAD})
                         positions = cursor.fetchall()
                     
-                cursor.execute("SELECT DISTINCT reports_pos FROM positions WHERE reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'status': HEAD})
+                cursor.execute("SELECT DISTINCT reports_pos FROM positions WHERE reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'status': constants.HEAD})
                 headList = cursor.fetchall()
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
@@ -201,7 +189,7 @@ def positions():
                 connection.close()
                 print("[INFO] PostgresSQL connection closed")
 
-        return render_template('positions.html', reports_to_query = reports_to, ready_status_query = ready_status, positions = positions, headList = headList, readyStatusList = readyStatusList, competence = COMPETENCE)
+        return render_template('positions.html', reports_to_query = reports_to, ready_status_query = ready_status, positions = positions, headList = headList, readyStatusList = readyStatusList, competence = constants.COMPETENCE)
     
     else:
         return redirect("/")
@@ -211,7 +199,7 @@ def positions():
 @login_required
 def users():
     if request.method == "GET":
-        if session["user_status"] == ADMIN or session["user_status"] == COACH:
+        if session["user_status"] == constants.ADMIN or session["user_status"] == constants.COACH:
             try:
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
                 connection.autocommit = True  
@@ -239,9 +227,9 @@ def users():
                     connection.close()
                     print("[INFO] PostgresSQL connection closed")
 
-            return render_template("users.html",headers_list = SORTLIST, users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, usereName =usereName, usereMail = usereMail, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
+            return render_template("users.html",headers_list = constants.SORTLIST, users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, usereName =usereName, usereMail = usereMail, statusList = constants.STATUS_LIST, positionList = constants.POSITIONS_LIST)
 
-        elif session["user_status"] == HEAD:
+        elif session["user_status"] == constants.HEAD:
             try:
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
                 connection.autocommit = True  
@@ -254,7 +242,7 @@ def users():
                     positionFromList = cursor.fetchall()
                     # Если есть необработанные должности, то выводим ему в кабинет. Иначе досвидания
                     if len(positionFromList) != 0:
-                        return render_template("questions_for_head.html", allPositionFromList = allPositionFromList, positionFromList = positionFromList, competence = COMPETENCE_DESCRIPTION)
+                        return render_template("questions_for_head.html", allPositionFromList = allPositionFromList, positionFromList = positionFromList, competence = constants.COMPETENCE_DESCRIPTION)
                     else:
                         return render_template('theEnd.html')
             except Exception as _ex:
@@ -266,7 +254,7 @@ def users():
                     connection.close()
                     print("[INFO] PostgresSQL connection closed")
         
-        elif session['user_status'] == MANAGER:
+        elif session['user_status'] == constants.MANAGER:
             today = datetime.date.today()
             try:
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
@@ -284,7 +272,7 @@ def users():
             return render_template("/instruction_for_manager.html", today=today)
 
     elif request.method == "POST":
-        if session["user_status"] == ADMIN or session["user_status"] == COACH:
+        if session["user_status"] == constants.ADMIN or session["user_status"] == constants.COACH:
             try:
                 connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
                 connection.autocommit = True  
@@ -312,7 +300,7 @@ def users():
                         elif accept_rules == 'Не приняли':
                             cursor.execute("SELECT * FROM users WHERE accept_rules IS NULL ORDER BY id")
                         users = cursor.fetchall()
-                        return render_template("users.html", headers_list = SORTLIST, accept_rules_select = accept_rules, users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
+                        return render_template("users.html", headers_list = constants.SORTLIST, accept_rules_select = accept_rules, users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, statusList = constants.STATUS_LIST, positionList = constants.POSITIONS_LIST)
 
 
                     if filtr_sort:
@@ -346,13 +334,13 @@ def users():
                             users = cursor.fetchall()
                             filtr_sort = 'Почте'
                             
-                        return render_template("users.html", headers_list = SORTLIST, filtr_sort_position = filtr_sort, users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
+                        return render_template("users.html", headers_list = constants.SORTLIST, filtr_sort_position = filtr_sort, users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, statusList = constants.STATUS_LIST, positionList = constants.POSITIONS_LIST)
                        
 
                     if query:
                         cursor.execute("SELECT * FROM users WHERE mail = %(mail)s ORDER BY id", {'mail': query})
                         users = cursor.fetchall()
-                        return render_template("users.html", users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
+                        return render_template("users.html", users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, statusList = constants.STATUS_LIST, positionList = constants.POSITIONS_LIST)
     
                     if not department and not reports_to and not status and not position:
                         cursor.execute("SELECT * FROM users ORDER BY id;")
@@ -422,9 +410,9 @@ def users():
                     connection.close()
                     print("[INFO] PostgresSQL connection closed")
 
-            return render_template("users.html", headers_list = SORTLIST, users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, statusList = STATUS_LIST, positionList = POSITIONS_LIST, filtr_department = department, filtr_reports_to = reports_to, filtr_status = status, filtr_position = position)
+            return render_template("users.html", headers_list = constants.SORTLIST, users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, statusList = constants.STATUS_LIST, positionList = constants.POSITIONS_LIST, filtr_department = department, filtr_reports_to = reports_to, filtr_status = status, filtr_position = position)
         
-        elif session["user_status"] == HEAD:
+        elif session["user_status"] == constants.HEAD:
             # Получение введенных данных
             position_pos = request.form.get('position_pos')
             comp_1 = request.form.get('comp_1')
@@ -551,7 +539,7 @@ def logout():
 @app.route("/edit", methods = ["POST"])
 @login_required
 def edit():
-    if request.method == "POST" and (session["user_status"] == ADMIN or session["user_status"] == COACH):
+    if request.method == "POST" and (session["user_status"] == constants.ADMIN or session["user_status"] == constants.COACH):
         if request.form.get('flag') == 'render':
             userId = request.form.get("user_id")
             try:
@@ -578,7 +566,7 @@ def edit():
             name = userData[0][5]
             mail = userData[0][6]
             
-            return render_template("edit.html", id = id, department = department, reports_to = reports_to, status = status, position = position, name = name, mail = mail, statusList = STATUS_LIST, positionList = POSITIONS_LIST)
+            return render_template("edit.html", id = id, department = department, reports_to = reports_to, status = status, position = position, name = name, mail = mail, statusList = constants.STATUS_LIST, positionList = constants.POSITIONS_LIST)
         
         elif request.form.get('flag') == 'save':
             id = request.form.get("id")
@@ -601,7 +589,7 @@ def edit():
             if checkUsernameMastContain(mail):
                 flash('Изменения не сохранены. Укажите правильный формат почты')
                 return redirect('/users')
-            if  hash: #and (status == ADMIN or status == COACH or status == HEAD):
+            if  hash: #and (status == constants.ADMIN or status == constants.COACH or status == constants.HEAD):
                 if checkPassword(hash) or checkPasswordBadSymbol(hash):
                     flash('Изменения не сохранены. Укажите правильный формат пароля')
                     return redirect('/users')
@@ -631,7 +619,7 @@ def edit():
                         # Проверяем существует ли должность в базе. Если нет, то добавляем
                         cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s and reports_pos = %(reports_pos)s", {'position': position, 'reports_pos': reports_to})
                         pos = cursor.fetchall()
-                        if len(pos) == 0 and status != ADMIN and status != COACH:
+                        if len(pos) == 0 and status != constants.ADMIN and status != constants.COACH:
                             cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
 
 
@@ -656,7 +644,7 @@ def edit():
 @app.route("/delete", methods = ["POST"])
 @login_required
 def delete():
-    if request.method == "POST" and (session["user_status"] == ADMIN or session["user_status"] == COACH):
+    if request.method == "POST" and (session["user_status"] == constants.ADMIN or session["user_status"] == constants.COACH):
         id = request.form.get("id")
 
         try:
@@ -683,7 +671,7 @@ def delete():
 @app.route("/register", methods=["GET", "POST"])
 @login_required
 def register():
-    if request.method == "POST" and (session["user_status"] == ADMIN or session["user_status"] == COACH):
+    if request.method == "POST" and (session["user_status"] == constants.ADMIN or session["user_status"] == constants.COACH):
         department = request.form.get("department").strip()
         reports_to = request.form.get("reports_to").strip()
         status = request.form.get("status").strip()
@@ -710,7 +698,7 @@ def register():
             return redirect('/users')
             #return apology("Usename not contain symbol from alphabet")
             # Если пользователь со статусом ... создаем пароль
-        #if  status == ADMIN or status == COACH or status == HEAD: # and (not hash or checkPassword(hash)):
+        #if  status == constants.ADMIN or status == constants.COACH or status == constants.HEAD: # and (not hash or checkPassword(hash)):
         if not user_password:
             hash = generate_password_hash(createPassword(), "pbkdf2:sha256")
         else:                
@@ -734,7 +722,7 @@ def register():
                     # Проверяем существует ли должность в базе. Если нет, то добавляем
                     cursor.execute("SELECT * FROM positions WHERE position_pos = %(position)s and reports_pos = %(reports_pos)s", {'position': position, 'reports_pos': reports_to})
                     pos = cursor.fetchall()
-                    if len(pos) == 0 and status != ADMIN and status != COACH:
+                    if len(pos) == 0 and status != constants.ADMIN and status != constants.COACH:
                         cursor.execute("INSERT INTO positions (position_pos, reports_pos) VALUES(%(position_pos)s, %(reports_pos)s)", {'position_pos': position, 'reports_pos': reports_to})
 
         except Exception as _ex:
@@ -754,10 +742,10 @@ def register():
 @app.route("/file_users", methods=["GET", "POST"])
 @login_required
 def file():
-    if request.method == "GET" and (session["user_status"] == ADMIN or session["user_status"] == COACH):
+    if request.method == "GET" and (session["user_status"] == constants.ADMIN or session["user_status"] == constants.COACH):
         return render_template('upload_file.html', typeDataFlag = 'users')
 
-    elif request.method == "POST" and (session["user_status"] == ADMIN or session["user_status"] == COACH):
+    elif request.method == "POST" and (session["user_status"] == constants.ADMIN or session["user_status"] == constants.COACH):
         if 'file' not in request.files:
             flash('No file part')
             return redirect('/')
@@ -773,7 +761,7 @@ def file():
 
         xlsx = pd.ExcelFile(f'{Config.UPLOAD_FOLDER}/{filename}')
         table = xlsx.parse()
-        upload_file_users(table, MANAGER, HEAD)
+        upload_file_users(table, constants.MANAGER, constants.HEAD)
         os.remove(f'{Config.UPLOAD_FOLDER}/{filename}')
         flash(f"Загрузка идет в фоновом режиме")
         return redirect ('/users')
@@ -785,7 +773,7 @@ def file():
 @app.route('/test_results', methods=['POST', 'GET'])
 @login_required
 def test_results():
-    if request.method == 'GET' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+    if request.method == 'GET' and (session['user_status'] == constants.ADMIN or session['user_status'] == constants.COACH):
         listSize = 'small'
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
@@ -801,10 +789,10 @@ def test_results():
             if connection:
                 connection.close()
                 print("[INFO] PostgraseSQL connection closed")  
-        return render_template('/test_results.html', testResults = testResults, headerList = HEADER_LIST_FROM_TEST_SMALL, listSize = listSize)
+        return render_template('/test_results.html', testResults = testResults, headerList = constants.HEADER_LIST_FROM_TEST_SMALL, listSize = listSize)
     
 
-    if request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+    if request.method == 'POST' and (session['user_status'] == constants.ADMIN or session['user_status'] == constants.COACH):
         listSize = request.form.get('listSize')
         user_mail = request.form.get('search')
         from_summary = request.form.get('fromSummary')
@@ -825,7 +813,7 @@ def test_results():
                 if connection:
                     connection.close()
                     print("[INFO] PostgraseSQL connection closed")   
-            return render_template('/test_results.html', testResults = testResults, headerList = HEADER_LIST_FROM_TEST, listSize = listSize)
+            return render_template('/test_results.html', testResults = testResults, headerList = constants.HEADER_LIST_FROM_TEST, listSize = listSize)
         
         elif listSize == 'small':
             # подключаемся к базе и передаем на страницу все результатьы тестов пользователей
@@ -843,7 +831,7 @@ def test_results():
                 if connection:
                     connection.close()
                     print("[INFO] PostgraseSQL connection closed")  
-            return render_template('/test_results.html', testResults = testResults, headerList = HEADER_LIST_FROM_TEST_SMALL, listSize = listSize)
+            return render_template('/test_results.html', testResults = testResults, headerList = constants.HEADER_LIST_FROM_TEST_SMALL, listSize = listSize)
 
         elif user_mail:
             # подключаемся к базе и передаем на страницу все результатьы тестов пользователей
@@ -864,9 +852,9 @@ def test_results():
                     print("[INFO] PostgraseSQL connection closed") 
 
             if from_summary:
-                 return render_template('/test_results.html', testResults = testResults, headerList = HEADER_LIST_FROM_TEST_SMALL, from_summary = from_summary)
+                 return render_template('/test_results.html', testResults = testResults, headerList = constants.HEADER_LIST_FROM_TEST_SMALL, from_summary = from_summary)
             else:
-                return render_template('/test_results.html', testResults = testResults, headerList = HEADER_LIST_FROM_TEST_SMALL)
+                return render_template('/test_results.html', testResults = testResults, headerList = constants.HEADER_LIST_FROM_TEST_SMALL)
 
     else:
         return redirect('/')
@@ -875,11 +863,11 @@ def test_results():
 @app.route('/file_test', methods = ["GET", "POST"])
 @login_required
 def file_test():
-    if request.method == 'GET' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+    if request.method == 'GET' and (session['user_status'] == constants.ADMIN or session['user_status'] == constants.COACH):
         return render_template('upload_file.html', typeDataFlag = 'results')
 
     # Описание есть в загрузке файла с пользователями /file
-    elif request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+    elif request.method == 'POST' and (session['user_status'] == constants.ADMIN or session['user_status'] == constants.COACH):
         if 'file' not in request.files:
             flash('No file part')
             return redirect('/')
@@ -911,16 +899,16 @@ def mail_heads():
     # Флаг для выбора пути. Одно письмо, всем или токо тем, кто еще не получал приглашение
     flag  = request.form.get('flag')
 
-    if request.method == 'GET' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
-        # Выбираем все пользователей со статусом HEAD  и все почты для поиска
+    if request.method == 'GET' and (session['user_status'] == constants.ADMIN or session['user_status'] == constants.COACH):
+        # Выбираем все пользователей со статусом constants.HEAD  и все почты для поиска
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True
             with connection.cursor() as cursor:
                 cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
-                                FROM users WHERE status = %(status)s ORDER BY id", {'status':HEAD})
+                                FROM users WHERE status = %(status)s ORDER BY id", {'status':constants.HEAD})
                 users = cursor.fetchall()
-                cursor.execute("SELECT DISTINCT mail FROM users WHERE status = %(status)s ORDER BY mail", {'status': HEAD})
+                cursor.execute("SELECT DISTINCT mail FROM users WHERE status = %(status)s ORDER BY mail", {'status': constants.HEAD})
                 headList = cursor.fetchall()
         except Exception as _ex:
             print(f'[INFO] Error while working PostgresSQL', _ex)
@@ -933,7 +921,7 @@ def mail_heads():
         
         return render_template('mail.html', users = users, headList = headList, readyStatusList = readyStatusList)
 
-    elif request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+    elif request.method == 'POST' and (session['user_status'] == constants.ADMIN or session['user_status'] == constants.COACH):
         reports_to = request.form.get('reports_to')
         ready_status = request.form.get('ready_status')
         search = request.form.get('search')
@@ -947,24 +935,24 @@ def mail_heads():
                 with connection.cursor() as cursor:
                     
                     cursor.execute("SELECT DISTINCT mail FROM users WHERE status = %(status)s \
-                        ORDER BY mail", {'status': HEAD})
+                        ORDER BY mail", {'status': constants.HEAD})
                     headList = cursor.fetchall()
 
                     if reports_to and not ready_status:
                         cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
                             FROM users WHERE status = %(status)s \
-                            AND mail = %(reports_to)s ORDER BY id", {'status':HEAD, 'reports_to': reports_to})
+                            AND mail = %(reports_to)s ORDER BY id", {'status':constants.HEAD, 'reports_to': reports_to})
                         users = cursor.fetchall()
                     elif ready_status and not reports_to:
                         if ready_status == 'Отправлено':
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
                                 FROM users WHERE status = %(status)s \
-                                AND mail_date IS NOT NULL ORDER BY id", {'status':HEAD})
+                                AND mail_date IS NOT NULL ORDER BY id", {'status':constants.HEAD})
                             users = cursor.fetchall()
                         elif ready_status == 'Не отправлено':
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
                                 FROM users WHERE status = %(status)s AND mail_date IS NULL \
-                                ORDER BY id", {'status':HEAD})
+                                ORDER BY id", {'status':constants.HEAD})
                             users = cursor.fetchall()
                         else:
                             return redirect('/mail_heads')
@@ -972,20 +960,20 @@ def mail_heads():
                         if ready_status == 'Отправлено':
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
                                 FROM users WHERE status = %(status)s AND mail_date IS NOT NULL AND mail = %(reports_to)s \
-                                ORDER BY id", {'status':HEAD, 'reports_to':reports_to})
+                                ORDER BY id", {'status':constants.HEAD, 'reports_to':reports_to})
                             users = cursor.fetchall()
                         elif ready_status == 'Не отправлено':
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
                                 FROM users WHERE status = %(status)s AND mail_date IS NULL AND mail = %(reports_to)s \
-                                ORDER BY id", {'status':HEAD, 'reports_to':reports_to})
+                                ORDER BY id", {'status':constants.HEAD, 'reports_to':reports_to})
                             users = cursor.fetchall()
                         else:
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
-                                FROM users WHERE status = %(status)s and mail = %(reports_to)s ORDER BY id", {'status':HEAD, 'reports_to': reports_to})
+                                FROM users WHERE status = %(status)s and mail = %(reports_to)s ORDER BY id", {'status':constants.HEAD, 'reports_to': reports_to})
                             users = cursor.fetchall()
                     elif search:
                         cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users \
-                            WHERE status = %(status)s and mail = %(search)s ORDER BY id", {'status':HEAD, 'search': search})
+                            WHERE status = %(status)s and mail = %(search)s ORDER BY id", {'status':constants.HEAD, 'search': search})
                         users = cursor.fetchall()
                     elif ranking_done:
                         if ranking_done == 'Заполнил':
@@ -995,14 +983,14 @@ def mail_heads():
                                     WHERE (comp_1 IS NOT NULL AND comp_2 IS NOT NULL AND comp_3 IS NOT NULL \
                                     AND comp_4 IS NOT NULL AND comp_5 IS NOT NULL AND comp_6 IS NOT NULL \
                                     AND comp_7 IS NOT NULL AND comp_8 IS NOT NULL AND comp_9 IS NOT NULL)) \
-                                ORDER BY mail_date", {'status': HEAD})
+                                ORDER BY mail_date", {'status': constants.HEAD})
                             users = cursor.fetchall()
                         elif ranking_done == 'Не заполнил':
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date \
                                 FROM users WHERE status = %(status)s and mail in \
                                 (SELECT reports_pos FROM positions WHERE (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL \
                                     OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL \
-                                    OR comp_9 IS NULL)) ORDER BY mail_date", {'status':HEAD})
+                                    OR comp_9 IS NULL)) ORDER BY mail_date", {'status':constants.HEAD})
                             users = cursor.fetchall()
         
             except Exception as _ex:
@@ -1072,12 +1060,12 @@ def mail_heads():
 
         # if all send mode (Оставлять)
         elif flag == 'all_invite': 
-            send_message_head(HEAD)
+            send_message_head(constants.HEAD)
             flash(f'Процесс отправки сообщений идет в фоновом режиме')
             return redirect('/mail_heads')
 
 
-    elif request.method == 'POST' and session['user_status'] == HEAD:
+    elif request.method == 'POST' and session['user_status'] == constants.HEAD:
         # сообщение от пользователя в конце опросника
         if flag == 'mail_from_head_end':
             message_from_head = request.form.get('messege_from_head')
@@ -1085,7 +1073,7 @@ def mail_heads():
                 try:
                     head_mail = session['user_mail']
                     head_name = session['user_name']
-                    msg = Message("From Burusan's project", recipients=[HEAD_COACH_EMAIL])
+                    msg = Message("From Burusan's project", recipients=[constants.HEAD_COACH_EMAIL])
                     msg.body = render_template("from_head_email.txt", head_name = head_name, head_mail = head_mail, message_from_head = message_from_head)
                     msg.html = render_template('from_head_email.html', head_name = head_name, head_mail = head_mail, message_from_head = message_from_head)
                     mail.send(msg)
@@ -1107,7 +1095,7 @@ def mail_heads():
                 try:
                     head_mail = session['user_mail']
                     head_name = session['user_name']
-                    msg = Message("From Burusan's project", recipients=[HEAD_COACH_EMAIL])
+                    msg = Message("From Burusan's project", recipients=[constants.HEAD_COACH_EMAIL])
                     msg.body = render_template("from_head_email.txt", head_name = head_name, head_mail = head_mail, message_from_head = message_from_head)
                     msg.html = render_template('from_head_email.html', head_name = head_name, head_mail = head_mail, message_from_head = message_from_head)
                     mail.send(msg)
@@ -1149,7 +1137,7 @@ def reset_password():
                     cursor.execute("SELECT mail, name, status FROM users WHERE mail = %(mail)s", {'mail': user_name})
                     us = cursor.fetchall()
                     #status = us[0][2]
-                    if len(us) == 1: #and (status == COACH or status == ADMIN or status == HEAD):
+                    if len(us) == 1: #and (status == constants.COACH or status == constants.ADMIN or status == constants.HEAD):
                         user_password = createPassword()
                         hash = generate_password_hash(user_password, "pbkdf2:sha256")
                         user_name = us[0][0]
@@ -1192,7 +1180,7 @@ def reset_password():
 @app.route('/summary', methods = ['GET', 'POST'])
 @login_required
 def summary():
-    if request.method == 'GET' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+    if request.method == 'GET' and (session['user_status'] == constants.ADMIN or session['user_status'] == constants.COACH):
         allManagers = []
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
@@ -1223,7 +1211,7 @@ def summary():
                         # общий словарь
                         summaryDict = {}
                         for i in range(9):
-                            summaryDict[f'comp_{i+1}'] = (HEADER_LIST_FROM_TEST_SMALL[i], topCompetence[0][i], testResults[0][i])
+                            summaryDict[f'comp_{i+1}'] = (constants.HEADER_LIST_FROM_TEST_SMALL[i], topCompetence[0][i], testResults[0][i])
                         
                         # Словарь для сортировки по важности
                         topCompetenceDict = {}
@@ -1275,7 +1263,7 @@ def summary():
         # Передаем данные для создания страницы        
         return render_template('/summary_table_all_managers.html',  allManagers = allManagers)
 
-    elif request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+    elif request.method == 'POST' and (session['user_status'] == constants.ADMIN or session['user_status'] == constants.COACH):
         # почта запрашиваемого пользователя
         userMail = request.form.get('userMail')
         # Если запрос пришел из общей сводной таблицы
@@ -1305,7 +1293,7 @@ def summary():
                 # общий словарь
                 summaryDict = {}
                 for i in range(9):
-                    summaryDict[f'comp_{i+1}'] = (HEADER_LIST_FROM_TEST_SMALL[i], topCompetence[0][i], testResults[0][i])
+                    summaryDict[f'comp_{i+1}'] = (constants.HEADER_LIST_FROM_TEST_SMALL[i], topCompetence[0][i], testResults[0][i])
                 
                 # Словарь для сортировки по важности
                 topCompetenceDict = {}
@@ -1359,16 +1347,16 @@ def mail_manager():
     # Флаг для выбора пути. Одно письмо, всем или токо тем, кто еще не получал приглашение
     flag  = request.form.get('flag')
 
-    if request.method == 'GET' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+    if request.method == 'GET' and (session['user_status'] == constants.ADMIN or session['user_status'] == constants.COACH):
         # Выбираем все пользователей со статусоv MANAGER  и все почты для поиска
         try:
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
             connection.autocommit = True
             with connection.cursor() as cursor:
                 cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
-                    FROM users WHERE status = %(status)s ORDER BY id", {'status': MANAGER})
+                    FROM users WHERE status = %(status)s ORDER BY id", {'status': constants.MANAGER})
                 users = cursor.fetchall()
-                cursor.execute("SELECT DISTINCT mail FROM users WHERE status = %(status)s ORDER BY mail", {'status': MANAGER})
+                cursor.execute("SELECT DISTINCT mail FROM users WHERE status = %(status)s ORDER BY mail", {'status': constants.MANAGER})
                 headList = cursor.fetchall()
         except Exception as _ex:
             print(f'[INFO] Error while working PostgresSQL', _ex)
@@ -1381,7 +1369,7 @@ def mail_manager():
         
         return render_template('mail_manager.html', users = users, headList = headList, readyStatusList = readyStatusList)
 
-    elif request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+    elif request.method == 'POST' and (session['user_status'] == constants.ADMIN or session['user_status'] == constants.COACH):
         reports_to = request.form.get('reports_to')
         ready_status = request.form.get('ready_status')
         search = request.form.get('search')
@@ -1394,21 +1382,21 @@ def mail_manager():
                 connection.autocommit = True
                 with connection.cursor() as cursor:
                     
-                    cursor.execute("SELECT mail FROM users WHERE status = %(status)s ORDER BY mail", {'status': MANAGER})
+                    cursor.execute("SELECT mail FROM users WHERE status = %(status)s ORDER BY mail", {'status': constants.MANAGER})
                     headList = cursor.fetchall()
 
                     if reports_to and not ready_status:
                         cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules  \
-                            FROM users WHERE status = %(status)s  and mail = %(reports_to)s ORDER BY id", {'status':MANAGER, 'reports_to': reports_to})
+                            FROM users WHERE status = %(status)s  and mail = %(reports_to)s ORDER BY id", {'status':constants.MANAGER, 'reports_to': reports_to})
                         users = cursor.fetchall()
                     elif ready_status and not reports_to:
                         if ready_status == 'Отправлено':
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
-                                FROM users WHERE status = %(status)s AND mail_date IS NOT NULL ORDER BY id", {'status':MANAGER})
+                                FROM users WHERE status = %(status)s AND mail_date IS NOT NULL ORDER BY id", {'status':constants.MANAGER})
                             users = cursor.fetchall()
                         elif ready_status == 'Не отправлено':
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
-                                FROM users WHERE status = %(status)s AND mail_date IS NULL ORDER BY id", {'status':MANAGER})
+                                FROM users WHERE status = %(status)s AND mail_date IS NULL ORDER BY id", {'status':constants.MANAGER})
                             users = cursor.fetchall()
                         else:
                             return redirect('/mail_manager')
@@ -1416,31 +1404,31 @@ def mail_manager():
                         if ready_status == 'Отправлено':
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
                                 FROM users WHERE status = %(status)s AND mail_date IS NOT NULL AND mail = %(reports_to)s \
-                                ORDER BY id", {'status':MANAGER, 'reports_to':reports_to})
+                                ORDER BY id", {'status':constants.MANAGER, 'reports_to':reports_to})
                             users = cursor.fetchall()
                         elif ready_status == 'Не отправлено':
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
                                 FROM users WHERE status = %(status)s AND mail_date IS NULL AND mail = %(reports_to)s \
-                                ORDER BY id", {'status':MANAGER, 'reports_to':reports_to})
+                                ORDER BY id", {'status':constants.MANAGER, 'reports_to':reports_to})
                             users = cursor.fetchall()
                         else:
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
                                 FROM users WHERE status = %(status)s and mail = %(reports_to)s \
-                                ORDER BY id", {'status':MANAGER, 'reports_to': reports_to})
+                                ORDER BY id", {'status':constants.MANAGER, 'reports_to': reports_to})
                             users = cursor.fetchall()
                     elif search:
                         cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
                             FROM users WHERE status = %(status)s and mail = %(search)s \
-                            ORDER BY id", {'status':MANAGER, 'search': search})
+                            ORDER BY id", {'status':constants.MANAGER, 'search': search})
                         users = cursor.fetchall()
                     elif rules:
                         if rules == 'Принял':
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
-                                FROM users WHERE status = %(status)s AND accept_rules IS NOT NULL ORDER BY mail_date", {'status':MANAGER})
+                                FROM users WHERE status = %(status)s AND accept_rules IS NOT NULL ORDER BY mail_date", {'status':constants.MANAGER})
                             users = cursor.fetchall()
                         elif rules == 'Не принял':
                             cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date, accept_rules \
-                                FROM users WHERE status = %(status)s AND accept_rules IS NULL  ORDER BY mail_date", {'status':MANAGER})
+                                FROM users WHERE status = %(status)s AND accept_rules IS NULL  ORDER BY mail_date", {'status':constants.MANAGER})
                             users = cursor.fetchall()
 
         
@@ -1515,7 +1503,7 @@ def mail_manager():
             return redirect('/mail_manager')    
 
         elif flag == 'all_invite':
-            send_message_manager(MANAGER)
+            send_message_manager(constants.MANAGER)
             flash(f'Процесс отправки сообщений идет в фоновом режиме')
             return redirect('/mail_manager')
 
@@ -1527,7 +1515,7 @@ def mail_manager():
                 connection.autocommit = True
                 with connection.cursor() as cursor:
                     # default value mail_date is -
-                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s and mail_date IS NULL", {'status':MANAGER})
+                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s and mail_date IS NULL", {'status':constants.MANAGER})
                     users = cursor.fetchall()
                     for singleUser in users:
                         try:
@@ -1545,7 +1533,7 @@ def mail_manager():
                             counterNotSend = counterNotSend + 1 
                             print(f'[INFO] Error while working mail sender:', _ex)
 
-                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status':MANAGER})
+                    cursor.execute("SELECT department, reports_to, status, position,  name,  mail, mail_date FROM users WHERE status = %(status)s ORDER BY id", {'status':constants.MANAGER})
                     users = cursor.fetchall()
 
             except Exception as _ex:
@@ -1563,7 +1551,7 @@ def mail_manager():
             flash(f'Приглашение отправлено {counterSend}. Не удалось отправить {counterNotSend} сообщений.')
             return render_template('mail_manager.html', users = users, notSendList = notSendList)
 
-    elif request.method == 'POST' and session['user_status'] == MANAGER:
+    elif request.method == 'POST' and session['user_status'] == constants.MANAGER:
         # сообщение от пользователя в конце опросника
         # сообщение от пользователя в начале опросника
         if flag == 'mail_from_manager_start':
@@ -1572,7 +1560,7 @@ def mail_manager():
                 try:
                     head_mail = session['user_mail']
                     head_name = session['user_name']
-                    msg = Message("From Burusan's project", recipients=[HEAD_COACH_EMAIL])
+                    msg = Message("From Burusan's project", recipients=[constants.HEAD_COACH_EMAIL])
                     msg.body = render_template("from_manager_email.txt", head_name = head_name, head_mail = head_mail, message_from_head = message_from_manager)
                     msg.html = render_template('from_manager_email.html', head_name = head_name, head_mail = head_mail, message_from_head = message_from_manager)
                     mail.send(msg)
@@ -1633,9 +1621,9 @@ def handle_exception(e):
 @app.route('/settings', methods = ["GET", "POST"])
 @login_required
 def settings():
-    if request.method == 'GET' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+    if request.method == 'GET' and (session['user_status'] == constants.ADMIN or session['user_status'] == constants.COACH):
         return render_template('/settings.html')
-    if request.method == 'POST' and (session['user_status'] == ADMIN or session['user_status'] == COACH):
+    if request.method == 'POST' and (session['user_status'] == constants.ADMIN or session['user_status'] == constants.COACH):
         invite_head = request.form.get('invite_head')
         reminder_head = request.form.get('reminder_head') 
         invite_manager = request.form.get('invite_manager') 
@@ -1662,9 +1650,53 @@ def settings():
 def download():
     if request.method == "GET":
         return render_template("download.html")
+
     elif request.method == "POST":
-        flash("Function not exist")
-        return render_template("download.html")
+        today = datetime.datetime.now()
+        if request.form.get('download_file') == 'summary':
+            data_to_download = create_summary_table_to_download()
+            print(data_to_download[0])
+            file_name = 'Итоговая_таблица.xlsx'
+            number = []
+            nameList = []
+            lastName = []
+            eMailList = []
+            priority1 = [] 
+            priority2 = []
+            priority3 = []
+            priority4 = []
+            priority5 = []
+        
+            for i, user in enumerate(data_to_download, start=1):
+                number.append(i)
+                nameList.append(user[0])
+                lastName.append(user[0])
+                eMailList.append(user[1])
+                priority1.append(user[2])
+                priority2.append(user[3])
+                priority3.append(user[4])
+                priority4.append(user[5])
+                priority5.append(user[6])
+
+            
+            col0 = ''
+            col1 = "eMail"
+            col2 = "Имя"
+            col3 = 'Фамилия'
+            col4 = 'Приоритет 1'
+            col5 = 'Приоритет 2'
+            col6 = 'Приоритет 3'
+            col7 = 'Приоритет 4'
+            col8 = 'Приоритет 5'
+
+            pd.DataFrame({col0: number, col1: eMailList, col2: nameList, col3: lastName, col4: priority1, col5: priority2, col6: priority3, col7: priority4, col8: priority5})\
+                        .to_excel(file_name, sheet_name='sheet_1', index=False)
+        
+        x = download_file_to_user(file_name)
+        os.remove(file_name)
+        time =  datetime.datetime.now() - today
+        print(f'Time - {time}')
+        return x
     else:
         return redirect ('/')
 

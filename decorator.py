@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, send_file
 from flask_mail import Message, Mail
 from threading import Thread
 import psycopg2
@@ -6,17 +6,18 @@ from config import Config, host, user, password, db_name
 from werkzeug.security import generate_password_hash
 import datetime
 from helpers import createPassword
+import constants
 
 
 app = Flask(__name__)
 app.config.from_object(Config)
 mail = Mail(app)
 
-ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
+constants.ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 
 def allowed_file(filename):
     return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+           filename.rsplit('.', 1)[1].lower() in constants.ALLOWED_EXTENSIONS
 
 def asyncc(f):
     def wrapper(*args, **kwargs):
@@ -215,7 +216,6 @@ def upload_test_results(table):
                 connection.close()
 
 
-
 @asyncc
 def upload_file_users(table, manager_status, head_status):    
     with app.app_context():
@@ -286,3 +286,95 @@ def upload_file_users(table, manager_status, head_status):
             if connection:
                 connection.close()
                 print("[INFO] PostgresSQL connection closed")  
+
+
+def download_file_to_user(file_name):
+    return send_file(file_name, as_attachment=False)
+
+def create_summary_table_to_download():
+    allManagers = []
+    try:
+        connection = connection_db()
+        with connection.cursor() as cursor:
+            # Данные все пользователей
+            cursor.execute("SELECT id, name, mail, department, position, reports_to, status \
+                            FROM users WHERE status = %(status)s", {'status': constants.MANAGER})
+            usersData = cursor.fetchall()
+            
+            # Все должности. Выгружаем из алы и создаем словарь для быстрой работы с данными
+            cursor.execute("SELECT position_pos, reports_pos, comp_1, comp_2, comp_3, comp_4, \
+                            comp_5,comp_6, comp_7, comp_8, comp_9 FROM positions")
+            allCompetence = cursor.fetchall()
+            allCompetenceDict = {}
+            for comp in allCompetence:
+                allCompetenceDict[f'{comp[0]}+{comp[1]}'] = (comp[2], comp[3], comp[4], comp[5], comp[6], comp[7], comp[8], comp[9], comp[10])
+            
+            # Все результаты тестирования. Создаем словарь. Если результатов нет, то пропускаем
+            cursor.execute("SELECT mail, reliability, organizational, strengthening, approved, country, clientoority, \
+                            adoption_of_decisions, effective_communication, management FROM test_results")
+            allTestResults = cursor.fetchall()
+            allTestResultsDict = {}
+            if len(allTestResults) != 0:
+                for test in allTestResults:
+                    allTestResultsDict[test[0]] = (test[1], test[2], test[3], test[4], test[5], test[6], test[7], test[8], test[9])
+
+            for userData in usersData:
+                    # Важнейшие компетенции
+                    topCompetence = [] 
+                    topCompetence.append(allCompetenceDict[f'{userData[4]}+{userData[5]}'])
+
+                    # Результаты тестирования. Если пользователь не прошел тестирование, то пишем нули
+                    testResults = []
+                    if allTestResultsDict.get(userData[2]) == None:
+                        testResults.append((0,0,0,0,0,0,0,0,0))
+                    else:
+                        testResults.append(allTestResultsDict.get(userData[2]))
+                        
+                    # общий словарь
+                    summaryDict = {}
+                    for i in range(9):
+                        summaryDict[f'comp_{i+1}'] = (constants.HEADER_LIST_FROM_TEST_SMALL[i], topCompetence[0][i], testResults[0][i])
+                        
+                    # Словарь для сортировки по важности
+                    topCompetenceDict = {}
+                    i = 1
+                    for comp in topCompetence[0]:
+                        topCompetenceDict[f'comp_{i}'] = comp
+                        i = i + 1
+
+                    # Сортировка по важности и запись ключа в новый список
+                    newCompRang = []
+
+                    # Если есть неранжированные компетенции, то ранжируем их цифрой 10
+                    for comp in topCompetenceDict:
+                        if topCompetenceDict[comp] == None:
+                            topCompetenceDict[comp] = 0
+
+                    # Добавляем в список компетенции по возростанию 
+                    for comp in topCompetenceDict:
+                        x = min(topCompetenceDict, key=topCompetenceDict.get)
+                        newCompRang.append(x)
+                        topCompetenceDict[x] = 10
+
+                    # Список по конкретному пользователю
+                    manager = [userData[1], userData[2]]
+                    # Сравнить первые 5 компетенций их с результатами тестов
+                    for i in range(5):
+                        # Сравнить ранж с результатом теста
+                        if summaryDict[newCompRang[i]][1] == None:
+                            manager.append('-')
+                        elif summaryDict[newCompRang[i]][1] <= 3 and summaryDict[newCompRang[i]][1] >= 1 and summaryDict[newCompRang[i]][2] <= 70:
+                            manager.append(summaryDict[newCompRang[i]][0])
+                        elif summaryDict[newCompRang[i]][1] <= 6 and summaryDict[newCompRang[i]][1] >= 4 and summaryDict[newCompRang[i]][2] <= 30:
+                            manager.append(summaryDict[newCompRang[i]][0])
+                        else:
+                            manager.append('-')
+                            
+                    # Список списоков
+                    allManagers.append(manager)
+        connection.close()
+        return allManagers        
+    except Exception as _ex:
+        if connection:
+            connection.close()
+ 
