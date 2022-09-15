@@ -1658,6 +1658,16 @@ def settings():
         return redirect ('/')
     
 
+@app.route('/download', methods=["GET", "POST"])
+def download():
+    if request.method == "GET":
+        return render_template("download.html")
+    elif request.method == "POST":
+        flash("Function not exist")
+        return render_template("download.html")
+    else:
+        return redirect ('/')
+
 #if __name__ == "__main__":
  #   app.run(host="0.0.0.0")
 
