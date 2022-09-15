@@ -101,9 +101,9 @@ def positions():
             with connection.cursor() as cursor:
                 cursor.execute("SELECT * FROM positions WHERE reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos ", {'status': HEAD})
                 positions = cursor.fetchall()
-                #cursor.execute("SELECT * FROM positions WHERE  (comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) ORDER BY reports_pos ")
-                #positionsNotDone = cursor.fetchall()
-                cursor.execute("SELECT DISTINCT reports_pos FROM positions WHERE reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos", {'status': HEAD})
+                cursor.execute("SELECT DISTINCT reports_pos FROM positions WHERE reports_pos in \
+                                (SELECT mail FROM users WHERE status = %(status)s) \
+                                ORDER BY reports_pos", {'status': HEAD})
                 headList = cursor.fetchall()
         except Exception as _ex:
             print("[INFO] Error while working with PostgresSQL", _ex)
@@ -114,7 +114,8 @@ def positions():
                 connection.close()
                 print("[INFO] PostgresSQL connection closed")
 
-        return render_template('positions.html', positions = positions, headList = headList, readyStatusList = readyStatusList, competence = COMPETENCE)
+        return render_template('positions.html', positions = positions, headList = headList,
+                                readyStatusList = readyStatusList, competence = COMPETENCE)
 
     elif request.method == 'POST' and (session["user_status"] == ADMIN or session["user_status"] == COACH):
         print('[INFO] route: /positions. method: POST')
@@ -503,7 +504,8 @@ def login():
                 cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
                 rows = cursor.fetchall()
                 # Ensure username exists and password is correct
-                if len(rows) != 1 or not check_password_hash(rows[0][7], request.form.get("hash")):
+                password_req = request.form.get("hash").strip()
+                if len(rows) != 1 or not check_password_hash(rows[0][7], password_req):
                     flash('Вы указали неверный логин или пароль')
                     return render_template('/login.html', form = form, msg = msg )
                     #return apology("invalid username and/or password", 403)

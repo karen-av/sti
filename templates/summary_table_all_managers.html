@@ -15,6 +15,7 @@
 <table class="table table-striped" style="margin-top: 2%;">
     <thead>
         <tr> 
+            <th></th>
             <th>Сотрудник</th>
             <th>Почта</th>
             <th>Курс 1</th>
@@ -28,6 +29,7 @@
     <tbody>
         {% for manager in allManagers %}
         <tr>
+            <td>{{loop.index}}</td>
             {% for row in manager %}
             <td>{{ row }}</td>
             {%endfor%}
