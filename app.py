@@ -1601,7 +1601,6 @@ def download():
             number, positionsList,  reportsLiast, comp1, comp2, comp3,\
                     comp4, comp5, comp6, comp7, comp8, comp9 = \
                     [], [], [], [], [], [], [], [], [], [], [], []
-            print(f'data_to_download - {data_to_download}')
             for i, user in enumerate(data_to_download, start=1):
                 number.append(i)
                 positionsList.append(user[1])
