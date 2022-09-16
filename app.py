@@ -1622,7 +1622,7 @@ def download():
 
         elif request.form.get('download_file') == 'summary':
             data_to_download = create_summary_table_to_download()
-            file_name = 'Итоговая_таблица.xlsx'
+            file_name = 'Итоговая таблица.xlsx'
             col0, col1, col2, col3, col4, col5, col6, col7, col8 = '', "eMail",\
                  "Имя", 'Фамилия', 'Приоритет 1', 'Приоритет 2', 'Приоритет 3',\
                  'Приоритет 4', 'Приоритет 5'
