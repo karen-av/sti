@@ -372,9 +372,26 @@ def create_summary_table_to_download():
                             
                     # Список списоков
                     allManagers.append(manager)
-        connection.close()
         return allManagers        
     except Exception as _ex:
+        print(f'[INFO] create_summary_table_to_download: {_ex}')
+    finally:
         if connection:
             connection.close()
  
+
+def create_positions_table_to_download():
+    try:
+        connection = connection_db()
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM positions WHERE reports_pos in \
+                            (SELECT mail FROM users WHERE status = %(status)s) \
+                            ORDER BY reports_pos ", {'status': constants.HEAD})
+            positions = cursor.fetchall()
+            return positions
+
+    except Exception as _ex:
+        print(f'[INFO] create_positions_table_to_download: {_ex}')
+    finally:
+        if connection:
+            connection.close()

@@ -17,7 +17,7 @@ from werkzeug.exceptions import HTTPException
 import time
 from decorator import send_message_head, send_message_manager, upload_test_results, \
                     upload_file_users, allowed_file, download_file_to_user, connection_db, \
-                    create_summary_table_to_download
+                    create_summary_table_to_download, create_positions_table_to_download
 import constants
 
 #from flask_sqlalchemy import SQLAlchemy
@@ -82,12 +82,14 @@ def log_table():
 @login_required
 def positions():
     readyStatusList = ['Все', 'Заполнено', 'Не заполнено']
-    if request.method == 'GET' and (session["user_status"] == constants.ADMIN or session["user_status"] == constants.COACH):
+    if request.method == 'GET' and (session["user_status"] == constants.ADMIN \
+                        or session["user_status"] == constants.COACH):
         try:
-            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
-            connection.autocommit = True  
+            connection = connection_db() 
             with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM positions WHERE reports_pos in (SELECT mail FROM users WHERE status = %(status)s) ORDER BY reports_pos ", {'status': constants.HEAD})
+                cursor.execute("SELECT * FROM positions WHERE reports_pos in \
+                                (SELECT mail FROM users WHERE status = %(status)s) \
+                                ORDER BY reports_pos ", {'status': constants.HEAD})
                 positions = cursor.fetchall()
                 cursor.execute("SELECT DISTINCT reports_pos FROM positions WHERE reports_pos in \
                                 (SELECT mail FROM users WHERE status = %(status)s) \
@@ -105,7 +107,8 @@ def positions():
         return render_template('positions.html', positions = positions, headList = headList,
                                 readyStatusList = readyStatusList, competence = constants.COMPETENCE)
 
-    elif request.method == 'POST' and (session["user_status"] == constants.ADMIN or session["user_status"] == constants.COACH):
+    elif request.method == 'POST' and (session["user_status"] == constants.ADMIN \
+                            or session["user_status"] == constants.COACH):
         print('[INFO] route: /positions. method: POST')
         reports_to = request.form.get('reports_to')
         ready_status = request.form.get('ready_status')
@@ -118,8 +121,7 @@ def positions():
         if not reports_to and not ready_status and not search and not edit and not edit_save:
             return redirect ('/positions')
         try:
-            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
-            connection.autocommit = True  
+            connection = connection_db()
             with connection.cursor() as cursor:
                 if edit_save:
                     reports_to = request.form.get('reports_to_edit')
@@ -134,16 +136,27 @@ def positions():
                     comp_8 = request.form.get('comp_8')
                     comp_9 = request.form.get('comp_9')
                     print(f'reprts_to - {reports_to}; position_edit - {position_edit}')
-                    cursor.execute("UPDATE positions SET comp_1 = %(comp_1)s, comp_2 = %(comp_2)s, comp_3 = %(comp_3)s, comp_4 = %(comp_4)s, comp_5 = %(comp_5)s, comp_6 = %(comp_6)s, comp_7 = %(comp_7)s, comp_8 = %(comp_8)s, comp_9 = %(comp_9)s WHERE position_pos = %(position_pos)s and reports_pos = %(mail)s", {'comp_1': comp_1, 'comp_2':comp_2, 'comp_3': comp_3, 'comp_4': comp_4, 'comp_5': comp_5, 'comp_6': comp_6, 'comp_7': comp_7, 'comp_8':comp_8, 'comp_9': comp_9, 'position_pos': position_edit, 'mail': reports_to })
+                    cursor.execute("UPDATE positions SET comp_1 = %(comp_1)s, \
+                                    comp_2 = %(comp_2)s, comp_3 = %(comp_3)s, comp_4 = %(comp_4)s, \
+                                    comp_5 = %(comp_5)s, comp_6 = %(comp_6)s, comp_7 = %(comp_7)s, \
+                                    comp_8 = %(comp_8)s, comp_9 = %(comp_9)s \
+                                    WHERE position_pos = %(position_pos)s and reports_pos = %(mail)s", \
+                                    {'comp_1': comp_1, 'comp_2':comp_2, 'comp_3': comp_3, 'comp_4': comp_4, \
+                                    'comp_5': comp_5, 'comp_6': comp_6, 'comp_7': comp_7, 'comp_8':comp_8, \
+                                    'comp_9': comp_9, 'position_pos': position_edit, 'mail': reports_to })
                     flash("Изменения сохранены.")
                     if edit == 'editFromUsers':
-                        cursor.execute("SELECT mail FROM users WHERE position = %(position_edit)s AND reports_to = %(reports_to_edit)s", {'position_edit': position_edit, 'reports_to_edit': reports_to_edit})
+                        cursor.execute("SELECT mail FROM users WHERE position = %(position_edit)s \
+                                        AND reports_to = %(reports_to_edit)s", \
+                                        {'position_edit': position_edit, 'reports_to_edit': reports_to_edit})
                         user_mail = cursor.fetchall()
                         return render_template('summary_table.html', user_mail = user_mail[0][0])
                     return redirect('/positions')
                 if edit:
                     user_name = request.form.get("user_name")
-                    cursor.execute("SELECT * FROM positions WHERE position_pos = %(position_edit)s AND reports_pos = %(reports_to_edit)s", {'position_edit': position_edit, 'reports_to_edit': reports_to_edit})
+                    cursor.execute("SELECT * FROM positions WHERE position_pos = %(position_edit)s \
+                                    AND reports_pos = %(reports_to_edit)s ORDER BY reports_pos", {'position_edit': position_edit, \
+                                    'reports_to_edit': reports_to_edit})
                     position_edit = cursor.fetchall()
                     if user_name:
                         return render_template('positions.html', position_edit = position_edit, competence = constants.COMPETENCE, editValue = edit, user_name = user_name)
@@ -1576,8 +1589,37 @@ def download():
     elif request.method == "POST":
         today = datetime.datetime.now()
         if request.form.get('download_file') == 'positions':
-            flash("Function not exist")
-            return render_template('download.html')
+            data_to_download = create_positions_table_to_download()
+            file_name = 'Ранжирование компетенций по должностям.xlsx'
+            col0, col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11 = '', "Должность",\
+                    "Руководитель", constants.COMPETENCE[0], constants.COMPETENCE[1], \
+                    constants.COMPETENCE[2], constants.COMPETENCE[3], \
+                    constants.COMPETENCE[4], constants.COMPETENCE[5], \
+                    constants.COMPETENCE[6], constants.COMPETENCE[7],\
+                    constants.COMPETENCE[8]
+                    
+            number, positionsList,  reportsLiast, comp1, comp2, comp3,\
+                    comp4, comp5, comp6, comp7, comp8, comp9 = \
+                    [], [], [], [], [], [], [], [], [], [], [], []
+            print(f'data_to_download - {data_to_download}')
+            for i, user in enumerate(data_to_download, start=1):
+                number.append(i)
+                positionsList.append(user[1])
+                reportsLiast.append(user[2])
+                comp1.append(user[3])
+                comp2.append(user[4])
+                comp3.append(user[5])
+                comp4.append(user[6])
+                comp5.append(user[7])
+                comp6.append(user[8])
+                comp7.append(user[9])
+                comp8.append(user[10])
+                comp9.append(user[11])
+
+            df = pd.DataFrame({col0: number, col1: positionsList, col2: reportsLiast, \
+                col3: comp1, col4: comp2, col5: comp3, col6: comp4, \
+                col7: comp5, col8: comp6, col9: comp7, col10: comp8, col11: comp9})
+
         elif request.form.get('download_file') == 'summary':
             data_to_download = create_summary_table_to_download()
             file_name = 'Итоговая_таблица.xlsx'
@@ -1603,17 +1645,16 @@ def download():
                 priority5.append(user[6])
 
             
-            df = pd.DataFrame({col0: number, col1: eMailList, col2: nameList, col3: \
-                        lastName, col4: priority1, col5: priority2, col6: priority3, \
-                        col7: priority4, col8: priority5})
-            writer = pd.ExcelWriter(file_name)
-            df.to_excel(writer, sheet_name='sheet_1', index=False)
-            for column in df:
-                column_width = max(df[column].astype(str).map(len).max(), len(column))
-                col_idx = df.columns.get_loc(column)
-                writer.sheets['sheet_1'].set_column(col_idx, col_idx, column_width)
-
-            writer.save()
+            df = pd.DataFrame({col0: number, col1: eMailList, col2: nameList, \
+                col3: lastName, col4: priority1, col5: priority2, col6: priority3, \
+                col7: priority4, col8: priority5})
+        writer = pd.ExcelWriter(file_name)
+        df.to_excel(writer, sheet_name='sheet_1', index=False)
+        for column in df:
+            column_width = max(df[column].astype(str).map(len).max(), len(column))
+            col_idx = df.columns.get_loc(column)
+            writer.sheets['sheet_1'].set_column(col_idx, col_idx, column_width)
+        writer.save()
         
         x = download_file_to_user(file_name)
         os.remove(file_name)
