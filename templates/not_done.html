@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Test results
+{% endblock %}
+
+{% block main %}
+
+<head>
+
+</head>
+
+
+
+<div class="route">
+    <a href="/">Главная</a> - Зашли и не выполнили задание
+</div>
+
+
+<table class="table table-striped" style="table-layout: auto">
+    <thead>
+        <tr>
+            <td>N</td>
+            <td>Имя</td> 
+            <td>Почта</td>
+            <td>Статус</td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for manager in managers %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ manager.0 }}</td>
+            <td>{{ manager.1 }}</td>
+            <td>{{ manager.2 }}</td>
+        </tr>{% endfor %}
+        {% for head in heads %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ head.0 }}</td>
+            <td>{{ head.1 }}</td>
+            <td>{{ head.2 }}</td>
+        </tr>{% endfor %}
+    </tbody>
+</table>
+
+
+
+{% endblock%}

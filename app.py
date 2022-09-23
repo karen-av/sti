@@ -1,4 +1,5 @@
 
+from crypt import methods
 from flask import Flask, redirect, render_template, request, session, flash
 from flask_mail import Mail, Message
 from flask_session import Session
@@ -1512,6 +1513,39 @@ def mail_manager():
                 
     else:
         return redirect('/')
+
+
+@app.route('/not_done', methods = ['GET', 'POST'])
+@login_required
+def not_done():
+    if request.method == "GET":
+        try:
+            connection = connection_db()
+            with connection.cursor() as cursos:
+                cursos.execute("SELECT name, mail, status, reports_to FROM users \
+                                WHERE mail in (SELECT mail DISTINCT FROM log_table) \
+                                AND accept_rules IS NULL AND status = 'manager' ") 
+                managers = cursos.fetchall()
+                cursos.execute("SELECT name, mail, status, reports_to FROM users \
+                                WHERE mail IN (SELECT mail FROM log_table) \
+                                AND mail IN \
+                                    (SELECT reports_pos FROM positions WHERE \
+                                    comp_1 IS NULL OR comp_2 IS NULL OR comp_3 IS NULL\
+                                    OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL \
+                                    OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) \
+                                ")
+                heads = cursos.fetchall()
+        except Exception as _ex:
+            print(f'[INFO] {_ex}')
+            return redirect('/')
+        finally:
+            if connection:
+                connection.close()
+
+    elif request.method == "POST":
+        pass
+    return render_template('/not_done.html', managers = managers, heads = heads)
+    
 
 
 @app.errorhandler(Exception)
