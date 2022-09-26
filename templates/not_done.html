@@ -24,23 +24,66 @@
             <td>Имя</td> 
             <td>Почта</td>
             <td>Статус</td>
+            <td>Статус выполнения</td>
         </tr>
     </thead>
     <tbody>
-        {% for manager in managers %}
-        <tr>
-            <td>{{ loop.index }}</td>
-            <td>{{ manager.0 }}</td>
-            <td>{{ manager.1 }}</td>
-            <td>{{ manager.2 }}</td>
-        </tr>{% endfor %}
-        {% for head in heads %}
+        
+        {% for head in heads_come_not_done %}
         <tr>
             <td>{{ loop.index }}</td>
             <td>{{ head.0 }}</td>
             <td>{{ head.1 }}</td>
             <td>{{ head.2 }}</td>
+            <td>Зашел и не выполнил</td>
         </tr>{% endfor %}
+
+        {% for head in heads_not_come %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ head.0 }}</td>
+            <td>{{ head.1 }}</td>
+            <td>{{ head.2 }}</td>
+            <td>Не заходил</td>
+        </tr>{% endfor %}
+
+        {% for head in heads_come_and_done %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ head.0 }}</td>
+            <td>{{ head.1 }}</td>
+            <td>{{ head.2 }}</td>
+            <td>Выполнил</td>
+        </tr>{% endfor %}
+        
+        {% for manager in managers_come_not_done %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ manager.0 }}</td>
+            <td>{{ manager.1 }}</td>
+            <td>{{ manager.2 }}</td>
+            <td>Зашел и не выполнил</td>
+        </tr>{% endfor %}
+
+        {% for manager in managers_not_come %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ manager.0 }}</td>
+            <td>{{ manager.1 }}</td>
+            <td>{{ manager.2 }}</td>
+            <td>Не заходил</td>
+        </tr>{% endfor %}
+
+        {% for manager in managers_come_and_done %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ manager.0 }}</td>
+            <td>{{ manager.1 }}</td>
+            <td>{{ manager.2 }}</td>
+            <td>Выполнил</td>
+        </tr>{% endfor %}
+
+
     </tbody>
 </table>
 

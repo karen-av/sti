@@ -1522,10 +1522,17 @@ def not_done():
         try:
             connection = connection_db()
             with connection.cursor() as cursos:
+               
                 cursos.execute("SELECT name, mail, status, reports_to FROM users \
-                                WHERE mail in (SELECT mail DISTINCT FROM log_table) \
-                                AND accept_rules IS NULL AND status = 'manager' ") 
-                managers = cursos.fetchall()
+                                WHERE mail IN (SELECT mail FROM log_table) \
+                                AND mail IN \
+                                    (SELECT reports_pos FROM positions WHERE \
+                                    comp_1 IS NOT NULL OR comp_2 IS NOT NULL OR comp_3 IS NOT NULL\
+                                    OR comp_4 IS NOT NULL OR comp_5 IS NOT NULL OR comp_6 IS NOT NULL \
+                                    OR comp_7 IS NOT NULL OR comp_8 IS NOT NULL OR comp_9 IS NOT NULL) \
+                                ")
+                heads_come_and_done = cursos.fetchall()
+
                 cursos.execute("SELECT name, mail, status, reports_to FROM users \
                                 WHERE mail IN (SELECT mail FROM log_table) \
                                 AND mail IN \
@@ -1534,7 +1541,29 @@ def not_done():
                                     OR comp_4 IS NULL OR comp_5 IS NULL OR comp_6 IS NULL \
                                     OR comp_7 IS NULL OR comp_8 IS NULL OR comp_9 IS NULL) \
                                 ")
-                heads = cursos.fetchall()
+                heads_come_not_done = cursos.fetchall()
+
+                cursos.execute("SELECT name, mail, status, reports_to FROM users \
+                                WHERE mail NOT IN (SELECT mail FROM log_table) \
+                                AND status = %(status)s", {'status': constants.HEAD})
+                heads_not_come = cursos.fetchall()
+
+
+
+                cursos.execute("SELECT name, mail, status, reports_to FROM users \
+                                WHERE mail in (SELECT mail DISTINCT FROM log_table) \
+                                AND accept_rules IS NULL AND status = %(status)s", {'status': constants.MANAGER}) 
+                managers_come_not_done = cursos.fetchall()
+
+                cursos.execute("SELECT name, mail, status, reports_to FROM users \
+                                WHERE mail NOT IN (SELECT mail DISTINCT FROM log_table) \
+                                AND status = %(status)s", {'status': constants.MANAGER}) 
+                managers_not_come = cursos.fetchall()
+
+                cursos.execute("SELECT name, mail, status, reports_to FROM users \
+                                WHERE accept_rules IS NOT NULL AND status = %(status)s", {'status': constants.MANAGER}) 
+                managers_come_and_done = cursos.fetchall()
+
         except Exception as _ex:
             print(f'[INFO] {_ex}')
             return redirect('/')
@@ -1544,9 +1573,15 @@ def not_done():
 
     elif request.method == "POST":
         pass
-    return render_template('/not_done.html', managers = managers, heads = heads)
+    return render_template('/not_done.html', \
+                heads_come_and_done = heads_come_and_done,\
+                heads_come_not_done = heads_come_not_done, \
+                heads_not_come = heads_not_come,\
+                managers_come_not_done = managers_come_not_done,\
+                managers_not_come = managers_not_come,\
+                managers_come_and_done = managers_come_and_done\
+                )
     
-
 
 @app.errorhandler(Exception)
 def handle_exception(e):    
