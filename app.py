@@ -1518,7 +1518,7 @@ def mail_manager():
 @app.route('/not_done', methods = ['GET', 'POST'])
 @login_required
 def not_done():
-    if request.method == "GET":
+    if request.method == "GET" and (session['user_status'] == constants.ADMIN or session['user_status'] == constants.COACH):
         try:
             connection = connection_db()
             with connection.cursor() as cursos:
