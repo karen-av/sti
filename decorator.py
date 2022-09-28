@@ -291,6 +291,20 @@ def upload_file_users(table, manager_status, head_status):
 def download_file_to_user(file_name):
     return send_file(file_name, as_attachment=False)
 
+
+def create_managers_done():
+    try:
+        connection = connection_db()
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT name, mail, position, department, accept_rules FROM users WHERE status = %(status)s AND accept_rules IS NOT NULL ORDER BY accept_rules", {'status': constants.MANAGER})
+            data_to_download = cursor.fetchall()
+            return data_to_download
+    except Exception as _ex:
+        print(f'[INFO] create_summary_table_to_download: {_ex}')
+    finally:
+        if connection:
+            connection.close()
+
 def create_summary_table_to_download():
     allManagers = []
     try:

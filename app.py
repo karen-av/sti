@@ -18,7 +18,8 @@ from werkzeug.exceptions import HTTPException
 import time
 from decorator import send_message_head, send_message_manager, upload_test_results, \
                     upload_file_users, allowed_file, download_file_to_user, connection_db, \
-                    create_summary_table_to_download, create_positions_table_to_download
+                    create_summary_table_to_download, create_positions_table_to_download,\
+                    create_managers_done
 import constants
 
 #from flask_sqlalchemy import SQLAlchemy
@@ -1713,10 +1714,33 @@ def download():
                 priority4.append(user[5])
                 priority5.append(user[6])
 
-            
             df = pd.DataFrame({col0: number, col1: eMailList, col2: nameList, \
                 col3: lastName, col4: priority1, col5: priority2, col6: priority3, \
                 col7: priority4, col8: priority5})
+        
+        elif request.form.get('download_file') == 'done':
+            data_to_download = create_managers_done()
+            file_name = 'Список участников.xlsx'
+            col0, col1, col2, col3, col4, col5, col6, col7 = '', "Фамилия",\
+                 "Имя", 'E-mail', 'Должность', 'Подразделение', 'Язык', 'accept_rules'
+            number, lastName, nameList, eMailList, positions, departments, language, accept_rules\
+                 = [], [], [], [], [], [], [], []
+            for i, user in enumerate(data_to_download, start=1):
+                number.append(i)
+                name = user[0].split()
+                nameList.append(name[0])
+                if len(name) == 3:
+                    lastName.append(f'{name[1]}{name[2]}')
+                else:
+                    lastName.append(name[1])
+                eMailList.append(user[1])
+                positions.append(user[2])
+                departments.append(user[3])
+                language.append('ru')
+                accept_rules.append(user[4])
+            df = pd.DataFrame({col0: number, col1: lastName, col2: nameList, \
+                 col3: eMailList, col4: positions, col5: departments, col6: language})
+        
         writer = pd.ExcelWriter(file_name)
         df.to_excel(writer, sheet_name='sheet_1', index=False)
         for column in df:
@@ -1742,8 +1766,8 @@ def hend_accept_rules():
     elif request.method == "POST" and (session['user_status'] == constants.ADMIN or session['user_status'] == constants.COACH):
         today = datetime.date.today()
         managerMail = request.form.get('mail')
-        connection = connection_db()
         try:
+            connection = connection_db()
             with connection.cursor() as cursor:
                 cursor.execute("UPDATE users SET accept_rules = %(today)s WHERE mail = %(mail)s", {'mail': managerMail, 'today': today})
         except Exception as _ex:

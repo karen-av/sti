@@ -29,5 +29,10 @@
         <button class="btn btn-primary">Скачать итоговую таблицу</button>
     </form>
     <p></p>
+    <form action="/download" method="post">
+        <input type="hidden" value="done" name="download_file">
+        <button class="btn btn-primary">Скачать список участников</button>
+    </form>
+    <p></p>
 </div>
 {%endblock%}
