@@ -1,5 +1,6 @@
 
 
+from crypt import methods
 from flask import Flask, redirect, render_template, request, session, flash
 from flask_mail import Mail, Message
 from flask_session import Session
@@ -312,7 +313,7 @@ def users():
                         if accept_rules == 'Приняли':
                             cursor.execute("SELECT * FROM users WHERE accept_rules IS NOT NULL ORDER BY id")
                         elif accept_rules == 'Не приняли':
-                            cursor.execute("SELECT * FROM users WHERE accept_rules IS NULL ORDER BY id")
+                            cursor.execute("SELECT * FROM users WHERE accept_rules IS NULL AND status = %(status)s ORDER BY id", {'status': constants.MANAGER})
                         users = cursor.fetchall()
                         return render_template("users.html", headers_list = constants.SORTLIST, accept_rules_select = accept_rules, users = users, userDepartment = usereDepartment, usereReports_to = usereReports_to, usereStatus_to = usereStatus_to, userePosition = userePosition, statusList = constants.STATUS_LIST, positionList = constants.POSITIONS_LIST)
 
@@ -1651,11 +1652,12 @@ def settings():
     
 
 @app.route('/download', methods=["GET", "POST"])
+@login_required
 def download():
-    if request.method == "GET":
+    if request.method == "GET" and (session['user_status'] == constants.ADMIN or session['user_status'] == constants.COACH):
         return render_template("download.html")
 
-    elif request.method == "POST":
+    elif request.method == "POST" and (session['user_status'] == constants.ADMIN or session['user_status'] == constants.COACH):
         today = datetime.datetime.now()
         if request.form.get('download_file') == 'positions':
             data_to_download = create_positions_table_to_download()
@@ -1731,6 +1733,31 @@ def download():
         return x
     else:
         return redirect ('/')
+
+
+@app.route('/hend_accept_rules', methods = ['GET', 'POST'])
+@login_required
+def hend_accept_rules():
+    if request.method == 'GET':
+        return render_template('/users')
+    elif request.method == "POST" and (session['user_status'] == constants.ADMIN or session['user_status'] == constants.COACH):
+        today = datetime.date.today()
+        managerMail = request.form.get('mail')
+        connection = connection_db()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("UPDATE users SET accept_rules = %(today)s WHERE mail = %(mail)s", {'mail': managerMail, 'today': today})
+        except Exception as _ex:
+            print("[INFO] Error while working with PostgresSQL", _ex)
+            flash('Не удалось подключиться к базе данных. Попробуйте повторить попытку.')
+            return redirect('/')
+        finally:
+            if connection:
+                connection.close()
+                print("[INFO] PostgresSQL connection closed")
+        return redirect('/users')
+
+
 
 if __name__ == "__main__":
     app.run()

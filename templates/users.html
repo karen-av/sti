@@ -171,7 +171,7 @@
             <td>{{ user.3 }}</td>
             <td>{{ user.4 }}</td>
             <td>
-            {% if user.3 in 'manager' %}
+            {% if user.3 == 'manager' %}
                 <form action="/summary" method="post">
                 <input type="hidden" value="{{ user.6 }}" name="userMail">
                 <button class="btn btn-primary" type="submit">{{ user.5 }}</button>
@@ -181,7 +181,15 @@
             {% endif %}
             </td>
             <td>{{ user.6 }}</td>
-            <td>{% if user.11 is none%} - {%else%} Да {#{ user.11 }#} {%endif%}</td>
+            <td>
+                {% if user.11 is none%} 
+                    {% if user.3 == 'manager'%}
+                        <form action="/hend_accept_rules" method="post">
+                            <input name="mail" type="hidden" value="{{ user.6 }}">
+                        <button class="btn btn-primary" type="submit">Принять</button>
+                        </form> 
+                    {%else%} - {%endif%}
+                {%else%} Да {#{ user.11 }#} {%endif%}</td>
             <td>
                 <form action="/edit" method="post">
                     <input type="hidden" value="render" name ="flag">
