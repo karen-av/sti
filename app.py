@@ -30,6 +30,8 @@ app = Flask(__name__)
 app.config.from_object(Config)
 mail = Mail(app)
 Session(app)
+os.environ['TZ'] = 'Europe/Moscow'
+time.tzset()
 
 
 @app.after_request
@@ -63,9 +65,9 @@ def log_table():
             connection = psycopg2.connect(host = host, user = user, password = password, database = db_name )
             connection.autocommit = True  
             with connection.cursor() as cursor:
-                cursor.execute("SELECT name, mail, status, date FROM log_table ORDER BY date DESC")
+                cursor.execute("SELECT name, mail, status, date FROM log_table ORDER BY id DESC")
                 log_data = cursor.fetchall()
-                cursor.execute("SELECT exception_data, exception_code, user_mail, user_status, exception_date FROM exception_table ORDER BY exception_date DESC")
+                cursor.execute("SELECT exception_data, exception_code, user_mail, user_status, exception_date FROM exception_table ORDER BY id DESC")
                 exception_table = cursor.fetchall()
                 return render_template('log_table.html', log_data = log_data, exception_table = exception_table)
         except Exception as _ex:
@@ -1585,7 +1587,7 @@ def not_done():
     
 
 @app.errorhandler(Exception)
-def handle_exception(e):    
+def handle_exception(e):   
     today = datetime.datetime.today().strftime("%d.%m.%Y %X")
     user_mail = session['user_mail']
     user_status = session['user_status']
