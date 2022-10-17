@@ -477,33 +477,32 @@ def users():
 def login():
     """Log user in"""
 
-    form = ContactForm()
-    msg = ""
+    #form = ContactForm()
+    #msg = ""
     
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":    
 
-        if form.validate_on_submit() is False:
-            msg = "Ошибка валидации"
-            flash("Вы робот?")
-            return render_template('/login.html', form = form, msg = msg )
+        #if form.validate_on_submit() is False:
+         #   msg = "Ошибка валидации"
+          #  flash("Вы робот?")
+           # return render_template('/login.html', form = form, msg = msg )
 
         # Forget any user_id
         session.clear()
         # Ensure username was submitted
         if not request.form.get("mail"):
             #flash('Вы не указали логин')
-            return render_template('/login.html', form = form, msg = msg )
+            return render_template('/login.html')
            
         # Ensure password was submitted
         elif not request.form.get("hash") or len(request.form.get("hash")) < 3:
             flash('Вы указали неверный пароль')
-            return render_template('/login.html', form = form, msg = msg)
+            return render_template('/login.html')
             
         # Query database for username
         try:
-            connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
-            connection.autocommit = True  
+            connection = connection_db()
             with connection.cursor() as cursor:
                 mail = request.form.get('mail').lower().strip()
                 cursor.execute("SELECT * FROM users WHERE mail = %(mail)s", {'mail': mail})
@@ -512,7 +511,7 @@ def login():
                 password_req = request.form.get("hash").strip()
                 if len(rows) != 1 or not check_password_hash(rows[0][7], password_req):
                     flash('Вы указали неверный логин или пароль')
-                    return render_template('/login.html', form = form, msg = msg )
+                    return render_template('/login.html')
                     #return apology("invalid username and/or password", 403)
 
                 # Remember which user has logged in
@@ -523,7 +522,10 @@ def login():
                 today = datetime.datetime.today().strftime("%d.%m.%Y %X")
                
                 #insert in to log table
-                cursor.execute("INSERT INTO log_table (name, mail, status, date) VALUES(%(name)s, %(mail)s, %(status)s, %(date)s)", {'name': session["user_name"], 'mail': session["user_mail"], 'status': session["user_status"], 'date': today})
+                cursor.execute("INSERT INTO log_table (name, mail, status, date) \
+                    VALUES(%(name)s, %(mail)s, %(status)s, %(date)s)", \
+                    {'name': session["user_name"], 'mail': session["user_mail"], \
+                    'status': session["user_status"], 'date': today})
 
                 # Redirect user to home page
                 return redirect('/' )
@@ -539,7 +541,8 @@ def login():
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
-        return render_template("login.html", form = form, msg = msg)
+        return render_template("login.html")
+        #return render_template("login.html", form = form, msg = msg)
 
 
 @app.route("/logout")
@@ -625,9 +628,16 @@ def edit():
                     # внесение изменений
                     # если меняли пароль b  если не меняли
                     if hash:
-                        cursor.execute("UPDATE users SET department = %(department)s, reports_to = %(reports_to)s, status = %(status)s, position = %(position)s, name = %(name)s, mail = %(mail)s, hash = %(hash)s  WHERE id = %(id)s", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'hash': hash, 'id': id})
+                        cursor.execute("UPDATE users SET department = %(department)s, \
+                            reports_to = %(reports_to)s, status = %(status)s, position = %(position)s, \
+                            name = %(name)s, mail = %(mail)s, hash = %(hash)s  WHERE id = %(id)s", \
+                            {'department': department, 'reports_to': reports_to, 'status': status, \
+                            'position': position, 'name': name, 'mail': mail, 'hash': hash, 'id': id})
                     else:
-                        cursor.execute("UPDATE users SET department = %(department)s, reports_to = %(reports_to)s, status = %(status)s, position = %(position)s, name = %(name)s, mail = %(mail)s WHERE id = %(id)s", {'department': department, 'reports_to': reports_to, 'status': status, 'position': position, 'name': name, 'mail': mail, 'id': id})
+                        cursor.execute("UPDATE users SET department = %(department)s, reports_to = %(reports_to)s, \
+                            status = %(status)s, position = %(position)s, name = %(name)s, mail = %(mail)s \
+                            WHERE id = %(id)s", {'department': department, 'reports_to': reports_to, 'status': status, \
+                            'position': position, 'name': name, 'mail': mail, 'id': id})
                     
                     # Если изменили должность и такой нет в базе, добавляем
                     # Проверяем существует ли должность в базе. Если нет, то добавляем
@@ -1133,22 +1143,22 @@ def mail_heads():
 
 @app.route('/reset_password', methods = ['GET', 'POST'])
 def reset_password():
-    form = ContactForm()
-    msg_cap = ""
+    #form = ContactForm()
+    #msg_cap = ""
     if request.method == 'GET':
-        return render_template('/reset_password.html', form = form, msg = msg_cap)
+        return render_template('/reset_password.html')
+        #return render_template('/reset_password.html', form = form, msg = msg_cap)
 
     elif request.method == 'POST':
-        if form.validate_on_submit() is False:
-            msg_cap = "Ошибка валидации"
-            flash("Вы робот?")
-            return render_template('/reset_password.html', form = form, msg = msg_cap )
+        #if form.validate_on_submit() is False:
+         #   msg_cap = "Ошибка валидации"
+          #  flash("Вы робот?")
+           # return render_template('/reset_password.html')
 
         user_name = request.form.get('username')
         if user_name:
             try:
-                connection = psycopg2.connect(host = host, user = user, password = password, database = db_name)
-                connection.autocommit = True
+                connection = connection_db()
                 with connection.cursor() as cursor:
                     # Проверка на существование пользователя
                     cursor.execute("SELECT mail, name, status FROM users WHERE mail = %(mail)s", {'mail': user_name})
@@ -1161,34 +1171,37 @@ def reset_password():
                         name = us[0][1]
                         try:
                             msg = Message('From STI-Partners', recipients=[user_name])
-                            msg.body = render_template("mail_reset_password.txt", user_name = name, user_password = user_password)
-                            msg.html = render_template("mail_reset_password.html", user_name = name, user_password = user_password)
+                            msg.body = render_template("mail_reset_password.txt", \
+                                user_name = name, user_password = user_password)
+                            msg.html = render_template("mail_reset_password.html", \
+                                user_name = name, user_password = user_password)
                             mail.send(msg)
 
                         except Exception as _ex:
                             print('[INFO] Error while working mail sender', _ex)
                             flash("В процессе создания запроса произошла ошибка. Пожалуйста, обновите страницу и повторите попытку.")
-                            return render_template('/reset_password.html', form = form, msg = msg_cap )
+                            return render_template('/reset_password.html')
 
-                        cursor.execute("UPDATE users SET hash = %(hash)s WHERE mail = %(mail)s", {'hash': hash, 'mail': user_name})
+                        cursor.execute("UPDATE users SET hash = %(hash)s \
+                            WHERE mail = %(mail)s", {'hash': hash, 'mail': user_name})
                         flash('Проверьте свою электронную почту. Если ваш email зарегистрирован в систему, то вы получите письмо с данными для входа.')
-                        return render_template('/login.html', form = form, msg = msg_cap)
+                        return render_template('/login.html')
 
                     else:
                         flash('Проверьте свою электронную почту. Если ваш email зарегистрирован в систему, то вы получите письмо с данными для входа.')
-                        return render_template('/login.html', form = form, msg = msg_cap)
+                        return render_template('/login.html')
 
             except Exception as _ex:
                 print("[INFO] Error while working with PostgresSQL", _ex)
                 flash("В процессе создания запроса произошла ошибка. Пожалуйста, обновите страницу и повторите попытку.")
-                return render_template('reset_password.html', form = form, msg = msg_cap)
+                return render_template('reset_password.html')
             finally:
                 if connection:
                     connection.close()
                     print("[INFO] PostgresSQL connection closed")
         else:
             flash('Укажите адрес электронной почты и повторите запрос')
-            return redirect('reset_password', form = form, msg = msg_cap)
+            return redirect('reset_password')
 
     else:
         return redirect('/')
@@ -1793,4 +1806,4 @@ if __name__ == "__main__":
 #CREATE TABLE positions (ID INTEGER NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, position_pos VARCHAR(50), reports_pos VARCHAR(50), comp_1 INTEGER, comp_2 INTEGER, comp_3 INTEGER, comp_4 INTEGER, comp_5 INTEGER, comp_6 INTEGER, comp_7 INTEGER, comp_8 INTEGER, comp_9 INTEGER);
 #CREATE TABLE test_results (ID INTEGER NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, name_test VARCHAR(50), mail VARCHAR(50), reliability INTEGER,	discipline INTEGER,	executive INTEGER,	responsibility INTEGER,	resolved INTEGER,	organizational INTEGER,	software INTEGER,	adaptation INTEGER,	planning INTEGER,	page INTEGER,	strengthening INTEGER,	building_on_achievements INTEGER,	building_for_development INTEGER,	innovation INTEGER,	approved INTEGER,	loyalty INTEGER,	currency INTEGER,	country INTEGER,	preparedness_for_compromise INTEGER,	cooperation INTEGER,	openness INTEGER,	openness_of_feedback INTEGER,	clientoority INTEGER,	customer_needs_orientation INTEGER,	partnership INTEGER,	adoption_of_decisions INTEGER,	systemic_thinking INTEGER,	business INTEGER,	forward_thinking INTEGER,	effective_communication INTEGER,	clean_communication INTEGER,	impunity_and_influence INTEGER,	negotiations INTEGER,	cross_functional_interaction INTEGER,	informal_leadership INTEGER,	management INTEGER,	implementation_management INTEGER,	motivation_of_subordinates INTEGER,	organization_of_work INTEGER,	change_management INTEGER,	development_of_subordinates INTEGER, command_management INTEGER);
 #CREATE TABLE log_table (ID INTEGER NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, name VARCHAR(50), mail VARCHAR(50),status VARCHAR(50), date VARCHAR(50) );
-#CREATE TABLE Exception (ID INTEGER NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, except VARCHAR(1000))
+#CREATE TABLE exception_table (ID INTEGER NOT NULL PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY, except VARCHAR(1000))
