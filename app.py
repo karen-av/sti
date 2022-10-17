@@ -485,11 +485,12 @@ def login():
         responseCaptcha = json.loads(requests.post('https://www.google.com/recaptcha/api/siteverify', 
             data=dict(secret=constants.RECAPTCHA_PRIVATE_KEY, response=token)).text)
         
-        if responseCaptcha['success'] == True and responseCaptcha['score'] < 0.6:
+        if responseCaptcha['success'] == True and responseCaptcha['score'] < constants.MIN_SCORE:
+            flash('Пожалуйста, подтвердите, что вы не робот.')
             return render_template("login.html", key = constants.RECAPTCHA_PUBLIC_KEY, form = ContactForm())
         
         if request.form.get('recaptcha') == 'recaptcha_2' and ContactForm().validate_on_submit() is False:
-            flash("Вы робот?")
+            flash('Пожалуйста, подтвердите, что вы не робот.')
             return render_template("login.html", key = constants.RECAPTCHA_PUBLIC_KEY, form = ContactForm())
 
         # Forget any user_id
@@ -498,6 +499,8 @@ def login():
         # Ensure username was submitted
         if not request.form.get("mail") or not request.form.get("hash"):
             flash("Вы не указали логин или пароль")
+            if request.form.get('recaptcha') == 'recaptcha_2':
+                return render_template("login.html", key = constants.RECAPTCHA_PUBLIC_KEY, form = ContactForm())
             return redirect('/')
             
         # Query database for username
@@ -511,8 +514,9 @@ def login():
                 password_req = request.form.get("hash").strip()
                 if len(rows) != 1 or not check_password_hash(rows[0][7], password_req):
                     flash('Вы указали неверный логин или пароль')
+                    if request.form.get('recaptcha') == 'recaptcha_2':
+                        return render_template("login.html", key = constants.RECAPTCHA_PUBLIC_KEY, form = ContactForm())
                     return redirect('/')
-                    #return apology("invalid username and/or password", 403)
 
                 # Remember which user has logged in
                 session["user_id"] = rows[0][0]
@@ -541,7 +545,6 @@ def login():
     # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("login.html", key = constants.RECAPTCHA_PUBLIC_KEY)
-        #return render_template("login.html", form = form, msg = msg)
 
 
 @app.route("/logout")
@@ -1142,17 +1145,22 @@ def mail_heads():
 
 @app.route('/reset_password', methods = ['GET', 'POST'])
 def reset_password():
-    #form = ContactForm()
-    #msg_cap = ""
     if request.method == 'GET':
-        return render_template('/reset_password.html')
-        #return render_template('/reset_password.html', form = form, msg = msg_cap)
+        return render_template('/reset_password.html', key = constants.RECAPTCHA_PUBLIC_KEY)
 
-    elif request.method == 'POST':
-        #if form.validate_on_submit() is False:
-         #   msg_cap = "Ошибка валидации"
-          #  flash("Вы робот?")
-           # return render_template('/reset_password.html')
+    elif request.method == 'POST':   
+        token = request.form.get("id_token")
+        # запрос данных у google
+        responseCaptcha = json.loads(requests.post('https://www.google.com/recaptcha/api/siteverify', 
+            data=dict(secret=constants.RECAPTCHA_PRIVATE_KEY, response=token)).text)
+        
+        if responseCaptcha['success'] == True and responseCaptcha['score'] < constants.MIN_SCORE:
+            flash('Пожалуйста, подтвердите, что вы не робот.')
+            return render_template("reset_password.html", key = constants.RECAPTCHA_PUBLIC_KEY, form = ContactForm())
+        
+        if request.form.get('recaptcha') == 'recaptcha_2' and ContactForm().validate_on_submit() is False:
+            flash('Пожалуйста, подтвердите, что вы не робот.')
+            return render_template("reset_password.html", key = constants.RECAPTCHA_PUBLIC_KEY, form = ContactForm())
 
         user_name = request.form.get('username')
         if user_name:
@@ -1162,7 +1170,6 @@ def reset_password():
                     # Проверка на существование пользователя
                     cursor.execute("SELECT mail, name, status FROM users WHERE mail = %(mail)s", {'mail': user_name})
                     us = cursor.fetchall()
-                    #status = us[0][2]
                     if len(us) == 1: #and (status == constants.COACH or status == constants.ADMIN or status == constants.HEAD):
                         user_password = createPassword()
                         hash = generate_password_hash(user_password, "pbkdf2:sha256")
