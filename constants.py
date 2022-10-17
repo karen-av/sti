@@ -13,3 +13,5 @@ HEADER_LIST_FROM_TEST = ('НАДЁЖНОСТЬ', 'Дисциплинирован
 HEADER_LIST_FROM_TEST_SMALL = ('НАДЁЖНОСТЬ', 'ОРГАНИЗОВАННОСТЬ', 'СТРЕМЛЕНИЕ К СОВЕРШЕНСТВУ', 'ПРИВЕРЖЕННОСТЬ', 'КОМАНДНОСТЬ', 'КЛИЕНТООРИЕНТИРОВАННОСТЬ', 'ПРИНЯТИЕ РЕШЕНИЙ', 'ЭФФЕКТИВНАЯ КОММУНИКАЦИЯ', 'УПРАВЛЕНЧЕСКОЕ МАСТЕРСТВО')
 HEAD_COACH_EMAIL = 't.astralenko@sti-partners.ru'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
+RECAPTCHA_PUBLIC_KEY = "6LdYqogiAAAAAGj1Hqg_jUIg9iJYXPEXU58ERyCs"
+RECAPTCHA_PRIVATE_KEY = "6LdYqogiAAAAAAH8VMkBb8Dd9qSPxS2rfVRWr2H8"

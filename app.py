@@ -21,6 +21,8 @@ from decorator import send_message_head, send_message_manager, upload_test_resul
                     create_summary_table_to_download, create_positions_table_to_download,\
                     create_managers_done
 import constants
+import requests
+import json
 
 #from flask_sqlalchemy import SQLAlchemy
 
@@ -475,30 +477,28 @@ def users():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    """Log user in"""
-
-    #form = ContactForm()
-    #msg = ""
-    
-    # User reached route via POST (as by submitting a form via POST)
-    if request.method == "POST":    
-
-        #if form.validate_on_submit() is False:
-         #   msg = "Ошибка валидации"
-          #  flash("Вы робот?")
-           # return render_template('/login.html', form = form, msg = msg )
+    if request.method == "POST":   
+        today = datetime.datetime.today().strftime("%d.%m.%Y %X")  
+        token = request.form.get("id_token")
+        
+        # запрос данных у google
+        responseCaptcha = json.loads(requests.post('https://www.google.com/recaptcha/api/siteverify', 
+            data=dict(secret=constants.RECAPTCHA_PRIVATE_KEY, response=token)).text)
+        
+        if responseCaptcha['success'] == True and responseCaptcha['score'] < 0.6:
+            return render_template("login.html", key = constants.RECAPTCHA_PUBLIC_KEY, form = ContactForm())
+        
+        if request.form.get('recaptcha') == 'recaptcha_2' and ContactForm().validate_on_submit() is False:
+            flash("Вы робот?")
+            return render_template("login.html", key = constants.RECAPTCHA_PUBLIC_KEY, form = ContactForm())
 
         # Forget any user_id
         session.clear()
+
         # Ensure username was submitted
-        if not request.form.get("mail"):
-            #flash('Вы не указали логин')
-            return render_template('/login.html')
-           
-        # Ensure password was submitted
-        elif not request.form.get("hash") or len(request.form.get("hash")) < 3:
-            flash('Вы указали неверный пароль')
-            return render_template('/login.html')
+        if not request.form.get("mail") or not request.form.get("hash"):
+            flash("Вы не указали логин или пароль")
+            return redirect('/')
             
         # Query database for username
         try:
@@ -511,7 +511,7 @@ def login():
                 password_req = request.form.get("hash").strip()
                 if len(rows) != 1 or not check_password_hash(rows[0][7], password_req):
                     flash('Вы указали неверный логин или пароль')
-                    return render_template('/login.html')
+                    return redirect('/')
                     #return apology("invalid username and/or password", 403)
 
                 # Remember which user has logged in
@@ -519,7 +519,6 @@ def login():
                 session["user_name"] = rows[0][5]
                 session["user_status"] = rows[0][3]
                 session["user_mail"] = rows[0][6]
-                today = datetime.datetime.today().strftime("%d.%m.%Y %X")
                
                 #insert in to log table
                 cursor.execute("INSERT INTO log_table (name, mail, status, date) \
@@ -541,7 +540,7 @@ def login():
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
-        return render_template("login.html")
+        return render_template("login.html", key = constants.RECAPTCHA_PUBLIC_KEY)
         #return render_template("login.html", form = form, msg = msg)
 
 
