@@ -483,16 +483,31 @@ def login():
         token = request.form.get("id_token")
         
         # запрос данных у google
-        responseCaptcha = json.loads(requests.post('https://www.google.com/recaptcha/api/siteverify', 
-            data=dict(secret=constants.RECAPTCHA_PRIVATE_KEY, response=token)).text)
-        
+        try:
+            responseCaptcha = json.loads(requests.post('https://www.google.com/recaptcha/api/siteverify', 
+                data=dict(secret=constants.RECAPTCHA_PRIVATE_KEY, response=token)).text)
+        except:
+            return redirect ('/')
+
         if responseCaptcha['success'] == True and responseCaptcha['score'] < constants.MIN_SCORE:
             flash('Пожалуйста, подтвердите, что вы не робот.')
-            return render_template("login.html", key = constants.RECAPTCHA_PUBLIC_KEY, form = ContactForm())
+            return render_template("login.html", key = constants.RECAPTCHA_PUBLIC_KEY, form = ContactForm(), 
+                score = responseCaptcha['score'])
         
-        if request.form.get('recaptcha') == 'recaptcha_2' and ContactForm().validate_on_submit() is False:
+        elif request.form.get('recaptcha') == 'recaptcha_2' and ContactForm().validate_on_submit() is False:
+            score = request.form.get('score_back')
             flash('Пожалуйста, подтвердите, что вы не робот.')
-            return render_template("login.html", key = constants.RECAPTCHA_PUBLIC_KEY, form = ContactForm())
+            return render_template("login.html", key = constants.RECAPTCHA_PUBLIC_KEY, form = ContactForm(), score = score)
+
+        elif responseCaptcha['success'] == False and request.form.get('recaptcha') != 'recaptcha_2':
+            score = 0
+            flash('Пожалуйста, подтвердите, что вы не робот.')
+            return render_template("login.html", key = constants.RECAPTCHA_PUBLIC_KEY, form = ContactForm(), score = score)
+
+        if responseCaptcha['success'] == True:
+            score = responseCaptcha['score']
+        elif request.form.get('recaptcha') == 'recaptcha_2':
+            score = request.form.get('score_back')
 
         # Forget any user_id
         session.clear()
@@ -529,7 +544,7 @@ def login():
                 cursor.execute("INSERT INTO log_table (name, mail, status, date, score) \
                     VALUES(%(name)s, %(mail)s, %(status)s, %(date)s, %(score)s)", \
                     {'name': session["user_name"], 'mail': session["user_mail"], \
-                    'status': session["user_status"], 'date': today, 'score': responseCaptcha['score']})
+                    'status': session["user_status"], 'date': today, 'score': score})
 
                 # Redirect user to home page
                 return redirect('/' )
@@ -1152,16 +1167,24 @@ def reset_password():
     elif request.method == 'POST':   
         token = request.form.get("id_token")
         # запрос данных у google
-        responseCaptcha = json.loads(requests.post('https://www.google.com/recaptcha/api/siteverify', 
-            data=dict(secret=constants.RECAPTCHA_PRIVATE_KEY, response=token)).text)
-        
+        try:
+            responseCaptcha = json.loads(requests.post('https://www.google.com/recaptcha/api/siteverify', 
+                data=dict(secret=constants.RECAPTCHA_PRIVATE_KEY, response=token)).text)
+        except:
+            return redirect ('/')
+
         if responseCaptcha['success'] == True and responseCaptcha['score'] < constants.MIN_SCORE:
             flash('Пожалуйста, подтвердите, что вы не робот.')
             return render_template("reset_password.html", key = constants.RECAPTCHA_PUBLIC_KEY, form = ContactForm())
         
-        if request.form.get('recaptcha') == 'recaptcha_2' and ContactForm().validate_on_submit() is False:
+        elif request.form.get('recaptcha') == 'recaptcha_2' and ContactForm().validate_on_submit() is False:
             flash('Пожалуйста, подтвердите, что вы не робот.')
             return render_template("reset_password.html", key = constants.RECAPTCHA_PUBLIC_KEY, form = ContactForm())
+
+        elif responseCaptcha['success'] == False and request.form.get('recaptcha') != 'recaptcha_2':
+            flash('Пожалуйста, подтвердите, что вы не робот.')
+            return render_template("login.html", key = constants.RECAPTCHA_PUBLIC_KEY, form = ContactForm())
+
 
         user_name = request.form.get('username')
         if user_name:
