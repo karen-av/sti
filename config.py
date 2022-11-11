@@ -18,7 +18,7 @@ class Config(object):
     MAIL_USE_SSL = True
     #app.config['MAIL_DEBUG'] = True
     MAIL_USERNAME = 'backoffice@sti-partners.ru'
-    MAIL_PASSWORD = 'jz4V4$?9RpiGzVG'
+    MAIL_PASSWORD = '***********'
     MAIL_DEFAULT_SENDER = 'backoffice@sti-partners.ru'
     MAIL_MAX_EMAILS = None
     #app.config['MAIL_SUPPRESS_SEND'] = False
