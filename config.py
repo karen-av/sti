@@ -1,9 +1,9 @@
 
 import psycopg2
 
-host = "ec2-34-193-44-192.compute-1.amazonaws.com"
-user = "vmfxqzwglzoagi"
-password = "8c83f577e40db85b6e810dfa0935f79f41f32c4c2414c89a9fa31f28957bf786"
+host = "********"
+user = "********"
+password = "******"
 db_name = "dc2k8sqsffd92a"
 port = 5432
 
@@ -24,7 +24,7 @@ class Config(object):
     #app.config['MAIL_SUPPRESS_SEND'] = False
     MAIL_ASCII_ATTACHMENTS = False
     RECAPTCHA_PUBLIC_KEY = "6LcNd8khAAAAAOn_IY_vOVqktHdZPZKmn1c7Ibgi"
-    RECAPTCHA_PRIVATE_KEY = "6LcNd8khAAAAAJWAGPyVfjL0LxplCOsnkPUrXDAU"
+    RECAPTCHA_PRIVATE_KEY = "********"
     RECAPTCHA_DISABLE = True #  будет капча или нет
     TEMPLATES_AUTO_RELOAD = True
     UPLOAD_FOLDER = 'upload_files'
