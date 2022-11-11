@@ -14,5 +14,5 @@ HEADER_LIST_FROM_TEST_SMALL = ('НАДЁЖНОСТЬ', 'ОРГАНИЗОВАНН
 HEAD_COACH_EMAIL = 't.astralenko@sti-partners.ru'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 RECAPTCHA_PUBLIC_KEY = "6LdYqogiAAAAAGj1Hqg_jUIg9iJYXPEXU58ERyCs"
-RECAPTCHA_PRIVATE_KEY = "6LdYqogiAAAAAAH8VMkBb8Dd9qSPxS2rfVRWr2H8"
+RECAPTCHA_PRIVATE_KEY = "************"
 MIN_SCORE = 0.7
